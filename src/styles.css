@@ -1,85 +1,58 @@
 /*
- * @etamong-lab/ui — design-token contract + command-palette styles.
+ * @etamong-lab/ui — command-palette + notification styles + namespaced tokens.
  *
  * Import once at the app root: `import "@etamong-lab/ui/styles.css"`.
- * The `:root` block is the canonical SEMANTIC token vocabulary every app maps
- * to (see the planning wiki, concepts/design-system). Values default to light;
- * `[data-theme="dark"]` carries the recurring etamong dark palette. Set the
- * attribute before first paint with the no-flash script (see helpers.ts:
- * `noFlashThemeScript`) to avoid a flash.
  *
- * An app overrides only what it must — almost always just `--accent`.
+ * Components are styled from `--etu-*` tokens (deliberately NAMESPACED so this
+ * file is safe to import into any app — including shadcn/Tailwind apps that
+ * already own `--accent`/`--border`/`--ring`). Defaults below match the etamong
+ * look; an app theming to its own palette overrides just a few, e.g.
+ *   :root { --etu-accent: var(--primary); --etu-surface: var(--popover); }
+ *
+ * Dark mode triggers on EITHER `[data-theme="dark"]` (Vite-family convention)
+ * or the `.dark` class (Next/shadcn convention).
  */
 
 :root {
-  color-scheme: light;
-
-  --bg: #ffffff;
-  --surface: #f7f8fa;
-  --surface-2: #eef0f3;
-  --border: #e3e6ea;
-  --border-strong: #cdd2d9;
-
-  --text: #1a1d21;
-  --text-muted: #5c636e;
-  --text-subtle: #8b929c;
-
-  --accent: #5b8cff;
-  --accent-strong: #3f6fe0;
-  --accent-soft: #eaf0ff;
-  --on-accent: #ffffff;
-
-  --danger: #e5484d;
-  --danger-soft: #fde8e8;
-  --ok: #2faf6b;
-  --ok-soft: #e6f6ee;
-  --warn: #b9810a;
-
-  --r: 12px;
-  --r-sm: 8px;
-  --r-pill: 999px;
-
-  --font: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+  --etu-bg: #ffffff;
+  --etu-surface: #ffffff;
+  --etu-surface-2: #eef0f3;
+  --etu-border: #e3e6ea;
+  --etu-text: #1a1d21;
+  --etu-text-muted: #5c636e;
+  --etu-text-subtle: #8b929c;
+  --etu-accent: #5b8cff;
+  --etu-accent-soft: #eef1f6;
+  --etu-on-accent: #ffffff;
+  --etu-ok: #2faf6b;
+  --etu-err: #e5484d;
+  --etu-r: 12px;
+  --etu-r-sm: 8px;
+  --etu-font: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", "Noto Sans KR", sans-serif;
-  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-
-  --shadow-sm: 0 1px 2px rgba(16, 19, 26, 0.06);
-  --shadow: 0 12px 32px rgba(16, 19, 26, 0.12);
-  --ring: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
-  --t: 140ms cubic-bezier(0.4, 0, 0.2, 1);
+  --etu-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --etu-shadow: 0 16px 40px rgba(16, 19, 26, 0.14);
 }
 
-:root[data-theme="dark"] {
-  color-scheme: dark;
-
-  --bg: #0f1115;
-  --surface: #181b22;
-  --surface-2: #1f232c;
-  --border: #262b35;
-  --border-strong: #353c48;
-
-  --text: #e6e8ec;
-  --text-muted: #98a1ad;
-  --text-subtle: #6b7480;
-
-  --accent: #5b8cff;
-  --accent-strong: #7aa2ff;
-  --accent-soft: rgba(91, 140, 255, 0.14);
-  --on-accent: #0b0e13;
-
-  --danger: #ff6b6b;
-  --danger-soft: rgba(255, 107, 107, 0.14);
-  --ok: #34d399;
-  --ok-soft: rgba(52, 211, 153, 0.14);
-  --warn: #f5a623;
-
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+:root[data-theme="dark"],
+.dark {
+  --etu-bg: #0f1115;
+  --etu-surface: #181b22;
+  --etu-surface-2: #1f232c;
+  --etu-border: #262b35;
+  --etu-text: #e6e8ec;
+  --etu-text-muted: #98a1ad;
+  --etu-text-subtle: #6b7480;
+  --etu-accent: #5b8cff;
+  --etu-accent-soft: #232838;
+  --etu-on-accent: #0b0e13;
+  --etu-ok: #34d399;
+  --etu-err: #ff6b6b;
+  --etu-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
 }
 
 /* ----------------------------------------------------------------------------
- * Command palette (CommandPalette). Styled purely from the tokens above so it
- * themes for free and needs no Tailwind. cmdk emits the [cmdk-*] attributes.
+ * Command palette (CommandPalette). cmdk emits the [cmdk-*] attributes.
  * ------------------------------------------------------------------------- */
 
 .etu-cmdk-overlay {
@@ -103,26 +76,26 @@
   width: 100%;
   max-width: 32rem;
   overflow: hidden;
-  border-radius: var(--r);
-  border: 1px solid var(--border);
-  background: var(--surface);
-  box-shadow: var(--shadow);
-  font-family: var(--font);
+  border-radius: var(--etu-r);
+  border: 1px solid var(--etu-border);
+  background: var(--etu-surface);
+  box-shadow: var(--etu-shadow);
+  font-family: var(--etu-font);
 }
 
 .etu-cmdk-input {
   width: 100%;
   border: none;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--etu-border);
   background: transparent;
   padding: 0.85rem 1rem;
   font-size: 0.9rem;
-  color: var(--text);
+  color: var(--etu-text);
   outline: none;
 }
 
 .etu-cmdk-input::placeholder {
-  color: var(--text-subtle);
+  color: var(--etu-text-subtle);
 }
 
 .etu-cmdk-list {
@@ -135,7 +108,7 @@
   padding: 1.5rem 0;
   text-align: center;
   font-size: 0.85rem;
-  color: var(--text-muted);
+  color: var(--etu-text-muted);
 }
 
 .etu-cmdk [cmdk-group-heading] {
@@ -143,38 +116,38 @@
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.02em;
-  color: var(--text-subtle);
+  color: var(--etu-text-subtle);
 }
 
 .etu-cmdk-item {
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  border-radius: var(--r-sm);
+  border-radius: var(--etu-r-sm);
   padding: 0.5rem 0.5rem;
   font-size: 0.875rem;
-  color: var(--text);
+  color: var(--etu-text);
   cursor: pointer;
 }
 
 .etu-cmdk-item[data-selected="true"] {
-  background: var(--accent-soft);
+  background: var(--etu-accent-soft);
 }
 
 .etu-cmdk-search [cmdk-group-heading] {
   margin-top: 0.25rem;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--etu-border);
   padding-top: 0.6rem;
 }
 
 .etu-cmdk-item-search {
-  color: var(--text-muted);
+  color: var(--etu-text-muted);
 }
 
 .etu-cmdk-item-icon {
   display: inline-flex;
   flex-shrink: 0;
-  color: var(--text-subtle);
+  color: var(--etu-text-subtle);
 }
 
 .etu-cmdk-item-label {
@@ -187,23 +160,165 @@
   margin-left: auto;
   flex-shrink: 0;
   font-size: 0.75rem;
-  color: var(--text-subtle);
+  color: var(--etu-text-subtle);
 }
 
 .etu-cmdk-footer {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--etu-border);
   padding: 0.45rem 1rem;
-  color: var(--text-subtle);
+  color: var(--etu-text-subtle);
 }
 
 .etu-cmdk-kbd {
   border-radius: 4px;
-  background: var(--surface-2);
+  background: var(--etu-surface-2);
   padding: 0.1rem 0.35rem;
-  font-family: var(--mono);
+  font-family: var(--etu-mono);
   font-size: 0.65rem;
   line-height: 1.4;
+}
+
+/* ----------------------------------------------------------------------------
+ * Toast (toast() / <Toaster/>)
+ * ------------------------------------------------------------------------- */
+
+.etu-toaster {
+  position: fixed;
+  left: 50%;
+  bottom: 1.5rem;
+  transform: translateX(-50%);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+  pointer-events: none;
+  padding: 0 1rem;
+  max-width: 100%;
+}
+
+.etu-toast {
+  pointer-events: auto;
+  cursor: pointer;
+  max-width: 32rem;
+  border-radius: var(--etu-r-sm);
+  border: 1px solid var(--etu-border);
+  border-left: 3px solid var(--etu-text-subtle);
+  background: var(--etu-surface);
+  box-shadow: var(--etu-shadow);
+  color: var(--etu-text);
+  font-family: var(--etu-font);
+  font-size: 0.85rem;
+  padding: 0.6rem 0.9rem;
+  animation: etu-toast-in 160ms ease-out;
+}
+
+.etu-toast-ok {
+  border-left-color: var(--etu-ok);
+}
+.etu-toast-err {
+  border-left-color: var(--etu-err);
+}
+.etu-toast-info {
+  border-left-color: var(--etu-accent);
+}
+
+@keyframes etu-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ----------------------------------------------------------------------------
+ * Dialog (DialogHost / uiConfirm / uiPrompt)
+ * ------------------------------------------------------------------------- */
+
+.etu-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.etu-dialog {
+  width: 100%;
+  max-width: 26rem;
+  border-radius: var(--etu-r);
+  border: 1px solid var(--etu-border);
+  background: var(--etu-surface);
+  box-shadow: var(--etu-shadow);
+  color: var(--etu-text);
+  font-family: var(--etu-font);
+  padding: 1.25rem;
+}
+
+.etu-dialog-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.etu-dialog-body {
+  font-size: 0.875rem;
+  color: var(--etu-text-muted);
+  margin-bottom: 0.9rem;
+  white-space: pre-wrap;
+}
+
+.etu-dialog-input {
+  width: 100%;
+  border-radius: var(--etu-r-sm);
+  border: 1px solid var(--etu-border);
+  background: var(--etu-bg);
+  color: var(--etu-text);
+  padding: 0.55rem 0.7rem;
+  font-size: 0.875rem;
+  font-family: var(--etu-font);
+  margin-bottom: 0.9rem;
+  outline: none;
+}
+
+.etu-dialog-input:focus {
+  border-color: var(--etu-accent);
+}
+
+.etu-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.etu-dialog-btn {
+  border-radius: var(--etu-r-sm);
+  border: 1px solid var(--etu-border);
+  background: var(--etu-surface-2);
+  color: var(--etu-text);
+  font-family: var(--etu-font);
+  font-size: 0.85rem;
+  padding: 0.45rem 0.9rem;
+  cursor: pointer;
+}
+
+.etu-dialog-btn-primary {
+  background: var(--etu-accent);
+  border-color: var(--etu-accent);
+  color: var(--etu-on-accent);
+}
+
+.etu-dialog-btn-danger {
+  background: var(--etu-err);
+  border-color: var(--etu-err);
+  color: #ffffff;
 }

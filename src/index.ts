@@ -27,3 +27,11 @@ export {
   setTheme,
   type Theme,
 } from "./theme";
+export {
+  toast,
+  dismissToast,
+  Toaster,
+  type ToastKind,
+  type ToastItem,
+} from "./toast";
+export { uiConfirm, uiPrompt, DialogHost } from "./dialog";
