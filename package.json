@@ -45,7 +45,7 @@
     "typescript": "^5.6.3"
   },
   "publishConfig": {
-    "@etamong-lab:registry": "https://gitlab.com/api/v4/projects/PLACEHOLDER_PROJECT_ID/packages/npm/"
+    "@etamong-lab:registry": "https://gitlab.com/api/v4/projects/83138104/packages/npm/"
   },
   "license": "UNLICENSED"
 }

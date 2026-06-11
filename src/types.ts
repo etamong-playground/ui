@@ -33,8 +33,24 @@ export interface CommandSection {
   forceMount?: boolean;
 }
 
+/**
+ * A bottom, always-mounted "search for …" action that receives the live query.
+ * Selecting one typically pushes to a search/list route carrying the text, so an
+ * unmatched query still becomes a real search.
+ */
+export interface CommandSearchAction {
+  id: string;
+  label: string;
+  keywords?: string;
+  icon?: ReactNode;
+  /** Called with the current input text on select. */
+  run: (query: string) => void;
+}
+
 /** Overridable UI strings (defaults are English). */
 export interface CommandPaletteLabels {
   placeholder: string;
   noResults: string;
+  /** Heading for the always-mounted search-actions group. */
+  searchHeading: string;
 }

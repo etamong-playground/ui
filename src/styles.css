@@ -161,6 +161,16 @@
   background: var(--accent-soft);
 }
 
+.etu-cmdk-search [cmdk-group-heading] {
+  margin-top: 0.25rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.6rem;
+}
+
+.etu-cmdk-item-search {
+  color: var(--text-muted);
+}
+
 .etu-cmdk-item-icon {
   display: inline-flex;
   flex-shrink: 0;

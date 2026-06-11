@@ -10,6 +10,7 @@ export {
 export type {
   CommandItem,
   CommandSection,
+  CommandSearchAction,
   CommandPaletteLabels,
 } from "./types";
 export {

@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { Command } from "cmdk";
-import type { CommandItem, CommandPaletteLabels, CommandSection } from "./types";
+import type {
+  CommandItem,
+  CommandPaletteLabels,
+  CommandSearchAction,
+  CommandSection,
+} from "./types";
 import {
   COMMAND_PALETTE_OPEN_EVENT,
   isInputTarget,
@@ -10,6 +15,8 @@ import {
 export interface CommandPaletteProps {
   /** Ordered groups rendered top-to-bottom. */
   sections: CommandSection[];
+  /** Always-mounted "search for …" actions, rendered last; receive the live query. */
+  searchActions?: CommandSearchAction[];
   /** Called with an item's `href` on select (e.g. `router.push`). */
   onNavigate?: (href: string) => void;
   /** When false, items marked `adminOnly` are filtered out. Default false. */
@@ -26,6 +33,7 @@ export interface CommandPaletteProps {
 const DEFAULT_LABELS: CommandPaletteLabels = {
   placeholder: "Type a command or search…",
   noResults: "No results.",
+  searchHeading: "Search",
 };
 
 /**
@@ -39,6 +47,7 @@ const DEFAULT_LABELS: CommandPaletteLabels = {
  */
 export function CommandPalette({
   sections,
+  searchActions,
   onNavigate,
   isAdmin = false,
   labels,
@@ -103,6 +112,14 @@ export function CommandPalette({
     [onNavigate, setOpen],
   );
 
+  const runSearch = useCallback(
+    (action: CommandSearchAction) => {
+      setOpen(false);
+      action.run(search.trim());
+    },
+    [search, setOpen],
+  );
+
   const visibleSections = sections
     .map((s) => ({
       ...s,
@@ -152,6 +169,30 @@ export function CommandPalette({
             ))}
           </Command.Group>
         ))}
+        {searchActions && searchActions.length > 0 ? (
+          <Command.Group
+            heading={text.searchHeading}
+            forceMount
+            className="etu-cmdk-search"
+          >
+            {searchActions.map((action) => (
+              <Command.Item
+                key={action.id}
+                value={`__search__ ${action.keywords || action.label}`}
+                onSelect={() => runSearch(action)}
+                className="etu-cmdk-item etu-cmdk-item-search"
+              >
+                {action.icon ? (
+                  <span className="etu-cmdk-item-icon">{action.icon}</span>
+                ) : null}
+                <span className="etu-cmdk-item-label">{action.label}</span>
+                {search.trim() ? (
+                  <span className="etu-cmdk-item-sub">&quot;{search.trim()}&quot;</span>
+                ) : null}
+              </Command.Item>
+            ))}
+          </Command.Group>
+        ) : null}
       </Command.List>
       <div className="etu-cmdk-footer">
         <kbd className="etu-cmdk-kbd">↑↓</kbd>

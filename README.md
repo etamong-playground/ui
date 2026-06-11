@@ -30,9 +30,24 @@ Import once at the app root:
 import "@etamong-lab/ui/styles.css";
 ```
 
-`:root` is the canonical semantic token vocabulary (light defaults);
-`[data-theme="dark"]` carries the etamong dark palette. An app usually overrides
-only `--accent`. Set the theme before first paint to avoid a flash:
+The command palette is styled from **namespaced `--etu-*` tokens** (light
+defaults on `:root`, dark under either `[data-theme="dark"]` or the `.dark`
+class) — deliberately prefixed so this file is safe to import into any app,
+including shadcn/Tailwind apps that already own `--accent`/`--border`/`--ring`.
+To theme the palette to your app, map a few `--etu-*` vars onto your own tokens:
+
+```css
+/* shadcn app: */
+:root, .dark {
+  --etu-surface: var(--popover);
+  --etu-border: var(--border);
+  --etu-text: var(--popover-foreground);
+  --etu-accent-soft: var(--accent);
+}
+```
+
+For apps using the `[data-theme]` dark-mode convention, set the theme before
+first paint to avoid a flash:
 
 ```ts
 import { noFlashThemeScript } from "@etamong-lab/ui/helpers";
