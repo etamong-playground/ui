@@ -365,3 +365,39 @@
   border-color: var(--etu-err);
   color: #ffffff;
 }
+
+/* ----------------------------------------------------------------------------
+ * DeployInfo (<DeployInfo version builtAt />)
+ * ------------------------------------------------------------------------- */
+
+.etu-deploy-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--etu-font);
+  font-size: 0.72rem;
+  line-height: 1.2;
+  color: var(--etu-text-subtle);
+  white-space: nowrap;
+}
+
+.etu-deploy-info-label {
+  text-transform: lowercase;
+  letter-spacing: 0.01em;
+}
+
+.etu-deploy-info-ver {
+  font-family: var(--etu-mono);
+  font-size: 0.72rem;
+  color: var(--etu-text-muted);
+  text-decoration: none;
+}
+
+a.etu-deploy-info-ver:hover {
+  color: var(--etu-accent);
+  text-decoration: underline;
+}
+
+.etu-deploy-info-time {
+  color: var(--etu-text-subtle);
+}

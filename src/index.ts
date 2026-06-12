@@ -39,3 +39,4 @@ export {
   type ToastItem,
 } from "./toast";
 export { uiConfirm, uiPrompt, DialogHost } from "./dialog";
+export { DeployInfo, type DeployInfoProps } from "./deployInfo";
