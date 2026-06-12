@@ -3,6 +3,10 @@
 // "@etamong-lab/ui/styles.css" once at the app root.
 export { CommandPalette, type CommandPaletteProps } from "./CommandPalette";
 export {
+  CommandPaletteTrigger,
+  type CommandPaletteTriggerProps,
+} from "./trigger";
+export {
   useGoToShortcuts,
   type GoToRoute,
   type GoToOptions,
