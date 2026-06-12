@@ -182,6 +182,49 @@
 }
 
 /* ----------------------------------------------------------------------------
+ * Command palette trigger (CommandPaletteTrigger) — a search-box that opens it.
+ * ------------------------------------------------------------------------- */
+
+.etu-palette-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  border-radius: var(--etu-r-sm);
+  border: 1px solid var(--etu-border);
+  background: var(--etu-surface-2);
+  color: var(--etu-text-subtle);
+  font-family: var(--etu-font);
+  font-size: 0.8rem;
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+  transition: background 140ms ease;
+}
+
+.etu-palette-trigger:hover {
+  background: var(--etu-accent-soft);
+}
+
+.etu-palette-trigger-icon {
+  flex-shrink: 0;
+}
+
+.etu-palette-trigger-label {
+  flex: 1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.etu-palette-trigger-kbd {
+  flex-shrink: 0;
+  font-family: var(--etu-mono);
+  font-size: 0.62rem;
+  opacity: 0.85;
+}
+
+/* ----------------------------------------------------------------------------
  * Toast (toast() / <Toaster/>)
  * ------------------------------------------------------------------------- */
 
