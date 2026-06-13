@@ -27,6 +27,8 @@ React/ReactDOM are peer deps.
 | `uiConfirm(opts)` | Promise | Modal confirm; resolves `boolean` | Replaces `window.confirm` |
 | `uiPrompt(opts)` | Promise | Modal text prompt; resolves `string \| null` | Replaces `window.prompt` |
 | `DeployInfo` | React component | "deployed `<sha>` · `<rel time>`" badge; renders `null` when no build env | App-info section (settings / backoffice) — **not a footer** |
+| `InstallBanner` | React component | Mobile-only PWA install banner. Real install button on Chrome/Android; "Share → 홈 화면에 추가" hint on iOS Safari; auto-hides when already installed | Once near the app root (same boundary as `<Toaster />`) |
+| `useInstallPrompt()` | React hook | Lower-level — returns `{ canPrompt, promptInstall, isIOS, isStandalone }` for apps that want to render their own UI | Any client component |
 | `crossLocaleKeywords(dicts, getter)` | function | Build a cmdk `keywords` string that matches in ko AND en | Inline when defining items |
 | `openCommandPalette()` | function | Dispatches the open event from anywhere | Custom triggers |
 | `useGoToShortcuts` / `setTheme` / `getTheme` / `noFlashThemeScript` | helpers | Theme set/get + the `<head>` no-flash snippet for the `[data-theme]` dark convention | At/before first paint |
@@ -288,6 +290,41 @@ global footer** — that was the first pass, reworked per user feedback. For
 labeled rows (버전 / 배포 시각) instead of the compact badge, see the in-app
 implementations (res-train `/settings`, festplan `#/settings`, pages admin
 Access view). Baking the build env in CI: see `concepts/build-version-info`.
+
+## InstallBanner (PWA install)
+
+Mobile-only dismissable banner that does the right thing per platform:
+
+```tsx
+import { InstallBanner } from "@etamong-lab/ui";
+
+// Once near the app root (same boundary as <Toaster />):
+<InstallBanner
+  label={t.install.hint}              // "홈 화면에 추가하면 더 빠르게!"
+  iosHint={t.install.iosHint}         // "공유 → 홈 화면에 추가"
+  installLabel={t.install.cta}        // "설치"
+  storageKey="myapp-install-banner"   // per-app, to avoid clashes
+/>
+```
+
+- **Chrome / Android** — captures `beforeinstallprompt`, shows an install
+  button that fires the real native prompt.
+- **iOS Safari** — no programmatic install. Shows a short
+  "Share → Add to Home Screen" hint instead.
+- **Already installed** (`display-mode: standalone`) — renders nothing.
+- **Dismiss + cooldown** — clicking the close button hides the banner for 3
+  days; gives up after 3 dismissals. Override with `cooldownMs` / `maxDismiss`.
+- Hidden on `min-width: 768px`. For desktop, drop a small button using
+  `useInstallPrompt()` instead.
+
+This is the `concepts/spa-navigation-state` rule's PWA-install requirement
+packaged once — apps drop the component in, no per-app
+`beforeinstallprompt` / iOS-detection boilerplate to maintain.
+
+```tsx
+// Lower-level hook if you want to render your own UI:
+const { canPrompt, promptInstall, isIOS, isStandalone } = useInstallPrompt();
+```
 
 ## Releasing
 
