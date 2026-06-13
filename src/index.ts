@@ -87,3 +87,13 @@ export {
   type ServiceWorkerHandle,
   type NetworkFirstSwOptions,
 } from "./serviceWorker";
+export {
+  AdminGate,
+  AdminBadge,
+  BackofficeLayout,
+  isAdminLike,
+  type AdminCheckInput,
+  type AdminGateProps,
+  type AdminBadgeProps,
+  type BackofficeLayoutProps,
+} from "./backoffice";

@@ -43,6 +43,10 @@ React/ReactDOM are peer deps.
 | `useClipboard()` | React hook | Lower-level — `{ copied, copy(value) }`; clipboard API + legacy fallback | When you want to render your own copy UI |
 | `registerServiceWorker(url, opts)` | function | Registers a service worker with the etamong-lab update flow (aggressive `update()`, "새 버전" toast, auto-reload on `controllerchange`) | Once at app bootstrap, after window load |
 | `networkFirstSwSource({ version, … })` | function | Returns the canonical online-first SW recipe as a string — write to `public/sw.js` at build time. Network-first nav + assets, never intercepts `/api/*`, versioned caches | Build step (or served dynamically) |
+| `AdminGate` | React component | Renders `children` only when `me` passes `is_admin` / email allowlist / role / predicate (logical OR); otherwise renders `fallback` | Wrap any admin-only route or section |
+| `AdminBadge` | React component | Small "관리자 전용" pill | Inline next to the page title |
+| `BackofficeLayout` | React component | Page-head with title + AdminBadge + actions slot + body | Backoffice / admin-console route layout |
+| `isAdminLike(input)` | function | The check behind `AdminGate` exposed as a pure function | Imperative gates / route guards |
 | `crossLocaleKeywords(dicts, getter)` | function | Build a cmdk `keywords` string that matches in ko AND en | Inline when defining items |
 | `openCommandPalette()` | function | Dispatches the open event from anywhere | Custom triggers |
 | `useGoToShortcuts` / `setTheme` / `getTheme` / `noFlashThemeScript` | helpers | Theme set/get + the `<head>` no-flash snippet for the `[data-theme]` dark convention | At/before first paint |
@@ -738,6 +742,57 @@ When **not** to use the preset:
 - Push-only SWs (schedule-manager) — no caching at all.
 - Scoped stale-while-revalidate of specific safe-read endpoints
   (minccino) — narrower than this preset; keep the hand-rolled regex.
+
+## Backoffice scaffold (AdminGate + AdminBadge + BackofficeLayout)
+
+The admin-gate + 관리자 전용 badge + page-head layout every backoffice
+route in the fleet re-implements. Pairs with `useMe<T>` — pass the `me`
+straight through.
+
+```tsx
+import { useMe, AdminGate, BackofficeLayout } from "@etamong-lab/ui";
+
+interface Me extends BaseMe { can_create_apps?: boolean }
+
+function Console() {
+  const { me } = useMe<Me>();
+  return (
+    <AdminGate
+      me={me}
+      emails={["root@etamong.com", "ops@etamong.com"]}
+      predicate={(m) => m.can_create_apps === true}
+      fallback={<div>권한이 없어요.</div>}
+    >
+      <BackofficeLayout
+        title="앱 콘솔"
+        description="앱 생성·배포·롤백을 관리합니다."
+        actions={<button onClick={onNewApp}>새 앱</button>}
+      >
+        <AppList />
+      </BackofficeLayout>
+    </AdminGate>
+  );
+}
+```
+
+The gate is a **logical OR** across these signals:
+
+- `me.is_admin === true` (always counts; no config needed).
+- `emails` — case-insensitive allowlist; useful for the LLM
+  prompt-audit consoles where the admin set isn't expressed in the IdP.
+- `roles` — if `me.roles` intersects this set.
+- `predicate(me)` — app-specific flag (`can_create_apps`, etc.).
+
+If you need the boolean without the wrapping component:
+
+```ts
+import { isAdminLike } from "@etamong-lab/ui";
+if (isAdminLike({ me, emails: ADMIN_EMAILS })) router.push("/admin");
+```
+
+`<BackofficeLayout>` renders the `<AdminBadge>` next to the title by
+default. Pass `badge={null}` to hide it, or `badge={<CustomBadge />}` to
+override.
 
 ## Releasing
 
