@@ -36,6 +36,8 @@ React/ReactDOM are peer deps.
 | `BackButton` | React component | Token-styled back button; renders only when there's somewhere to go (or when `onClick` is set) | Above page headings / detail views |
 | `createFetch` | factory | `fetch` wrapper: JSON in/out, parses the httperr `{error, ref}` body into an `HttpError`, redirects to `oauth2-proxy` sign-in on 401 | Once per app — `const api = createFetch({ baseUrl: "/api" })` |
 | `HttpError` | class | Thrown for every non-2xx; carries `status`, `ref`, `body` — drop `err.ref` into `<ErrorPage refCode={...}>` | `try { … } catch (e) { if (e instanceof HttpError) … }` |
+| `useMe` | React hook | Fetches `/api/me` (or a custom `fetcher`), returns `{ me, loading, error, refresh }`; treats 401 as anonymous by default | Once near the app root |
+| `signInUrl` / `signOutUrl` / `signIn` / `signOut` | functions | `oauth2-proxy` sign-in/out URL builders + navigation helpers | Login buttons, post-auth redirects |
 | `crossLocaleKeywords(dicts, getter)` | function | Build a cmdk `keywords` string that matches in ko AND en | Inline when defining items |
 | `openCommandPalette()` | function | Dispatches the open event from anywhere | Custom triggers |
 | `useGoToShortcuts` / `setTheme` / `getTheme` / `noFlashThemeScript` | helpers | Theme set/get + the `<head>` no-flash snippet for the `[data-theme]` dark convention | At/before first paint |
@@ -536,6 +538,56 @@ The wrapper:
   untouched;
 - handles 204 / empty responses (resolves `undefined`);
 - returns `Response` directly when `raw: true`.
+
+## useMe + sign-in / sign-out helpers
+
+Every etamong-lab app sits behind `oauth2-proxy` and exposes a small
+`/me` endpoint with the authenticated identity. This hook + the URL
+helpers cover the repeated wiring.
+
+```tsx
+import { useMe, signIn, signOut, type BaseMe } from "@etamong-lab/ui";
+
+// App-specific shape — extends BaseMe ({ email, preferred_username?,
+// is_admin?, roles? }).
+interface Me extends BaseMe {
+  can_create_apps?: boolean;
+}
+
+function Header() {
+  const { me, loading, error } = useMe<Me>();
+  if (loading) return null;
+  if (error || !me) return <button onClick={() => signIn()}>로그인</button>;
+  return (
+    <div>
+      {me.preferred_username ?? me.email}
+      {me.is_admin && <span className="badge">관리자</span>}
+      <button onClick={() => signOut("/")}>로그아웃</button>
+    </div>
+  );
+}
+```
+
+Options:
+
+- **`endpoint`** — default `/api/me`. Ignored when `fetcher` is set.
+- **`fetcher`** — pass `() => api.get<Me>("/me")` when the app's API
+  base path differs from the default, or to inherit `createFetch`'s
+  error handling.
+- **`treat401AsAnonymous`** — default `true`. 401 from the default
+  fetcher resolves to `me: null, error: null`. Set `false` if your app
+  considers an unauthenticated user a hard error. Ignored with a custom
+  `fetcher`.
+
+`refresh()` fires an `etu:me-refresh` event so multiple `useMe`
+consumers re-fetch together (e.g. after a token-add flow flips
+`can_create_apps`).
+
+The URL helpers follow the oauth2-proxy convention:
+
+- `signInUrl(rd?)` → `/oauth2/start?rd=<encoded>` (default `rd` = current URL).
+- `signOutUrl(rd?)` → `/oauth2/sign_out?rd=<encoded>` (default `rd` = `/`).
+- `signIn(rd?)` / `signOut(rd?)` navigate the browser to those URLs.
 
 ## Releasing
 
