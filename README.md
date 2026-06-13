@@ -32,6 +32,8 @@ React/ReactDOM are peer deps.
 | `ErrorPage` | React component | Full-page friendly error surface; pairs with the httperr `ref` pattern, no raw error / repo links leak | Error boundary / Next.js `error.tsx` / 404 fallback route |
 | `useRouteState` | React hook | In-page state slice synced with the URL query string (works with both regular and hash routers); restores on refresh, syncs with back/forward | Tabs, filters, sort, search term, expanded row id |
 | `useSessionState` | React hook | Same shape as `useRouteState` but backed by `sessionStorage`, keyed per route | Scroll offset, cmdk query, unsubmitted form draft |
+| `useInAppBack` | React hook | Tracks an in-app history stack via a marker in `history.state`; returns `{ canGoBack, goBack, push, replace }` | Once per app — wire to a back button + every in-app nav |
+| `BackButton` | React component | Token-styled back button; renders only when there's somewhere to go (or when `onClick` is set) | Above page headings / detail views |
 | `crossLocaleKeywords(dicts, getter)` | function | Build a cmdk `keywords` string that matches in ko AND en | Inline when defining items |
 | `openCommandPalette()` | function | Dispatches the open event from anywhere | Custom triggers |
 | `useGoToShortcuts` / `setTheme` / `getTheme` / `noFlashThemeScript` | helpers | Theme set/get + the `<head>` no-flash snippet for the `[data-theme]` dark convention | At/before first paint |
@@ -425,6 +427,55 @@ components reading the same key stay in sync.
 
 SSR-safe: on the server they return the `initial` value; the URL/session
 read happens on mount in an effect.
+
+## useInAppBack / BackButton
+
+The other half of the SPA navigation contract: the back button — both the
+browser's and your in-UI one — should stay inside the app.
+
+`useInAppBack` tracks an in-app history stack by writing a marker into
+`history.state` on every in-app navigation. `canGoBack` is true when at
+least one in-app entry sits behind the current one; `goBack()` calls
+`history.back()` when true, otherwise it runs the optional `onExit`
+fallback so cold-entry users (someone landed on a deep link from
+outside) still go somewhere sensible.
+
+```tsx
+import { useInAppBack, BackButton } from "@etamong-lab/ui";
+
+function App() {
+  const back = useInAppBack({ onExit: () => (location.href = "/") });
+
+  function openSite(slug: string) {
+    back.push(`#/sites/${slug}`);   // grows the in-app stack
+  }
+  function changeTab(tab: string) {
+    back.replace(`#/sites/foo/${tab}`);  // does NOT grow the stack
+  }
+
+  return (
+    <>
+      <BackButton canGoBack={back.canGoBack} goBack={back.goBack} />
+      {/* …rest of the app */}
+    </>
+  );
+}
+```
+
+Notes:
+
+- The hook is router-agnostic — it reads and writes `window.history`
+  directly. Wire it through your router's `push`/`replace` or use the
+  hook's own `push`/`replace` helpers.
+- Pairs cleanly with `useRouteState`, which uses `replaceState`. URL-
+  synced in-page state (tab, filter) doesn't grow the back stack.
+- The first mount marks the current entry as in-app at depth `0`, so any
+  later `push()` has a baseline to count from. Browser back across a
+  push restores the marker; a hard reload starts fresh from `0`
+  (correct: the page IS the entry point).
+- `<BackButton>` renders nothing when there's nowhere to go, unless
+  `alwaysShow` or an `onClick` is set. Default label: "뒤로"; override
+  via `label`.
 
 ## Releasing
 
