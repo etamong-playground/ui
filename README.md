@@ -48,6 +48,9 @@ React/ReactDOM are peer deps.
 | `BackofficeLayout` | React component | Page-head with title + AdminBadge + actions slot + body | Backoffice / admin-console route layout |
 | `isAdminLike(input)` | function | The check behind `AdminGate` exposed as a pure function | Imperative gates / route guards |
 | `AppInfoSection` | React component | Canonical "앱 정보" card — name, description, app version, build (`<DeployInfo>`), links, free-form rows | Settings / backoffice "About" route |
+| `formatRelTime(when)` | function | `"3분 전"` / `"in 2 hours"` via `Intl.RelativeTimeFormat`; locale from the document | Lists, activity feeds, anywhere "ago" reads right |
+| `formatAbsTime(when, opts?)` | function | Absolute time via `Intl.DateTimeFormat`; defaults to KST (`Asia/Seoul`) Korean. Style presets: `date` / `time` / `datetime` / `datetime-seconds` | Timestamps, log lines, tooltips |
+| `RelTime` | React component | Auto-refreshing relative-time label (`<time dateTime>` with absolute time as `title`) | Anywhere `formatRelTime` would otherwise need re-renders |
 | `crossLocaleKeywords(dicts, getter)` | function | Build a cmdk `keywords` string that matches in ko AND en | Inline when defining items |
 | `openCommandPalette()` | function | Dispatches the open event from anywhere | Custom triggers |
 | `useGoToShortcuts` / `setTheme` / `getTheme` / `noFlashThemeScript` | helpers | Theme set/get + the `<head>` no-flash snippet for the `[data-theme]` dark convention | At/before first paint |
@@ -842,6 +845,54 @@ Props:
 Both the identity block and the `<dl>` rows are conditional: if you
 only pass `version`/`builtAt`, the card collapses to just the build
 row.
+
+## Time helpers (formatRelTime / formatAbsTime / RelTime)
+
+The relative-time + KST-absolute formatting that used to live inside
+`<DeployInfo>`, pulled out and shared. Apps stop reinventing
+`"3분 전"` / KST conversion.
+
+```tsx
+import { formatRelTime, formatAbsTime, RelTime } from "@etamong-lab/ui";
+
+formatRelTime("2026-06-13T03:29:00Z");
+// → "3분 전" (when locale defaults to ko)
+
+formatAbsTime("2026-06-13T03:29:00Z");
+// → "2026. 06. 13. 12:29" (KST default)
+
+formatAbsTime(Date.now(), { withZoneSuffix: true });
+// → "2026. 06. 13. 12:34 KST"
+
+// Self-refreshing relative label — `<time dateTime>` with the absolute
+// time in the `title` so hover reveals the exact KST timestamp.
+<RelTime when={item.createdAt} />
+```
+
+`formatRelTime` options:
+
+- `locale` — defaults to the document/browser default. Pass `"ko"` /
+  `"en"` to force.
+- `numeric` — default `"auto"` (gives `"어제"` / `"yesterday"` instead
+  of `"1 day ago"`).
+- `now` — reference time for "now"; defaults to `Date.now()`.
+
+`formatAbsTime` options:
+
+- `timeZone` — default `"Asia/Seoul"`.
+- `locale` — default `"ko-KR"`.
+- `style` — preset (`"date"`, `"time"`, `"datetime"`,
+  `"datetime-seconds"`); ignored when `formatOptions` is set.
+- `formatOptions` — raw `Intl.DateTimeFormatOptions` for full control.
+- `withZoneSuffix` — appends ` KST` (or the literal zone string for
+  non-default zones).
+
+`<RelTime>` refresh cadence is "auto": every 15 s under a minute, every
+minute under an hour, every 10 minutes beyond. The title (absolute
+time) stays in sync because it's derived in the same render.
+
+Invalid timestamps (bad ISO, `undefined`) render to empty strings —
+safe to use directly on partial data.
 
 ## Releasing
 

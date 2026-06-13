@@ -19,19 +19,7 @@ export interface DeployInfoProps {
   className?: string;
 }
 
-function relativeTime(iso: string): string {
-  const then = new Date(iso).getTime();
-  if (Number.isNaN(then)) return "";
-  const diffSec = (then - Date.now()) / 1000; // negative in the past
-  const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
-  const abs = Math.abs(diffSec);
-  if (abs < 60) return rtf.format(Math.round(diffSec), "second");
-  if (abs < 3600) return rtf.format(Math.round(diffSec / 60), "minute");
-  if (abs < 86400) return rtf.format(Math.round(diffSec / 3600), "hour");
-  if (abs < 2592000) return rtf.format(Math.round(diffSec / 86400), "day");
-  if (abs < 31536000) return rtf.format(Math.round(diffSec / 2592000), "month");
-  return rtf.format(Math.round(diffSec / 31536000), "year");
-}
+import { formatRelTime, formatAbsTime } from "./time";
 
 /**
  * Renders e.g. `deployed a1b2c3d · 2 days ago`. Returns null when neither a
@@ -42,10 +30,10 @@ export function DeployInfo({ version, builtAt, label = "deployed", href, classNa
   if (!version && !builtAt) return null;
 
   const short = version ? version.slice(0, 7) : null;
-  const rel = builtAt ? relativeTime(builtAt) : null;
+  const rel = builtAt ? formatRelTime(builtAt) : null;
   const title = [
     version && `commit ${version}`,
-    builtAt && `built ${new Date(builtAt).toLocaleString()}`,
+    builtAt && `built ${formatAbsTime(builtAt, { withZoneSuffix: true })}`,
   ]
     .filter(Boolean)
     .join("\n");
