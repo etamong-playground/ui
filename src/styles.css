@@ -788,3 +788,111 @@ a.etu-deploy-info-ver:hover {
   flex-direction: column;
   gap: 1rem;
 }
+
+/* AppInfoSection — canonical "앱 정보" card. */
+.etu-app-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.etu-app-info-heading {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--etu-text);
+  margin: 0;
+}
+
+.etu-app-info-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.1rem 1.2rem;
+  background: var(--etu-surface);
+  border: 1px solid var(--etu-border);
+  border-radius: 0.75rem;
+}
+
+.etu-app-info-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.etu-app-info-icon {
+  width: 2.4rem;
+  height: 2.4rem;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  background: var(--etu-surface-2);
+  color: var(--etu-text-muted);
+  font-size: 1.4rem;
+  overflow: hidden;
+}
+
+.etu-app-info-icon img,
+.etu-app-info-icon svg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.etu-app-info-name {
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--etu-text);
+}
+
+.etu-app-info-description {
+  margin-top: 0.15rem;
+  font-size: 0.82rem;
+  color: var(--etu-text-muted);
+}
+
+.etu-app-info-meta {
+  margin: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.etu-app-info-row {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+}
+
+.etu-app-info-row dt {
+  color: var(--etu-text-muted);
+  font-weight: 500;
+  margin: 0;
+}
+
+.etu-app-info-row dd {
+  margin: 0;
+  color: var(--etu-text);
+  min-width: 0;
+}
+
+.etu-app-info-links {
+  display: flex;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--etu-border);
+  font-size: 0.82rem;
+}
+
+.etu-app-info-link {
+  color: var(--etu-text-muted);
+  text-decoration: none;
+}
+
+.etu-app-info-link:hover {
+  color: var(--etu-text);
+  text-decoration: underline;
+}

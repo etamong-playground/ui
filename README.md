@@ -47,6 +47,7 @@ React/ReactDOM are peer deps.
 | `AdminBadge` | React component | Small "관리자 전용" pill | Inline next to the page title |
 | `BackofficeLayout` | React component | Page-head with title + AdminBadge + actions slot + body | Backoffice / admin-console route layout |
 | `isAdminLike(input)` | function | The check behind `AdminGate` exposed as a pure function | Imperative gates / route guards |
+| `AppInfoSection` | React component | Canonical "앱 정보" card — name, description, app version, build (`<DeployInfo>`), links, free-form rows | Settings / backoffice "About" route |
 | `crossLocaleKeywords(dicts, getter)` | function | Build a cmdk `keywords` string that matches in ko AND en | Inline when defining items |
 | `openCommandPalette()` | function | Dispatches the open event from anywhere | Custom triggers |
 | `useGoToShortcuts` / `setTheme` / `getTheme` / `noFlashThemeScript` | helpers | Theme set/get + the `<head>` no-flash snippet for the `[data-theme]` dark convention | At/before first paint |
@@ -793,6 +794,54 @@ if (isAdminLike({ me, emails: ADMIN_EMAILS })) router.push("/admin");
 `<BackofficeLayout>` renders the `<AdminBadge>` next to the title by
 default. Pass `badge={null}` to hide it, or `badge={<CustomBadge />}` to
 override.
+
+## AppInfoSection (canonical "앱 정보" card)
+
+The standing placement rule: app version and release time belong in
+`/settings` or the backoffice "About" route, not in a page footer. This
+component is the canonical layout — wraps `<DeployInfo>` so apps stop
+hand-rolling that placement.
+
+```tsx
+import { AppInfoSection } from "@etamong-lab/ui";
+
+<AppInfoSection
+  name="schedule-manager"
+  description="회의실 예약 관리 시스템"
+  icon={<img src="/icon.svg" alt="" />}
+  appVersion="1.4.2"
+  version={BUILD_SHA}
+  builtAt={BUILT_AT}
+  links={[
+    { label: "도움말", href: "/help" },
+    { label: "이용약관", href: "/terms" },
+    { label: "개인정보처리방침", href: "/privacy" },
+  ]}
+>
+  {/* Free-form rows after the standard ones */}
+  <div className="etu-app-info-row">
+    <dt>Plan</dt>
+    <dd>Pro</dd>
+  </div>
+</AppInfoSection>
+```
+
+Props:
+
+- `name` / `description` / `icon` — identity block (top of the card).
+- `appVersion` — the semver shown as the "버전" row (typically your
+  `package.json` `version`).
+- `version` / `builtAt` — forwarded to `<DeployInfo>` for the "빌드" row
+  (shows `deployed <sha7> · <rel time>`).
+- `links` — link row at the bottom; external URLs open in a new tab.
+- `children` — free-form rows inside the `<dl>` — wrap each in a
+  `<div className="etu-app-info-row">` for consistent two-column
+  layout.
+- `heading` — default `"앱 정보"`. Pass `null` to omit.
+
+Both the identity block and the `<dl>` rows are conditional: if you
+only pass `version`/`builtAt`, the card collapses to just the build
+row.
 
 ## Releasing
 

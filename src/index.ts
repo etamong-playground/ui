@@ -97,3 +97,8 @@ export {
   type AdminBadgeProps,
   type BackofficeLayoutProps,
 } from "./backoffice";
+export {
+  AppInfoSection,
+  type AppInfoSectionProps,
+  type AppInfoLink,
+} from "./appInfoSection";
