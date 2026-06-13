@@ -40,3 +40,4 @@ export {
 } from "./toast";
 export { uiConfirm, uiPrompt, DialogHost } from "./dialog";
 export { DeployInfo, type DeployInfoProps } from "./deployInfo";
+export { InstallBanner, useInstallPrompt, type InstallBannerProps } from "./installBanner";
