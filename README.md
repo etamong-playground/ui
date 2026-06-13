@@ -38,6 +38,9 @@ React/ReactDOM are peer deps.
 | `HttpError` | class | Thrown for every non-2xx; carries `status`, `ref`, `body` — drop `err.ref` into `<ErrorPage refCode={...}>` | `try { … } catch (e) { if (e instanceof HttpError) … }` |
 | `useMe` | React hook | Fetches `/api/me` (or a custom `fetcher`), returns `{ me, loading, error, refresh }`; treats 401 as anonymous by default | Once near the app root |
 | `signInUrl` / `signOutUrl` / `signIn` / `signOut` | functions | `oauth2-proxy` sign-in/out URL builders + navigation helpers | Login buttons, post-auth redirects |
+| `EmptyState` | React component | "Nothing here yet" card; title + optional description / action / icon, `role="status"` | Empty lists, empty search results |
+| `CopyButton` | React component | Token-styled copy button with success-state flip ("복사" → "복사됨"); fires a toast on success/error | Secret reveal, token / slug / ref copy |
+| `useClipboard()` | React hook | Lower-level — `{ copied, copy(value) }`; clipboard API + legacy fallback | When you want to render your own copy UI |
 | `crossLocaleKeywords(dicts, getter)` | function | Build a cmdk `keywords` string that matches in ko AND en | Inline when defining items |
 | `openCommandPalette()` | function | Dispatches the open event from anywhere | Custom triggers |
 | `useGoToShortcuts` / `setTheme` / `getTheme` / `noFlashThemeScript` | helpers | Theme set/get + the `<head>` no-flash snippet for the `[data-theme]` dark convention | At/before first paint |
@@ -588,6 +591,71 @@ The URL helpers follow the oauth2-proxy convention:
 - `signInUrl(rd?)` → `/oauth2/start?rd=<encoded>` (default `rd` = current URL).
 - `signOutUrl(rd?)` → `/oauth2/sign_out?rd=<encoded>` (default `rd` = `/`).
 - `signIn(rd?)` / `signOut(rd?)` navigate the browser to those URLs.
+
+## EmptyState
+
+The "nothing here yet" card. Every list / grid view has one; this is
+the single one to use.
+
+```tsx
+import { EmptyState } from "@etamong-lab/ui";
+
+<EmptyState
+  title="아직 사이트가 없어요"
+  description="새 사이트를 만들어 시작해 보세요."
+  action={<button className="cta" onClick={onNew}>새 사이트</button>}
+/>
+
+// Compact variant for sidebar / inline use:
+<EmptyState compact title="결과 없음" description="검색어를 바꿔 보세요." />
+```
+
+Props:
+
+- `title` — required headline.
+- `description` — optional one-line description (ReactNode).
+- `action` — optional CTA / footnote node.
+- `icon` — replace the default cube glyph; pass `null` to omit.
+- `compact` — smaller padding + smaller type.
+
+Marked `role="status"` for screen readers.
+
+## CopyButton + useClipboard
+
+For the secret-reveal / token-copy / slug-copy / ref-copy moments.
+Pairs with the package's `toast()` for the "복사됨" confirmation, and
+falls back to a hidden `<textarea>` + `document.execCommand("copy")`
+when `navigator.clipboard` isn't available (non-https / older mobile).
+
+```tsx
+import { CopyButton, useClipboard } from "@etamong-lab/ui";
+
+// Standard text button:
+<CopyButton value={token} />
+
+// Icon-only, sitting next to a value display:
+<code>{slug}</code> <CopyButton value={slug} iconOnly />
+
+// Custom UI — useClipboard returns the state machine:
+function MyButton({ value }) {
+  const { copied, copy } = useClipboard();
+  return (
+    <button onClick={() => copy(value)}>
+      {copied ? "✓ 복사됨" : "복사"}
+    </button>
+  );
+}
+```
+
+`<CopyButton>` props:
+
+- `value` — required string to copy.
+- `label` / `successLabel` — default `"복사"` / `"복사됨"`.
+- `iconOnly` — render just the icon (default: icon + label).
+- `icon` — override the default copy/check glyph; pass `null` to omit.
+- `ariaLabel` — used when `iconOnly`; defaults to `label`.
+- `resetMs` — how long the copied state lingers. Default `1500`.
+- `toastOnSuccess` / `toastOnError` — toast text; pass `null` to suppress.
 
 ## Releasing
 

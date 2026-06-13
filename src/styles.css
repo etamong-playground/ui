@@ -628,3 +628,97 @@ a.etu-deploy-info-ver:hover {
 .etu-back-button-label {
   line-height: 1;
 }
+
+/* EmptyState — centered card for "nothing here yet" views. */
+.etu-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: var(--etu-text-muted);
+  border: 1px dashed var(--etu-border);
+  border-radius: 0.75rem;
+  background: var(--etu-surface);
+}
+
+.etu-empty-state--compact {
+  padding: 1.4rem 1rem;
+  gap: 0.4rem;
+}
+
+.etu-empty-state-icon {
+  color: var(--etu-text-subtle);
+  margin-bottom: 0.25rem;
+}
+
+.etu-empty-state-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--etu-text);
+}
+
+.etu-empty-state--compact .etu-empty-state-title {
+  font-size: 0.9rem;
+}
+
+.etu-empty-state-body {
+  font-size: 0.85rem;
+  max-width: 28rem;
+  line-height: 1.45;
+}
+
+.etu-empty-state-actions {
+  margin-top: 0.6rem;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* CopyButton — compact ghost button with copy / check icon. */
+.etu-copy-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.5rem;
+  background: transparent;
+  border: 1px solid var(--etu-border);
+  border-radius: 0.4rem;
+  color: var(--etu-text-muted);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+
+.etu-copy-button:hover {
+  background: var(--etu-surface-2);
+  color: var(--etu-text);
+}
+
+.etu-copy-button:focus-visible {
+  outline: 2px solid var(--etu-accent);
+  outline-offset: 2px;
+}
+
+.etu-copy-button--copied {
+  color: var(--etu-ok, var(--etu-accent));
+  border-color: var(--etu-ok, var(--etu-accent));
+}
+
+.etu-copy-button--icon-only {
+  padding: 0.25rem;
+}
+
+.etu-copy-button-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.etu-copy-button-label {
+  line-height: 1;
+}
