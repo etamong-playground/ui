@@ -102,3 +102,12 @@ export {
   type AppInfoSectionProps,
   type AppInfoLink,
 } from "./appInfoSection";
+export {
+  formatRelTime,
+  formatAbsTime,
+  RelTime,
+  type TimeLike,
+  type FormatRelTimeOptions,
+  type FormatAbsTimeOptions,
+  type RelTimeProps,
+} from "./time";
