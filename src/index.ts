@@ -62,3 +62,13 @@ export {
   type HttpErrorBody,
   type RequestOptions,
 } from "./createFetch";
+export {
+  useMe,
+  signInUrl,
+  signOutUrl,
+  signIn,
+  signOut,
+  type BaseMe,
+  type UseMeOptions,
+  type UseMeResult,
+} from "./useMe";
