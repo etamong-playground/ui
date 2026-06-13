@@ -432,6 +432,13 @@ a.etu-deploy-info-ver:hover {
   }
 }
 
+/* When the same app also renders <MobileTabBar>, lift the banner above it so
+ * it doesn't sit on top of the tab bar. Apps can override
+ * --etu-mobile-tab-bar-h if their bar uses non-default icon/label sizing. */
+body:has(.etu-mobile-tab-bar) .etu-install-banner {
+  bottom: calc(0.75rem + var(--etu-mobile-tab-bar-h, 56px) + env(safe-area-inset-bottom));
+}
+
 .etu-install-banner-icon {
   flex-shrink: 0;
   color: var(--etu-accent);
