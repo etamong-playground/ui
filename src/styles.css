@@ -1141,6 +1141,153 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   line-height: 1;
 }
 
+/* ----------------------------------------------------------------------------
+ * Sidebar — desktop nav shell. Hidden at mobile widths; counterpart to
+ * <MobileTabBar>. Composition: AppHeader / Primary / Secondary / Footer.
+ * ------------------------------------------------------------------------- */
+
+.etu-sidebar {
+  width: var(--etu-sidebar-w, 240px);
+  flex: 0 0 var(--etu-sidebar-w, 240px);
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem 0.5rem;
+  background: var(--etu-surface);
+  border-right: 1px solid var(--etu-border);
+  box-sizing: border-box;
+}
+
+@media (max-width: 719px) {
+  .etu-sidebar {
+    display: none;
+  }
+}
+
+.etu-sidebar-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem 0.5rem 0.25rem;
+}
+
+.etu-sidebar-header-app {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.etu-sidebar-header-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.etu-sidebar-header-icon > svg {
+  width: 22px;
+  height: 22px;
+}
+
+.etu-sidebar-header-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--etu-text);
+  letter-spacing: -0.01em;
+}
+
+.etu-sidebar-header-extra {
+  font-size: 0.8rem;
+  color: var(--etu-text-muted);
+}
+
+.etu-sidebar-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.etu-sidebar-section--secondary {
+  margin-top: 0.25rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--etu-border);
+}
+
+.etu-sidebar-caption {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--etu-text-subtle);
+  padding: 0.25rem 0.5rem;
+}
+
+.etu-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.6rem;
+  background: transparent;
+  border: 0;
+  border-radius: var(--etu-r-sm);
+  color: var(--etu-text-muted);
+  font: inherit;
+  font-size: 0.9rem;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.etu-sidebar-item:hover {
+  background: var(--etu-surface-2);
+  color: var(--etu-text);
+}
+
+.etu-sidebar-item:focus-visible {
+  outline: 2px solid var(--etu-accent);
+  outline-offset: -2px;
+}
+
+.etu-sidebar-item--active {
+  background: var(--etu-accent-soft);
+  color: var(--etu-text);
+  font-weight: 600;
+}
+
+.etu-sidebar-item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.etu-sidebar-item-icon > svg {
+  width: 18px;
+  height: 18px;
+}
+
+.etu-sidebar-item-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.etu-sidebar-footer {
+  margin-top: auto;
+  padding: 0.5rem;
+  border-top: 1px solid var(--etu-border);
+  font-size: 0.85rem;
+  color: var(--etu-text-muted);
+}
+
 /* --------------------------------------------------------------------------
  * StatusBanner — top-of-app strip surfacing service-admin declared incidents.
  * Outage incidents take origin offline and never reach the banner; the strip
