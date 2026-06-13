@@ -130,6 +130,11 @@ export {
   type MobileTabBarProps,
   type MobileTabBarItem,
 } from "./mobileTabBar";
+export {
+  Sidebar,
+  type SidebarProps,
+  type SidebarItem,
+} from "./sidebar";
 // alpha — API may change before stable 0.20.0
 export {
   DocsHub,

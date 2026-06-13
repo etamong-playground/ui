@@ -999,6 +999,69 @@ stand-alone `<Avatar>`:
 
 Pictures that fail to load fall back to the initial letter automatically.
 
+## Sidebar + MobileTabBar (fleet nav shell)
+
+`<Sidebar>` is the desktop nav shell; `<MobileTabBar>` is the mobile
+bottom bar. Together they implement the fleet
+[sidebar-composition](https://gitlab.com/etamong-lab/planning/-/blob/main/wiki/concepts/sidebar-composition.md)
+and [mobile-more-page](https://gitlab.com/etamong-lab/planning/-/blob/main/wiki/concepts/mobile-more-page.md)
+contracts. Drive both from the same `primary` and `secondary` arrays —
+one source of truth, two renderers. Both are CSS-hidden at the
+opposite breakpoint, so mounting both unconditionally is correct.
+
+```tsx
+import { Sidebar, MobileTabBar, AppInfoSection, type SidebarItem } from "@etamong-lab/ui";
+import { Home, Calendar, Users, Settings, ShieldCheck, MoreHorizontal } from "lucide-react";
+
+const primary: SidebarItem[] = [
+  { id: "home",     label: "홈",     icon: <Home size={18} />,     active: view === "home",     onClick: () => go("home") },
+  { id: "schedule", label: "일정",   icon: <Calendar size={18} />, active: view === "schedule", onClick: () => go("schedule") },
+  { id: "members",  label: "구성원", icon: <Users size={18} />,    active: view === "members",  onClick: () => go("members") },
+];
+
+const secondary: SidebarItem[] = [
+  { id: "settings", label: "설정",  icon: <Settings size={18} />,    active: view === "settings", onClick: () => go("settings") },
+  { id: "admin",    label: "Admin", icon: <ShieldCheck size={18} />, active: view === "admin",    onClick: () => go("admin"),    /* gate caller-side: only push when me?.is_admin */ },
+];
+
+function Shell({ children }: { children: ReactNode }) {
+  return (
+    <div className="etu-app-shell">
+      <Sidebar
+        appName="schedule-manager"
+        primary={primary}
+        secondary={secondary}
+        footer={
+          <>
+            <AppInfoSection name={me?.name} description={me?.email} appVersion={pkg.version} version={SHA} builtAt={BUILT_AT} heading={null} />
+            <button className="etu-sidebar-item" onClick={signOut}>로그아웃</button>
+          </>
+        }
+      />
+      <main>{children}</main>
+      <MobileTabBar
+        items={[
+          ...primary.slice(0, 4),
+          { id: "more", label: "더보기", icon: <MoreHorizontal size={22} />, active: view === "more", onClick: () => go("more") },
+        ]}
+      />
+    </div>
+  );
+}
+```
+
+Notes:
+
+- **Settings + Logout always live on `/more` on mobile.** The mobile tab bar
+  shows up to 4 primary destinations + 더보기; the operator taps 더보기 →
+  `/more` to find Settings, Logout, Admin, etc. Never put Settings on a
+  tab; never show a header-dropdown `<UserMenu>` on mobile.
+- **No `userMenu` prop on `<Sidebar>`.** Identity + Logout live in
+  `footer`. Header dropdowns are the retired anti-pattern.
+- **Active state is caller-computed.** Both components are
+  router-agnostic and never read the URL.
+- **CSS variable `--etu-sidebar-w` overrides the 240px default width.**
+
 ## Releasing
 
 The package publishes from CI **on a version tag** — no manual `pnpm publish`.
