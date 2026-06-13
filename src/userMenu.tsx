@@ -103,13 +103,16 @@ export interface UserMenuProps<T extends BaseMe = BaseMe> {
    */
   showAdminBadge?: boolean;
   /**
-   * Where the dropdown opens relative to the trigger. Default: `"bottom-right"`.
-   * Use `"top-right"` when the trigger sits at the bottom of a sidebar foot
-   * (pages / festplan layouts) so the menu opens *upward* instead of
-   * disappearing past the viewport.
+   * Preferred placement of the dropdown relative to the trigger.
+   * Default: `"bottom-right"`. Use `"top-right"` when the trigger sits at the
+   * bottom of a sidebar foot (pages / festplan layouts) so the menu opens
+   * *upward* instead of pointing at the viewport edge.
    *
-   * The horizontal half controls the dropdown's right/left alignment;
-   * the vertical half controls open-up vs open-down.
+   * The horizontal half controls the dropdown's right/left alignment; the
+   * vertical half controls open-up vs open-down. The component auto-flips
+   * either axis on open when the requested side doesn't fit — so a layout
+   * that becomes a horizontal topbar on mobile won't strand the menu above
+   * the viewport.
    */
   placement?: "bottom-right" | "bottom-left" | "top-right" | "top-left";
 }
@@ -136,7 +139,9 @@ export function UserMenu<T extends BaseMe = BaseMe>({
   placement = "bottom-right",
 }: UserMenuProps<T>) {
   const [open, setOpen] = useState(false);
+  const [computedPlacement, setComputedPlacement] = useState(placement);
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const menuId = useId();
 
   useEffect(() => {
@@ -154,6 +159,45 @@ export function UserMenu<T extends BaseMe = BaseMe>({
       document.removeEventListener("keydown", onKey);
     };
   }, [open]);
+
+  // Auto-flip the requested placement when it would push the dropdown off the
+  // viewport. Match the CSS contract in styles.css:
+  //   - "right" horizontal: dropdown's right edge aligns with the trigger's
+  //     right edge → it extends LEFTWARD; needs trigger.right px of space.
+  //   - "left"  horizontal: dropdown's left  edge aligns with the trigger's
+  //     left  edge → it extends RIGHTWARD; needs (viewport - trigger.left) px.
+  //   - "top"    vertical: opens upward;   needs trigger.top px above.
+  //   - "bottom" vertical: opens downward; needs (viewport - trigger.bottom) px.
+  // Menu size is estimated from the CSS (min-width 14rem, typical height
+  // ~220px) — good enough for "is there room?".
+  useEffect(() => {
+    if (!open) {
+      setComputedPlacement(placement);
+      return;
+    }
+    const trigger = triggerRef.current;
+    if (!trigger || typeof window === "undefined") return;
+    const rect = trigger.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const menuW = 240;
+    const menuH = 220;
+    const [vReq, hReq] = placement.split("-") as ["top" | "bottom", "left" | "right"];
+    let v: "top" | "bottom" = vReq;
+    let h: "left" | "right" = hReq;
+
+    const spaceAbove = rect.top;
+    const spaceBelow = vh - rect.bottom;
+    if (v === "top" && spaceAbove < menuH && spaceBelow > spaceAbove) v = "bottom";
+    else if (v === "bottom" && spaceBelow < menuH && spaceAbove > spaceBelow) v = "top";
+
+    const spaceForRight = rect.right;
+    const spaceForLeft = vw - rect.left;
+    if (h === "right" && spaceForRight < menuW && spaceForLeft > spaceForRight) h = "left";
+    else if (h === "left" && spaceForLeft < menuW && spaceForRight > spaceForLeft) h = "right";
+
+    setComputedPlacement(`${v}-${h}` as typeof placement);
+  }, [open, placement]);
 
   if (!me) {
     return (
@@ -176,6 +220,7 @@ export function UserMenu<T extends BaseMe = BaseMe>({
       className={"etu-user-menu" + (className ? " " + className : "")}
     >
       <button
+        ref={triggerRef}
         type="button"
         className="etu-user-menu-trigger"
         aria-haspopup="menu"
@@ -193,7 +238,7 @@ export function UserMenu<T extends BaseMe = BaseMe>({
       {open && (
         <div
           id={menuId}
-          className={`etu-user-menu-dropdown etu-user-menu-dropdown--${placement}`}
+          className={`etu-user-menu-dropdown etu-user-menu-dropdown--${computedPlacement}`}
           role="menu"
           aria-label={displayName}
         >
