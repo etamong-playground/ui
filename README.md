@@ -352,6 +352,49 @@ packaged once — apps drop the component in, no per-app
 const { canPrompt, promptInstall, isIOS, isStandalone } = useInstallPrompt();
 ```
 
+## StatusBanner (service-admin declared-incident strip)
+
+Sticky top-of-app strip that surfaces operator-declared incidents and downtime
+windows from the etamong-lab status hub. Polls the same-origin
+`/.well-known/maintenance.json` endpoint that the cluster's Cloudflare Worker
+serves on every routed host — no app-side wiring, no API client to maintain.
+
+```tsx
+import { StatusBanner } from "@etamong-lab/ui";
+
+// Once at the app root, alongside <Toaster /> / <InstallBanner />:
+<StatusBanner />
+```
+
+- **Renders only for `degraded` / `maintenance`.** `outage` incidents take the
+  origin offline and serve a 503 maintenance page directly — the banner has
+  nothing to do in that case.
+- **Language** is auto-picked from `document.documentElement.lang` (`ko` →
+  Korean, else English). Override with `lang="ko" | "en"`.
+- **Session-dismissable** per `(severity, updated_at)`: closing the banner
+  hides it for the session, but a fresh incident (different severity or
+  updated_at) reappears. Pass `dismissible={false}` to disable.
+- **ETA + message** rendered when the operator set them; falls back to the
+  other-language copy if one side is empty.
+- **Renders `null`** while loading / on endpoint error / when not enabled —
+  safe to mount unconditionally.
+- **Polls** every 60s by default (the endpoint sends `cache-control:
+  public, max-age=30`, so 60s guarantees a fresh value between polls). Pauses
+  while `document.hidden`, immediately re-fetches on visibility return.
+
+Concept page: `etamong-lab/planning` wiki → `concepts/status-hub`. Endpoint
+contract: `etamong-lab/apps/service-admin` README → "Status-hub contracts".
+
+```tsx
+// Lower-level hook if you want to render your own UI (header pill,
+// notifications page entry, etc.):
+const status = useStatusBanner();
+if (status?.enabled && status.severity !== "outage") {
+  // status: { enabled, severity, message_ko, message_en, eta_iso,
+  //           retry_after_seconds, tags, updated_at }
+}
+```
+
 ## ErrorPage
 
 Friendly full-page error surface. Pairs with the `httperr` `ref` pattern (see
