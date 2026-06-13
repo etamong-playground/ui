@@ -44,7 +44,7 @@ export interface MobileTabBarProps {
 export function MobileTabBar({ items, ariaLabel = "주요 메뉴", className }: MobileTabBarProps) {
   return (
     <nav
-      className={"etu-mobile-tab-bar" + (className ? " " + className : "")}
+      className={"etu-mobile-tab-bar etu-glass" + (className ? " " + className : "")}
       aria-label={ariaLabel}
     >
       {items.map((it) => {

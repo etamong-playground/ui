@@ -135,6 +135,10 @@ export {
   type SidebarProps,
   type SidebarItem,
 } from "./sidebar";
+export {
+  NavigationBar,
+  type NavigationBarProps,
+} from "./navigationBar";
 export { installIOSPwaShell } from "./installIOSPwaShell";
 // alpha — API may change before stable 0.20.0
 export {

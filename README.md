@@ -1148,6 +1148,48 @@ Notes:
   router-agnostic and never read the URL.
 - **CSS variable `--etu-sidebar-w` overrides the 240px default width.**
 
+## NavigationBar + floating tab bar (iOS 26 Liquid Glass)
+
+v0.23.0 adds `<NavigationBar>` — an iOS-style small-title bar — as the default
+per-page chrome across the fleet, and refreshes `<MobileTabBar>` to a floating
+pill with the iOS 26 **Liquid Glass** material (translucent backdrop, depth-aware
+border). The global avatar top bar is retired; profile access lives on `/more`
++ the desktop sidebar footer.
+
+```tsx
+import { NavigationBar } from "@etamong-lab/ui";
+
+<NavigationBar
+  title="일정 상세"
+  back={() => go("schedule")}
+  trailing={<button className="etu-icon-btn" onClick={openMenu}>⋯</button>}
+/>
+```
+
+Props (see `NavigationBarProps`):
+
+- `back`: `() => void` | `string` (push history + popstate) | `true` (calls
+  `history.back()`) | falsy (no back affordance).
+- `sticky` (default `true`) — sticks to top + applies `env(safe-area-inset-top)`.
+- `fadeOnScroll` (default `true`) — bar starts at 0.92 opacity and gains a
+  shadow after the page scrolls past 24px.
+- `borderless` — drop the hairline border (for full-bleed transparent shells).
+
+### Android Chrome / Samsung Internet compatibility floor
+
+- Min hit area is **48px** (Material 3 floor — supersedes iOS 44pt).
+- Every `backdrop-filter` is paired with an `@supports not` solid-`--etu-surface`
+  fallback, and `color-mix()` rules degrade to the underlying token.
+- Glyphs are generic Unicode (`‹`, `›`, `…`, `+`) — no SF Symbols.
+- Android system-back fires `popstate` naturally; `back: true` consuming
+  `history.back()` works the same on both platforms.
+
+### `.etu-glass` utility
+
+Both `.etu-navbar` and `.etu-mtb` (`.etu-mobile-tab-bar`) opt into the
+`.etu-glass` material. Apply it to any other surface (sheet, popover, dock) to
+match the fleet's iOS-26 visual.
+
 ## Releasing
 
 The package publishes from CI **on a version tag** — no manual `pnpm publish`.
