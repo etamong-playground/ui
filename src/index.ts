@@ -130,11 +130,3 @@ export {
   type MobileTabBarProps,
   type MobileTabBarItem,
 } from "./mobileTabBar";
-// alpha — API may change before stable 0.20.0
-export {
-  DocsHub,
-  buildSkillMarkdownText,
-  type DocsHubProps,
-  type DocsHubSection,
-  type DocsHubSkill,
-} from "./docsHub";

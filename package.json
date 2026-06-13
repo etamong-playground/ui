@@ -1,7 +1,7 @@
 {
   "name": "@etamong-lab/ui",
-  "version": "0.20.0-alpha.0",
-  "description": "Shared frontend scaffold for etamong-lab apps: design-token contract (styles.css), a configurable cmdk command palette + discoverable trigger, Korean-IME-safe keyboard shortcuts, toast + dialog primitives, deploy-version badge, PWA install banner, full-page error surface, in-page state hooks (URL + sessionStorage), in-app history stack + back button, fetch wrapper with httperr ref parsing, oauth2-proxy auth hook + sign-in/out helpers, empty-state + copy-button primitives, service-worker registration + online-first SW recipe, backoffice scaffold, AppInfoSection canonical app-info card, time helpers, UserMenu + Avatar (profile + 내 정보 + 로그아웃), MobileTabBar (router-agnostic bottom tab bar, desktop-hidden), StatusBanner + useStatusBanner (service-admin declared-incident strip), DocsHub (alpha — in-app docs surface + Claude-skill download).",
+  "version": "0.19.0",
+  "description": "Shared frontend scaffold for etamong-lab apps: design-token contract (styles.css), a configurable cmdk command palette + discoverable trigger, Korean-IME-safe keyboard shortcuts, toast + dialog primitives, deploy-version badge, PWA install banner, full-page error surface, in-page state hooks (URL + sessionStorage), in-app history stack + back button, fetch wrapper with httperr ref parsing, oauth2-proxy auth hook + sign-in/out helpers, empty-state + copy-button primitives, service-worker registration + online-first SW recipe, backoffice scaffold, AppInfoSection canonical app-info card, time helpers, UserMenu + Avatar (profile + 내 정보 + 로그아웃), MobileTabBar (router-agnostic bottom tab bar, desktop-hidden), StatusBanner + useStatusBanner (service-admin declared-incident strip).",
   "type": "module",
   "sideEffects": [
     "*.css"

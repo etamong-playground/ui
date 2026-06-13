@@ -68,16 +68,4 @@ publish:
       @etamong-lab:registry=https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/packages/npm/
       //gitlab.com/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}
       EOF
-    # Pre-release versions (e.g. 0.20.0-alpha.0, 1.0.0-rc.1) publish to a
-    # non-`latest` dist-tag so a stray `npm install @etamong-lab/ui` can't grab
-    # them. The dist-tag is the slug before the first dot ("alpha", "rc", …).
-    - |
-      PUBLISH_TAG="latest"
-      case "$PKG_VERSION" in
-        *-*)
-          PRE="${PKG_VERSION#*-}"        # "alpha.0" / "rc.1" / ...
-          PUBLISH_TAG="${PRE%%.*}"       # "alpha" / "rc" / ...
-          echo "→ pre-release detected, publishing to dist-tag: $PUBLISH_TAG"
-          ;;
-      esac
-    - pnpm publish --no-git-checks --tag "$PUBLISH_TAG"
+    - pnpm publish --no-git-checks
