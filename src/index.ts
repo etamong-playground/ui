@@ -118,3 +118,8 @@ export {
   type UserMenuItem,
   type AvatarProps,
 } from "./userMenu";
+export {
+  MobileTabBar,
+  type MobileTabBarProps,
+  type MobileTabBarItem,
+} from "./mobileTabBar";
