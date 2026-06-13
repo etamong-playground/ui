@@ -26,8 +26,10 @@ workflow:
 .node:
   image: node:${NODE_VERSION}-alpine
   before_script:
+    # pnpm 10+ — the repo's pnpm-workspace.yaml uses the `onlyBuiltDependencies`
+    # key (pnpm 10 syntax); pnpm 9 rejects it ("packages field missing").
     - corepack enable
-    - corepack prepare pnpm@9 --activate
+    - corepack prepare pnpm@10 --activate
     - pnpm install --frozen-lockfile
 
 # ── MR / main: typecheck + build ──────────────────────────────────
