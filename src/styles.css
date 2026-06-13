@@ -1115,19 +1115,140 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
  * MobileTabBar — fixed bottom tab bar; hidden at desktop widths.
  * ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------------
+ * Liquid Glass utility — translucent depth-aware material (iOS 26 / Tahoe).
+ * Paired with a solid fallback for browsers without backdrop-filter.
+ * ------------------------------------------------------------------------- */
+
+.etu-glass {
+  background: color-mix(in srgb, var(--etu-surface) 65%, transparent);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  border: 0.5px solid color-mix(in srgb, var(--etu-text) 10%, transparent);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .etu-glass {
+    background: var(--etu-surface);
+  }
+}
+
+/* ----------------------------------------------------------------------------
+ * NavigationBar — iOS-style small-title bar. Single 48px row, optional
+ * sticky + safe-area-inset-top, fade-on-scroll opacity + shadow ramp.
+ * ------------------------------------------------------------------------- */
+
+.etu-navbar {
+  z-index: 35;
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 0;
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--etu-text) 8%, transparent);
+  opacity: 0.92;
+  transition: opacity 160ms ease, box-shadow 160ms ease;
+}
+
+.etu-navbar--sticky {
+  position: sticky;
+  top: 0;
+  padding-top: env(safe-area-inset-top);
+}
+
+.etu-navbar--borderless {
+  border-bottom: 0;
+}
+
+.etu-navbar--scrolled {
+  opacity: 1;
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--etu-text) 6%, transparent),
+    0 8px 24px color-mix(in srgb, var(--etu-text) 8%, transparent);
+}
+
+.etu-navbar-inner {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 48px;
+  padding: 0 0.5rem;
+}
+
+.etu-navbar-leading,
+.etu-navbar-trailing {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 48px;
+}
+
+.etu-navbar-trailing {
+  justify-content: flex-end;
+}
+
+.etu-navbar-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--etu-text);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--etu-font);
+}
+
+.etu-navbar-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0 0.4rem;
+  background: transparent;
+  border: 0;
+  color: var(--etu-accent);
+  font: inherit;
+  cursor: pointer;
+}
+
+.etu-navbar-back:focus-visible {
+  outline: 2px solid var(--etu-accent);
+  outline-offset: -2px;
+  border-radius: 0.4rem;
+}
+
+.etu-navbar-chevron {
+  font-size: 1.5rem;
+  line-height: 1;
+  display: inline-block;
+  transform: translateY(-1px);
+}
+
+.etu-navbar-back-label {
+  font-size: 0.95rem;
+}
+
+/* ----------------------------------------------------------------------------
+ * MobileTabBar — floating pill, iOS 26 Liquid Glass. Hidden at desktop.
+ * ------------------------------------------------------------------------- */
+
 .etu-mobile-tab-bar {
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: calc(env(safe-area-inset-bottom) + 0.5rem);
   z-index: 40;
   display: flex;
   align-items: stretch;
   justify-content: space-around;
-  background: var(--etu-surface);
-  border-top: 1px solid var(--etu-border);
-  padding-top: 0.35rem;
-  padding-bottom: calc(0.35rem + env(safe-area-inset-bottom));
+  gap: 0.25rem;
+  padding: 0.35rem;
+  border-radius: 28px;
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--etu-text) 14%, transparent);
 }
 
 @media (min-width: 720px) {
@@ -1142,24 +1263,27 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.15rem;
-  padding: 0.35rem 0.25rem;
+  gap: 0.1rem;
+  min-height: 48px;
+  padding: 0.3rem 0.25rem;
   background: transparent;
   border: 0;
+  border-radius: 22px;
   color: var(--etu-text-subtle);
   font: inherit;
   text-decoration: none;
   cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
 }
 
 .etu-mobile-tab-bar-item:focus-visible {
   outline: 2px solid var(--etu-accent);
   outline-offset: -2px;
-  border-radius: 0.4rem;
 }
 
 .etu-mobile-tab-bar-item--active {
-  color: var(--etu-text);
+  color: var(--etu-on-accent);
+  background: var(--etu-accent);
 }
 
 .etu-mobile-tab-bar-icon {
