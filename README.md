@@ -29,6 +29,8 @@ React/ReactDOM are peer deps.
 | `DeployInfo` | React component | "deployed `<sha>` · `<rel time>`" badge; renders `null` when no build env | App-info section (settings / backoffice) — **not a footer** |
 | `InstallBanner` | React component | Mobile-only PWA install banner. Real install button on Chrome/Android; "Share → 홈 화면에 추가" hint on iOS Safari; auto-hides when already installed | Once near the app root (same boundary as `<Toaster />`) |
 | `useInstallPrompt()` | React hook | Lower-level — returns `{ canPrompt, promptInstall, isIOS, isStandalone }` for apps that want to render their own UI | Any client component |
+| `StatusBanner` | React component | Top-of-app strip that polls `/.well-known/maintenance.json` and renders when service-admin declared a `degraded` / `maintenance` incident on the host (outage takes origin offline, no banner needed). Dismissible per session per incident | Once at the app root |
+| `useStatusBanner()` | React hook | Lower-level — returns the parsed status JSON (`{ enabled, severity, message_ko, message_en, eta_iso, ... }`) for apps rendering their own UI | Any client component |
 | `ErrorPage` | React component | Full-page friendly error surface; pairs with the httperr `ref` pattern, no raw error / repo links leak | Error boundary / Next.js `error.tsx` / 404 fallback route |
 | `useRouteState` | React hook | In-page state slice synced with the URL query string (works with both regular and hash routers); restores on refresh, syncs with back/forward | Tabs, filters, sort, search term, expanded row id |
 | `useSessionState` | React hook | Same shape as `useRouteState` but backed by `sessionStorage`, keyed per route | Scroll offset, cmdk query, unsubmitted form draft |
