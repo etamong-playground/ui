@@ -1219,3 +1219,131 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
     white-space: normal;
   }
 }
+
+/* ----------------------------------------------------------------------------
+ * DocsHub — in-app docs surface with optional skill download (alpha).
+ * ------------------------------------------------------------------------- */
+
+.etu-docs-hub {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.etu-docs-hub-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.etu-docs-hub-head-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.etu-docs-hub-app-name {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--etu-text);
+}
+
+.etu-docs-hub-description {
+  margin: 0;
+  color: var(--etu-text-muted);
+  font-size: 14px;
+}
+
+.etu-docs-hub-skill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--etu-r, 10px);
+  border: 1px solid var(--etu-border);
+  background: var(--etu-surface);
+  color: var(--etu-text);
+  font: inherit;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 140ms, border-color 140ms;
+}
+
+.etu-docs-hub-skill-btn:hover {
+  background: var(--etu-surface-2);
+  border-color: var(--etu-accent-soft);
+}
+
+.etu-docs-hub-body {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.etu-docs-hub-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: sticky;
+  top: 16px;
+}
+
+.etu-docs-hub-nav-item {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: var(--etu-r, 8px);
+  border: none;
+  background: transparent;
+  color: var(--etu-text-muted);
+  font: inherit;
+  font-weight: 500;
+  font-size: 13.5px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 140ms, color 140ms;
+}
+
+.etu-docs-hub-nav-item:hover {
+  background: var(--etu-surface-2);
+  color: var(--etu-text);
+}
+
+.etu-docs-hub-nav-item--active {
+  background: var(--etu-accent-soft);
+  color: var(--etu-text);
+  font-weight: 600;
+}
+
+.etu-docs-hub-section {
+  min-width: 0;
+}
+
+.etu-docs-hub-section-summary {
+  margin: 0 0 16px;
+  color: var(--etu-text-muted);
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .etu-docs-hub-body {
+    grid-template-columns: 1fr;
+  }
+  .etu-docs-hub-nav {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 4px;
+    overflow-x: auto;
+  }
+  .etu-docs-hub-nav-item {
+    width: auto;
+  }
+}
