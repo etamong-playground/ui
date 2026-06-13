@@ -1,0 +1,71 @@
+# CI/CD for @etamong-lab/ui — publishes to THIS project's GitLab npm registry.
+#
+#   - MR / main:    typecheck + build  (catch breakage before it's merged)
+#   - Tag vX.Y.Z:   publish that exact version (must equal package.json)
+#
+# Release flow (see README → "Releasing"):
+#   1. Bump `version` in package.json on a branch → MR → merge to main.
+#   2. `git tag vX.Y.Z && git push origin vX.Y.Z`  → this pipeline publishes.
+#
+# Publish auth is the job's own `CI_JOB_TOKEN` (a project can publish to its own
+# package registry); no PAT or secret to manage.
+
+stages:
+  - check
+  - publish
+
+variables:
+  NODE_VERSION: "22"
+
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_TAG'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+.node:
+  image: node:${NODE_VERSION}-alpine
+  before_script:
+    # pnpm 10+ — the repo's pnpm-workspace.yaml uses the `onlyBuiltDependencies`
+    # key (pnpm 10 syntax); pnpm 9 rejects it ("packages field missing").
+    - corepack enable
+    - corepack prepare pnpm@10 --activate
+    - pnpm install --frozen-lockfile
+
+# ── MR / main: typecheck + build ──────────────────────────────────
+check:
+  stage: check
+  extends: .node
+  rules:
+    - if: '$CI_COMMIT_TAG'
+      when: never
+    - when: on_success
+  script:
+    - pnpm typecheck
+    - pnpm build
+
+# ── Tag vX.Y.Z: publish to the registry ───────────────────────────
+publish:
+  stage: publish
+  extends: .node
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$/'
+  script:
+    # The tag must match package.json's version (vX.Y.Z ↔ X.Y.Z) — a tripwire
+    # against publishing a version that doesn't match the committed source.
+    - PKG_VERSION=$(node -p "require('./package.json').version")
+    - TAG_VERSION="${CI_COMMIT_TAG#v}"
+    - |
+      if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
+        echo "✗ tag $CI_COMMIT_TAG does not match package.json version $PKG_VERSION"
+        echo "  bump package.json to $TAG_VERSION (or retag) and try again."
+        exit 1
+      fi
+    - pnpm build
+    # Auth to this project's own npm registry with the job token.
+    - |
+      cat > .npmrc <<EOF
+      @etamong-lab:registry=https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/packages/npm/
+      //gitlab.com/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}
+      EOF
+    - pnpm publish --no-git-checks
