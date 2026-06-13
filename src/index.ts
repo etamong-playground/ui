@@ -54,3 +54,11 @@ export {
   type UseInAppBackResult,
 } from "./useInAppBack";
 export { BackButton, type BackButtonProps } from "./backButton";
+export {
+  createFetch,
+  HttpError,
+  type CreateFetchOptions,
+  type FetchClient,
+  type HttpErrorBody,
+  type RequestOptions,
+} from "./createFetch";

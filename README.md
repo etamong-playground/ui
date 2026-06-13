@@ -34,6 +34,8 @@ React/ReactDOM are peer deps.
 | `useSessionState` | React hook | Same shape as `useRouteState` but backed by `sessionStorage`, keyed per route | Scroll offset, cmdk query, unsubmitted form draft |
 | `useInAppBack` | React hook | Tracks an in-app history stack via a marker in `history.state`; returns `{ canGoBack, goBack, push, replace }` | Once per app — wire to a back button + every in-app nav |
 | `BackButton` | React component | Token-styled back button; renders only when there's somewhere to go (or when `onClick` is set) | Above page headings / detail views |
+| `createFetch` | factory | `fetch` wrapper: JSON in/out, parses the httperr `{error, ref}` body into an `HttpError`, redirects to `oauth2-proxy` sign-in on 401 | Once per app — `const api = createFetch({ baseUrl: "/api" })` |
+| `HttpError` | class | Thrown for every non-2xx; carries `status`, `ref`, `body` — drop `err.ref` into `<ErrorPage refCode={...}>` | `try { … } catch (e) { if (e instanceof HttpError) … }` |
 | `crossLocaleKeywords(dicts, getter)` | function | Build a cmdk `keywords` string that matches in ko AND en | Inline when defining items |
 | `openCommandPalette()` | function | Dispatches the open event from anywhere | Custom triggers |
 | `useGoToShortcuts` / `setTheme` / `getTheme` / `noFlashThemeScript` | helpers | Theme set/get + the `<head>` no-flash snippet for the `[data-theme]` dark convention | At/before first paint |
@@ -476,6 +478,64 @@ Notes:
 - `<BackButton>` renders nothing when there's nowhere to go, unless
   `alwaysShow` or an `onClick` is set. Default label: "뒤로"; override
   via `label`.
+
+## createFetch / HttpError
+
+A small `fetch` wrapper that bakes in the etamong-lab house conventions:
+the [httperr](../../../shared/libs/httperr) JSON shape (`{error, ref}`),
+`oauth2-proxy` sign-in on 401, JSON in / JSON out by default.
+
+```ts
+import { createFetch, HttpError } from "@etamong-lab/ui";
+
+export const api = createFetch({ baseUrl: "/api" });
+
+// Then anywhere in the app:
+const me = await api.get<{ email: string; is_admin: boolean }>("/me");
+const created = await api.post<Site>("/sites", { name: "blog", visibility: "public" });
+const list = await api.get<Site[]>("/sites", { query: { q: "blog" } });
+```
+
+On a non-2xx response, the wrapper throws an `HttpError` that carries the
+server's `ref` code. Drop it into `<ErrorPage>`:
+
+```tsx
+try {
+  await api.post("/sites", payload);
+} catch (e) {
+  if (e instanceof HttpError) {
+    return <ErrorPage description={e.message} refCode={e.ref} onRetry={retry} />;
+  }
+  throw e;
+}
+```
+
+Options:
+
+- **`baseUrl`** — prepended to relative paths.
+- **`onAuthError`** — called on 401. Default: redirects to
+  `/oauth2/start?rd=<current url>` (the `oauth2-proxy` sign-in flow).
+  Pass `() => {}` to disable.
+- **`onError`** — fires for every non-2xx after the error is built but
+  before it's thrown. Use for telemetry / global toast; doesn't suppress
+  the throw.
+- **`headers`** — static object or factory. Common case: an
+  `Authorization` header for non-browser callers (CLI / cron).
+- **`fetchImpl`** — override the global `fetch` (tests / SSR).
+
+Per-call options on every method: `query` (object → query string),
+`headers`, `signal` (AbortController), `raw: true` (return the raw
+`Response` without JSON parsing — for downloads / streaming).
+
+The wrapper:
+
+- sets `Accept: application/json` and `credentials: "same-origin"` by
+  default (works with cookie-based browser sessions);
+- serializes plain-object bodies to JSON and sets `Content-Type:
+  application/json`; passes `FormData` / `Blob` / strings through
+  untouched;
+- handles 204 / empty responses (resolves `undefined`);
+- returns `Response` directly when `raw: true`.
 
 ## Releasing
 
