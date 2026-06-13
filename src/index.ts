@@ -80,3 +80,10 @@ export {
   type UseClipboardOptions,
   type UseClipboardResult,
 } from "./copyButton";
+export {
+  registerServiceWorker,
+  networkFirstSwSource,
+  type RegisterServiceWorkerOptions,
+  type ServiceWorkerHandle,
+  type NetworkFirstSwOptions,
+} from "./serviceWorker";
