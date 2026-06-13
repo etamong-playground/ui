@@ -30,6 +30,8 @@ React/ReactDOM are peer deps.
 | `InstallBanner` | React component | Mobile-only PWA install banner. Real install button on Chrome/Android; "Share → 홈 화면에 추가" hint on iOS Safari; auto-hides when already installed | Once near the app root (same boundary as `<Toaster />`) |
 | `useInstallPrompt()` | React hook | Lower-level — returns `{ canPrompt, promptInstall, isIOS, isStandalone }` for apps that want to render their own UI | Any client component |
 | `ErrorPage` | React component | Full-page friendly error surface; pairs with the httperr `ref` pattern, no raw error / repo links leak | Error boundary / Next.js `error.tsx` / 404 fallback route |
+| `useRouteState` | React hook | In-page state slice synced with the URL query string (works with both regular and hash routers); restores on refresh, syncs with back/forward | Tabs, filters, sort, search term, expanded row id |
+| `useSessionState` | React hook | Same shape as `useRouteState` but backed by `sessionStorage`, keyed per route | Scroll offset, cmdk query, unsubmitted form draft |
 | `crossLocaleKeywords(dicts, getter)` | function | Build a cmdk `keywords` string that matches in ko AND en | Inline when defining items |
 | `openCommandPalette()` | function | Dispatches the open event from anywhere | Custom triggers |
 | `useGoToShortcuts` / `setTheme` / `getTheme` / `noFlashThemeScript` | helpers | Theme set/get + the `<head>` no-flash snippet for the `[data-theme]` dark convention | At/before first paint |
@@ -375,6 +377,54 @@ Props:
 The component is token-styled (`--etu-*`), so it inherits the app's dark/light
 theme automatically. It contains **no repo links**, no file paths, no stack
 traces — by design (`concepts/no-repo-exposure`).
+
+## useRouteState / useSessionState
+
+Two hooks for the "F5 keeps me on this view, with the same tab/filter/sort
+selected" half of the SPA navigation contract
+(`concepts/spa-navigation-state`). Router-agnostic — they read and write
+`window.history` directly, so they work with hash routers, path routers,
+and apps without a router lib at all.
+
+```tsx
+import { useRouteState, useSessionState } from "@etamong-lab/ui";
+
+// URL-backed: ends up in the query string (?tab=members), restores on
+// refresh, syncs with browser back/forward.
+const [tab, setTab] = useRouteState<"overview" | "deploys" | "members">("tab", "overview");
+
+// Pretty URL — pass plain string codecs so the value isn't JSON-quoted:
+const [tab2, setTab2] = useRouteState("tab", "overview", {
+  serialize: (v) => v,
+  deserialize: (raw) => raw as typeof tab,
+});
+
+// sessionStorage-backed: never enters the URL, scoped per route by default.
+const [draft, setDraft] = useSessionState("draft", "");
+const [scroll, setScroll] = useSessionState("scrollY", 0);
+```
+
+Both hooks have the same `[value, setValue]` shape as `useState`, including
+the functional updater form (`setTab(prev => prev === "a" ? "b" : "a")`).
+
+Options:
+
+- **`serialize` / `deserialize`** — defaults to `JSON.stringify` /
+  `JSON.parse`, so booleans, numbers, and arrays round-trip without extra
+  work. Override for cleaner URLs.
+- **`replace`** (`useRouteState` only) — defaults to `true`, so noisy state
+  like search-as-you-type doesn't pile up in the back history. Set
+  `replace: false` when each change *should* be a back-button stop.
+- **`scope`** (`useSessionState` only) — overrides the default per-route
+  scope (`pathname + hash`). Pass a static string for state that should
+  span routes.
+
+The hooks listen on `popstate` and `hashchange`, plus a private
+`etu:route-state` event they fire after their own writes — so multiple
+components reading the same key stay in sync.
+
+SSR-safe: on the server they return the `initial` value; the URL/session
+read happens on mount in an effect.
 
 ## Releasing
 
