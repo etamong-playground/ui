@@ -44,7 +44,8 @@ React/ReactDOM are peer deps.
 | `CopyButton` | React component | Token-styled copy button with success-state flip ("복사" → "복사됨"); fires a toast on success/error | Secret reveal, token / slug / ref copy |
 | `useClipboard()` | React hook | Lower-level — `{ copied, copy(value) }`; clipboard API + legacy fallback | When you want to render your own copy UI |
 | `registerServiceWorker(url, opts)` | function | Registers a service worker with the etamong-lab update flow (aggressive `update()`, "새 버전" toast, auto-reload on `controllerchange`) | Once at app bootstrap, after window load |
-| `networkFirstSwSource({ version, … })` | function | Returns the canonical online-first SW recipe as a string — write to `public/sw.js` at build time. Network-first nav + assets, never intercepts `/api/*`, versioned caches | Build step (or served dynamically) |
+| `networkFirstSwSource({ version, … })` | function | Returns the canonical online-first SW recipe as a string — write to `public/sw.js` at build time. Network-first nav + assets, never intercepts `/api/*`, versioned caches. **`version` MUST be a per-build identifier** (git SHA or build timestamp), not a hardcoded constant — see "PWA cache strategy" below | Build step (or served dynamically) |
+| `installIOSPwaShell()` | function | Tags `<html>` with `etu-pwa-standalone` / `etu-ios-pwa` and re-locks `-webkit-text-size-adjust` in iOS PWA mode so Korean body text doesn't shrink in standalone launch. Opt-in `data-etu-lock-zoom` adds `maximum-scale=1` to the viewport meta to suppress input-focus zoom | Once at app bootstrap |
 | `AdminGate` | React component | Renders `children` only when `me` passes `is_admin` / email allowlist / role / predicate (logical OR); otherwise renders `fallback` | Wrap any admin-only route or section |
 | `AdminBadge` | React component | Small "관리자 전용" pill | Inline next to the page title |
 | `BackofficeLayout` | React component | Page-head with title + AdminBadge + actions slot + body | Backoffice / admin-console route layout |
@@ -793,6 +794,91 @@ When **not** to use the preset:
 - Push-only SWs (schedule-manager) — no caching at all.
 - Scoped stale-while-revalidate of specific safe-read endpoints
   (minccino) — narrower than this preset; keep the hand-rolled regex.
+
+### PWA cache strategy (fleet rule)
+
+The user-visible symptom of getting this wrong: "even after deploy, the app
+keeps showing the old screen until I force-reload". The cure is **online
+users always see the latest deploy; the cache is only the offline fallback**,
+keyed by a build identifier so every deploy rolls the cache forward.
+
+Two things every app must do:
+
+1. **Use `networkFirstSwSource()`** (or document why workbox precaching is
+   required — and if so, gate the workbox `revision`/`cacheNames` per build
+   as well).
+2. **Pass a per-build `version`** — never a hardcoded constant. The cache is
+   versioned by `etu-nav-<version>` / `etu-asset-<version>`; on activate the
+   SW deletes every cache that doesn't match. If `version` never changes,
+   the cache never rolls over and offline-cached HTML/JS stays sticky.
+
+A small Vite snippet that injects the git SHA at build time:
+
+```ts
+// vite.config.ts
+import { execSync } from "node:child_process";
+const sha = (() => {
+  try { return execSync("git rev-parse --short HEAD").toString().trim(); }
+  catch { return Date.now().toString(36); }
+})();
+
+export default defineConfig({
+  define: { "import.meta.env.VITE_BUILD_SHA": JSON.stringify(sha) },
+  // …
+});
+```
+
+Then in a build hook:
+
+```ts
+import { networkFirstSwSource } from "@etamong-lab/ui";
+await writeFile(
+  "public/sw.js",
+  networkFirstSwSource({ version: process.env.VITE_BUILD_SHA ?? sha }),
+);
+```
+
+Apps using `vite-plugin-pwa` (festplan) get workbox `autoUpdate` by default,
+which is correct in theory but historically has shipped with hardcoded
+precache revisions that don't roll over per build. Verify the workbox
+config either (a) injects the SHA into the precache manifest, or (b) move
+the app to `networkFirstSwSource()`. Either is acceptable; both must be
+per-build versioned.
+
+Fleet rule canonical: `etamong-lab/planning` wiki →
+`concepts/pwa-cache-and-ios-shell`.
+
+## iOS PWA shell (`installIOSPwaShell`)
+
+The complaint pattern: install an etamong app to the iPhone home screen,
+launch it from there, and Korean body text looks "broken" / shrunk vs.
+Safari. iOS's automatic text-size-adjust kicks in in standalone mode
+because the Safari toolbar reservation is gone.
+
+The `styles.css` reset already locks `-webkit-text-size-adjust: 100%`
+on `html`. `installIOSPwaShell()` is the runtime belt-and-braces — call it
+once from your app bootstrap:
+
+```ts
+import { installIOSPwaShell } from "@etamong-lab/ui";
+installIOSPwaShell();
+```
+
+What it does:
+
+- Detects standalone (`navigator.standalone === true` OR
+  `matchMedia('(display-mode: standalone)').matches`).
+- Adds `html.etu-pwa-standalone`; if also iOS, adds `html.etu-ios-pwa`.
+- Re-asserts the text-size-adjust lock via an inline style on `<html>`
+  (defense against a late-mounted stylesheet that clobbers the reset).
+- Opt-in: if your `<html>` has `data-etu-lock-zoom`, also appends
+  `maximum-scale=1` to the viewport meta — kills the input-focus auto-zoom.
+  Off by default because it also blocks accessibility zoom.
+
+Apps that already follow `concepts/ios-pwa-safe-area` (viewport
+`viewport-fit=cover`, `apple-mobile-web-app-*` metas, safe-area padding on
+fixed bars) keep doing that — this helper is additive, just guarantees the
+font lock holds.
 
 ## Backoffice scaffold (AdminGate + AdminBadge + BackofficeLayout)
 
