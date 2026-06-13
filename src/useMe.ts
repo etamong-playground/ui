@@ -19,6 +19,10 @@ export interface BaseMe {
   email: string;
   /** OIDC `preferred_username` if the IdP supplies it. */
   preferred_username?: string;
+  /** OIDC `name` claim — full display name. */
+  name?: string;
+  /** OIDC `picture` claim — URL of the user's profile picture. */
+  picture?: string;
   /** Server-side admin flag (use this, not allowlist-by-email on the client). */
   is_admin?: boolean;
   /** Role claims from the IdP. */

@@ -51,6 +51,8 @@ React/ReactDOM are peer deps.
 | `formatRelTime(when)` | function | `"3분 전"` / `"in 2 hours"` via `Intl.RelativeTimeFormat`; locale from the document | Lists, activity feeds, anywhere "ago" reads right |
 | `formatAbsTime(when, opts?)` | function | Absolute time via `Intl.DateTimeFormat`; defaults to KST (`Asia/Seoul`) Korean. Style presets: `date` / `time` / `datetime` / `datetime-seconds` | Timestamps, log lines, tooltips |
 | `RelTime` | React component | Auto-refreshing relative-time label (`<time dateTime>` with absolute time as `title`) | Anywhere `formatRelTime` would otherwise need re-renders |
+| `UserMenu` | React component | Avatar trigger + dropdown with display name, "내 정보" link, "로그아웃". Renders "로그인" when `me` is null | Once in the app header (desktop + mobile) |
+| `Avatar` | React component | Round profile picture; falls back to an initial letter on a token-colored circle | Stand-alone in lists, comments, etc. |
 | `crossLocaleKeywords(dicts, getter)` | function | Build a cmdk `keywords` string that matches in ko AND en | Inline when defining items |
 | `openCommandPalette()` | function | Dispatches the open event from anywhere | Custom triggers |
 | `useGoToShortcuts` / `setTheme` / `getTheme` / `noFlashThemeScript` | helpers | Theme set/get + the `<head>` no-flash snippet for the `[data-theme]` dark convention | At/before first paint |
@@ -893,6 +895,64 @@ time) stays in sync because it's derived in the same render.
 
 Invalid timestamps (bad ISO, `undefined`) render to empty strings —
 safe to use directly on partial data.
+
+## UserMenu + Avatar
+
+The fleet-wide profile-picture + "내 정보" link + 로그아웃 surface every
+app's header should expose so users have one consistent place to find
+themselves. Composes with `useMe<T>` (v0.10).
+
+```tsx
+import { useMe, UserMenu } from "@etamong-lab/ui";
+
+interface Me extends BaseMe { /* picture / preferred_username / is_admin … */ }
+
+function Header() {
+  const { me } = useMe<Me>();
+  return (
+    <header className="app-header">
+      {/* …logo, nav… */}
+      <UserMenu me={me} myInfoHref="/me" />
+    </header>
+  );
+}
+```
+
+The trigger is the avatar. Click → dropdown with:
+
+- Display name (`me.name` ?? `me.preferred_username` ?? `me.email`).
+- Email line (when distinct from the display name).
+- `admin` pill when `me.is_admin` (suppress via `showAdminBadge={false}`).
+- Optional `extraItems` rows above the standard ones.
+- The "내 정보" link (set `myInfoHref={null}` to hide).
+- The "로그아웃" button.
+
+Escape and click-outside close it.
+
+Anonymous (`me == null`) renders a "로그인" link pointing at
+`signInUrl()`; pass `signedOutAction` to override.
+
+Logout default is `signOut("/")` (oauth2-proxy `/oauth2/sign_out?rd=/`).
+Apps with their own logout endpoint pass `onSignOut`:
+
+```tsx
+<UserMenu
+  me={me}
+  onSignOut={() => {
+    void fetch("/api/auth/logout", { method: "POST" });
+    window.location.href = "/";
+  }}
+/>
+```
+
+Apps wanting just the avatar (lists, comments, prompts) can use the
+stand-alone `<Avatar>`:
+
+```tsx
+<Avatar src={comment.author.picture} fallback={comment.author.email} size={24} />
+```
+
+Pictures that fail to load fall back to the initial letter automatically.
 
 ## Releasing
 

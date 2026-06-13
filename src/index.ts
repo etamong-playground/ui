@@ -111,3 +111,10 @@ export {
   type FormatAbsTimeOptions,
   type RelTimeProps,
 } from "./time";
+export {
+  UserMenu,
+  Avatar,
+  type UserMenuProps,
+  type UserMenuItem,
+  type AvatarProps,
+} from "./userMenu";
