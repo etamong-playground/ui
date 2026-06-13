@@ -41,6 +41,8 @@ React/ReactDOM are peer deps.
 | `EmptyState` | React component | "Nothing here yet" card; title + optional description / action / icon, `role="status"` | Empty lists, empty search results |
 | `CopyButton` | React component | Token-styled copy button with success-state flip ("복사" → "복사됨"); fires a toast on success/error | Secret reveal, token / slug / ref copy |
 | `useClipboard()` | React hook | Lower-level — `{ copied, copy(value) }`; clipboard API + legacy fallback | When you want to render your own copy UI |
+| `registerServiceWorker(url, opts)` | function | Registers a service worker with the etamong-lab update flow (aggressive `update()`, "새 버전" toast, auto-reload on `controllerchange`) | Once at app bootstrap, after window load |
+| `networkFirstSwSource({ version, … })` | function | Returns the canonical online-first SW recipe as a string — write to `public/sw.js` at build time. Network-first nav + assets, never intercepts `/api/*`, versioned caches | Build step (or served dynamically) |
 | `crossLocaleKeywords(dicts, getter)` | function | Build a cmdk `keywords` string that matches in ko AND en | Inline when defining items |
 | `openCommandPalette()` | function | Dispatches the open event from anywhere | Custom triggers |
 | `useGoToShortcuts` / `setTheme` / `getTheme` / `noFlashThemeScript` | helpers | Theme set/get + the `<head>` no-flash snippet for the `[data-theme]` dark convention | At/before first paint |
@@ -656,6 +658,86 @@ function MyButton({ value }) {
 - `ariaLabel` — used when `iconOnly`; defaults to `label`.
 - `resetMs` — how long the copied state lingers. Default `1500`.
 - `toastOnSuccess` / `toastOnError` — toast text; pass `null` to suppress.
+
+## Service worker (registration + online-first SW recipe)
+
+Two pieces for the planning `concepts/pwa-service-worker` rule: a
+registration helper for the app, and a generator for the SW file itself.
+The preset is biased toward **online users see the latest build** — the
+cache is only the offline safety net.
+
+### registerServiceWorker
+
+```ts
+import { registerServiceWorker } from "@etamong-lab/ui";
+
+const sw = registerServiceWorker("/sw.js", {
+  // Default behavior: toast says "새 버전이 준비됐어요. 새로고침할까요?"
+  // and the next nav uses the new SW. autoReloadOnUpdate: true skips the
+  // prompt and reloads as soon as the new SW is ready.
+});
+```
+
+What the helper does on top of `navigator.serviceWorker.register`:
+
+- Calls `registration.update()` aggressively — on load, on
+  `visibilitychange` → visible, and on a 2-minute interval — so a
+  long-lived installed tab catches a new deploy without a manual reload.
+- Listens for `controllerchange` and reloads the page **once** when the
+  new SW takes over. `onActivate` fires right before the reload so the
+  app can persist transient state.
+- When a new SW finishes installing and is waiting, shows the "새 버전"
+  toast. The waiting SW is activated when the user navigates / reloads,
+  or you can call `sw.applyUpdate()` to do it programmatically.
+
+Returns a handle: `{ registration, hasUpdate, applyUpdate,
+checkForUpdate, unregister }`.
+
+### networkFirstSwSource
+
+Generates the SW file itself. Use it from a build step so the
+`version` is the build SHA:
+
+```ts
+// build.mjs
+import { networkFirstSwSource } from "@etamong-lab/ui";
+import { writeFile } from "node:fs/promises";
+
+const sha = process.env.BUILD_SHA ?? Date.now().toString(36);
+await writeFile(
+  "public/sw.js",
+  networkFirstSwSource({
+    version: sha,
+    networkTimeoutMs: 3000,
+    passThroughPrefixes: ["/oauth2/", "/sse/"],
+  }),
+);
+```
+
+What the recipe does:
+
+- **Never intercepts** non-GET, cross-origin requests, or any URL whose
+  path starts with `/api/` or one of `passThroughPrefixes`. Auth and
+  live state always hit the network.
+- **Navigations** (`request.mode === "navigate"`): network-first with
+  `networkTimeoutMs` (default 3s). If the network wins, the response is
+  cached + returned. If the network times out (offline / flaky), the
+  cached copy is served.
+- **Same-origin GET assets**: same network-first strategy — fresh wins
+  online, cache covers offline.
+- Caches are versioned (`etu-nav-<version>` / `etu-asset-<version>`); on
+  `activate` everything else is deleted, then `clients.claim()`.
+- `skipWaiting()` on install + a `SKIP_WAITING` message handler so
+  `sw.applyUpdate()` can force the takeover.
+
+When **not** to use the preset:
+
+- The shortener single-segment-route family (`/{code}` reaches the
+  apiserver, not the SPA) — keep the bespoke `navigateFallbackAllowlist`
+  recipe in `concepts/pwa-service-worker`.
+- Push-only SWs (schedule-manager) — no caching at all.
+- Scoped stale-while-revalidate of specific safe-read endpoints
+  (minccino) — narrower than this preset; keep the hand-rolled regex.
 
 ## Releasing
 
