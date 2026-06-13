@@ -34,14 +34,6 @@ export interface DocsHubSkill {
   body: string;
   /** Optional CTA label override. Default: "📥 Claude skill 받기". */
   buttonLabel?: ReactNode;
-  /**
-   * Override or hide the auto-appended "Claude skill 사용법" section.
-   * - `undefined` (default): DocsHub appends a standard usage section
-   *   (Claude Code, Codex, plain LLM context).
-   * - A custom `DocsHubSection`: use that instead.
-   * - `null`: skip the auto-section entirely.
-   */
-  usageSection?: DocsHubSection | null;
 }
 
 export interface DocsHubProps {
@@ -83,55 +75,6 @@ function downloadSkill(skill: DocsHubSkill): void {
   URL.revokeObjectURL(url);
 }
 
-function defaultSkillUsageSection(skill: DocsHubSkill): DocsHubSection {
-  const filename = `${skill.name}.md`;
-  return {
-    id: "__skill_usage__",
-    label: "Claude skill 사용법",
-    summary: "다운로드한 .md 파일을 LLM과 함께 쓰는 법.",
-    content: (
-      <div className="etu-docs-hub-skill-usage">
-        <p>
-          위 "📥" 버튼이 <code>{filename}</code> 파일 한 개를 내려받아요. 그
-          안에 이 페이지의 핵심이 마크다운으로 들어 있어서, 어느 LLM과도
-          그대로 같이 쓸 수 있어요.
-        </p>
-        <h4>Claude Code (CLI)</h4>
-        <ol>
-          <li>
-            <code>~/.claude/skills/{skill.name}/SKILL.md</code> 경로로 옮기세요
-            (디렉터리 이름과 파일 이름은 위와 그대로).
-          </li>
-          <li>
-            Claude Code를 재시작하거나 새 세션을 열면 스킬이 자동으로 인식돼요.
-          </li>
-          <li>
-            대화 중에 "<em>{skill.name}</em> 스킬 써서…" 같이 부르면 Claude가
-            이 가이드를 바탕으로 동작해요.
-          </li>
-        </ol>
-        <h4>Codex / 기타 코딩 에이전트</h4>
-        <p>
-          툴이 권장하는 위치(예: <code>~/.codex/skills/</code>,
-          <code>~/.codex/prompts/</code>)에 같은 파일을 두거나, 세션을 시작할
-          때 첨부 파일로 올리세요. 프론트매터는 이름·설명만 담겨 있어서
-          시스템 프롬프트 / 지시문 어느 자리에 넣어도 무해해요.
-        </p>
-        <h4>그 외 LLM (ChatGPT, Gemini, 자체 봇 등)</h4>
-        <p>
-          파일을 열어 본문을 통째로 첫 메시지(또는 시스템 프롬프트)에 붙여
-          넣으면 돼요. 짧은 한 파일이라 컨텍스트 부담이 거의 없어요.
-        </p>
-        <h4>업데이트</h4>
-        <p>
-          이 페이지에 새 기능이 반영되면 같은 버튼으로 다시 받아 덮어쓰면
-          돼요. 스킬은 앱 변경과 같은 커밋에서 갱신돼요 — 늘 최신.
-        </p>
-      </div>
-    ),
-  };
-}
-
 export function DocsHub({
   appName,
   description,
@@ -142,15 +85,10 @@ export function DocsHub({
   defaultSectionId,
   className,
 }: DocsHubProps) {
-  const allSections = skill
-    ? skill.usageSection === null
-      ? sections
-      : [...sections, skill.usageSection ?? defaultSkillUsageSection(skill)]
-    : sections;
-  const first = allSections[0]?.id ?? "";
+  const first = sections[0]?.id ?? "";
   const [uncontrolled, setUncontrolled] = useState(defaultSectionId ?? first);
   const activeId = sectionId ?? uncontrolled;
-  const active = allSections.find((s) => s.id === activeId) ?? allSections[0];
+  const active = sections.find((s) => s.id === activeId) ?? sections[0];
 
   const select = (id: string) => {
     if (sectionId === undefined) setUncontrolled(id);
@@ -177,7 +115,7 @@ export function DocsHub({
       </header>
       <div className="etu-docs-hub-body">
         <nav className="etu-docs-hub-nav" aria-label="문서 섹션">
-          {allSections.map((s) => (
+          {sections.map((s) => (
             <button
               key={s.id}
               type="button"

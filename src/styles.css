@@ -1340,28 +1340,3 @@ a.etu-deploy-info-ver:hover {
     width: auto;
   }
 }
-
-.etu-docs-hub-skill-usage h4 {
-  margin: 18px 0 6px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--etu-text);
-}
-.etu-docs-hub-skill-usage p,
-.etu-docs-hub-skill-usage li {
-  font-size: 13.5px;
-  line-height: 1.6;
-  color: var(--etu-text);
-}
-.etu-docs-hub-skill-usage code {
-  font-family: var(--etu-mono, ui-monospace, "SF Mono", monospace);
-  font-size: 12.5px;
-  padding: 1px 5px;
-  border-radius: 4px;
-  background: var(--etu-surface-2);
-  color: var(--etu-text);
-}
-.etu-docs-hub-skill-usage ol {
-  padding-left: 20px;
-  margin: 6px 0 12px;
-}
