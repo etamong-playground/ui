@@ -135,6 +135,7 @@ export {
   type SidebarProps,
   type SidebarItem,
 } from "./sidebar";
+export { installIOSPwaShell } from "./installIOSPwaShell";
 // alpha — API may change before stable 0.20.0
 export {
   DocsHub,

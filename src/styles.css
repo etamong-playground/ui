@@ -13,6 +13,43 @@
  * or the `.dark` class (Next/shadcn convention).
  */
 
+/* ----------------------------------------------------------------------------
+ * iOS PWA safety reset (v0.22.0). Locks against the standalone-mode quirks
+ * where Korean (and other CJK) body text shrinks because iOS's auto text-size
+ * adjust kicks in without the Safari toolbar; also resets tap-highlight + sets
+ * a sane default body font-size + color-scheme. Safe-area padding is NOT
+ * painted on `body` here on purpose — apps already manage insets on fixed
+ * bars (MobileTabBar, top headers). Apps that need a single-place safe-area
+ * wrapper can use the `.etu-app-shell` utility class below.
+ * See planning wiki: concepts/pwa-cache-and-ios-shell + concepts/ios-pwa-safe-area.
+ * ------------------------------------------------------------------------- */
+:root { color-scheme: light dark; }
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+body {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+/* iOS form-control auto-zoom-on-focus guard. */
+input, select, textarea { font-size: max(16px, 1rem); }
+
+/* Opt-in shell wrapper for apps that want a single-place safe-area inset
+ * container. Apps with bespoke chrome (existing fixed headers + MobileTabBar)
+ * should keep their per-bar `env(safe-area-inset-*)` rules and not bother
+ * with this class. */
+.etu-app-shell {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+.etu-app-shell.etu-no-safe-padding,
+body.etu-no-safe-padding { padding: 0; }
+
 :root {
   --etu-bg: #ffffff;
   --etu-surface: #ffffff;
