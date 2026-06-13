@@ -1,7 +1,7 @@
 {
   "name": "@etamong-lab/ui",
-  "version": "0.6.0",
-  "description": "Shared frontend scaffold for etamong-lab apps: design-token contract (styles.css), a configurable cmdk command palette + discoverable trigger, Korean-IME-safe keyboard shortcuts, toast + dialog primitives, deploy-version badge, PWA install banner, full-page error surface.",
+  "version": "0.7.0",
+  "description": "Shared frontend scaffold for etamong-lab apps: design-token contract (styles.css), a configurable cmdk command palette + discoverable trigger, Korean-IME-safe keyboard shortcuts, toast + dialog primitives, deploy-version badge, PWA install banner, full-page error surface, in-page state hooks (URL + sessionStorage).",
   "type": "module",
   "sideEffects": [
     "*.css"

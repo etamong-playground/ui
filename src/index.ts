@@ -42,3 +42,9 @@ export { uiConfirm, uiPrompt, DialogHost } from "./dialog";
 export { DeployInfo, type DeployInfoProps } from "./deployInfo";
 export { InstallBanner, useInstallPrompt, type InstallBannerProps } from "./installBanner";
 export { ErrorPage, type ErrorPageProps } from "./errorPage";
+export {
+  useRouteState,
+  useSessionState,
+  type UseRouteStateOptions,
+  type UseSessionStateOptions,
+} from "./useRouteState";
