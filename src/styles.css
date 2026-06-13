@@ -479,3 +479,114 @@ a.etu-deploy-info-ver:hover {
   background: var(--etu-surface-2);
   color: var(--etu-text);
 }
+
+/* ----------------------------------------------------------------------------
+ * ErrorPage (<ErrorPage />)
+ * Full-page friendly error surface for boundary / 500 / not-found routes.
+ * Pairs with the httperr `ref` pattern (no raw error / repo links leak).
+ * ------------------------------------------------------------------------- */
+
+.etu-error-page {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: var(--etu-bg);
+  color: var(--etu-text);
+  font-family: var(--etu-font);
+}
+
+.etu-error-page-card {
+  max-width: 32rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2rem 1.5rem;
+  border-radius: var(--etu-r);
+  border: 1px solid var(--etu-border);
+  background: var(--etu-surface);
+  box-shadow: var(--etu-shadow);
+}
+
+.etu-error-page-icon {
+  color: var(--etu-err);
+  margin-bottom: 0.85rem;
+  display: inline-flex;
+}
+
+.etu-error-page-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--etu-text);
+}
+
+.etu-error-page-body {
+  margin: 0 0 1.25rem;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--etu-text-muted);
+}
+
+.etu-error-page-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.etu-error-page-cta {
+  border: none;
+  border-radius: var(--etu-r-sm);
+  background: var(--etu-accent);
+  color: var(--etu-on-accent);
+  font-family: var(--etu-font);
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.etu-error-page-cta:hover {
+  filter: brightness(1.08);
+}
+
+.etu-error-page-secondary {
+  border: 1px solid var(--etu-border);
+  border-radius: var(--etu-r-sm);
+  background: transparent;
+  color: var(--etu-text);
+  font-family: var(--etu-font);
+  font-size: 0.88rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.etu-error-page-secondary:hover {
+  background: var(--etu-surface-2);
+}
+
+.etu-error-page-ref {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--etu-text-subtle);
+}
+
+.etu-error-page-ref-label {
+  text-transform: lowercase;
+  letter-spacing: 0.01em;
+}
+
+.etu-error-page-ref-code {
+  font-family: var(--etu-mono);
+  font-size: 0.78rem;
+  color: var(--etu-text-muted);
+  background: var(--etu-surface-2);
+  border-radius: 0.25rem;
+  padding: 0.1rem 0.35rem;
+  user-select: all;
+}

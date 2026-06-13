@@ -29,6 +29,7 @@ React/ReactDOM are peer deps.
 | `DeployInfo` | React component | "deployed `<sha>` · `<rel time>`" badge; renders `null` when no build env | App-info section (settings / backoffice) — **not a footer** |
 | `InstallBanner` | React component | Mobile-only PWA install banner. Real install button on Chrome/Android; "Share → 홈 화면에 추가" hint on iOS Safari; auto-hides when already installed | Once near the app root (same boundary as `<Toaster />`) |
 | `useInstallPrompt()` | React hook | Lower-level — returns `{ canPrompt, promptInstall, isIOS, isStandalone }` for apps that want to render their own UI | Any client component |
+| `ErrorPage` | React component | Full-page friendly error surface; pairs with the httperr `ref` pattern, no raw error / repo links leak | Error boundary / Next.js `error.tsx` / 404 fallback route |
 | `crossLocaleKeywords(dicts, getter)` | function | Build a cmdk `keywords` string that matches in ko AND en | Inline when defining items |
 | `openCommandPalette()` | function | Dispatches the open event from anywhere | Custom triggers |
 | `useGoToShortcuts` / `setTheme` / `getTheme` / `noFlashThemeScript` | helpers | Theme set/get + the `<head>` no-flash snippet for the `[data-theme]` dark convention | At/before first paint |
@@ -325,6 +326,55 @@ packaged once — apps drop the component in, no per-app
 // Lower-level hook if you want to render your own UI:
 const { canPrompt, promptInstall, isIOS, isStandalone } = useInstallPrompt();
 ```
+
+## ErrorPage
+
+Friendly full-page error surface. Pairs with the `httperr` `ref` pattern (see
+`concepts/user-facing-error-messages`): show the clean message + the 8-hex
+reference code, never the raw error / stack trace / repo path.
+
+```tsx
+import { ErrorPage } from "@etamong-lab/ui";
+
+// Next.js error.tsx (per-route error boundary):
+"use client";
+export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  return (
+    <ErrorPage
+      title="문제가 발생했어요"
+      description="잠시 후 다시 시도해 주세요."
+      refCode={error.digest}            // or whatever ref your backend returns
+      onRetry={reset}
+      onHome={() => location.assign("/")}
+    />
+  );
+}
+```
+
+```tsx
+// Vite + React Router 404 / catch-all:
+<Route path="*" element={
+  <ErrorPage
+    title="페이지를 찾을 수 없어요"
+    description="주소를 다시 확인해 주세요."
+    onHome={() => navigate("/")}
+  />
+} />
+```
+
+Props:
+
+- `title`, `description` — Korean defaults; override per-route.
+- `refCode` — the 8-hex `ref` from your backend (`httperr` produces this).
+  Shown discreetly under the actions so the user can quote it.
+- `onRetry`, `onHome` — optional handlers. Render their buttons only when set.
+- `labels` — override the `retry` / `home` / `refLabel` strings (defaults are
+  Korean).
+- `icon` — replace the default circle-alert glyph with your own node.
+
+The component is token-styled (`--etu-*`), so it inherits the app's dark/light
+theme automatically. It contains **no repo links**, no file paths, no stack
+traces — by design (`concepts/no-repo-exposure`).
 
 ## Releasing
 
