@@ -959,8 +959,6 @@ a.etu-deploy-info-ver:hover {
 
 .etu-user-menu-dropdown {
   position: absolute;
-  right: 0;
-  top: calc(100% + 0.4rem);
   min-width: 14rem;
   max-width: 18rem;
   background: var(--etu-surface);
@@ -973,6 +971,11 @@ a.etu-deploy-info-ver:hover {
   flex-direction: column;
   gap: 0.55rem;
 }
+
+.etu-user-menu-dropdown--bottom-right { right: 0; top: calc(100% + 0.4rem); }
+.etu-user-menu-dropdown--bottom-left  { left:  0; top: calc(100% + 0.4rem); }
+.etu-user-menu-dropdown--top-right    { right: 0; bottom: calc(100% + 0.4rem); }
+.etu-user-menu-dropdown--top-left     { left:  0; bottom: calc(100% + 0.4rem); }
 
 .etu-user-menu-header {
   display: flex;

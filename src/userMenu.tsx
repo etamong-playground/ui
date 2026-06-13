@@ -102,6 +102,16 @@ export interface UserMenuProps<T extends BaseMe = BaseMe> {
    * Default: true.
    */
   showAdminBadge?: boolean;
+  /**
+   * Where the dropdown opens relative to the trigger. Default: `"bottom-right"`.
+   * Use `"top-right"` when the trigger sits at the bottom of a sidebar foot
+   * (pages / festplan layouts) so the menu opens *upward* instead of
+   * disappearing past the viewport.
+   *
+   * The horizontal half controls the dropdown's right/left alignment;
+   * the vertical half controls open-up vs open-down.
+   */
+  placement?: "bottom-right" | "bottom-left" | "top-right" | "top-left";
 }
 
 export interface UserMenuItem {
@@ -123,6 +133,7 @@ export function UserMenu<T extends BaseMe = BaseMe>({
   extraItems,
   className,
   showAdminBadge = true,
+  placement = "bottom-right",
 }: UserMenuProps<T>) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -182,7 +193,7 @@ export function UserMenu<T extends BaseMe = BaseMe>({
       {open && (
         <div
           id={menuId}
-          className="etu-user-menu-dropdown"
+          className={`etu-user-menu-dropdown etu-user-menu-dropdown--${placement}`}
           role="menu"
           aria-label={displayName}
         >
