@@ -61,6 +61,19 @@ export interface RegisterServiceWorkerOptions {
    * Last chance to persist transient state.
    */
   onActivate?: () => void;
+  /**
+   * The current build identifier — typically the deploy SHA from
+   * `DeployInfo`. When supplied, a dev-mode assertion fires a
+   * `console.warn` if this changes across reloads but the SW file body
+   * is byte-for-byte identical. That signal means the SW source isn't
+   * stamped per build, so browsers never observe a new SW and never
+   * roll over to the new deploy — the canonical iOS PWA staleness
+   * trigger (see planning concepts/pwa-cache-and-ios-shell and the
+   * `viewport-fit-assertions` companion pattern).
+   *
+   * Dev-only — production short-circuits via `NODE_ENV === "production"`.
+   */
+  currentBuild?: string;
 }
 
 export interface ServiceWorkerHandle {
@@ -79,6 +92,92 @@ export interface ServiceWorkerHandle {
 const DEFAULT_INTERVAL_MS = 2 * 60 * 1000;
 const DEFAULT_TOAST_TEXT = "새 버전이 준비됐어요. 새로고침할까요?";
 
+function isDevBuild(): boolean {
+  try {
+    const proc = (globalThis as { process?: { env?: { NODE_ENV?: string } } })
+      .process;
+    if (proc?.env?.NODE_ENV === "production") return false;
+  } catch {
+    /* ignore */
+  }
+  return true;
+}
+
+/** Cheap non-cryptographic hash of a string. Stable across runs / origins. */
+function hashStr(s: string): string {
+  // FNV-1a 32-bit — fast, no deps.
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+  }
+  return h.toString(16);
+}
+
+const SW_STALENESS_STORAGE = "@etamong-lab/ui:sw-staleness";
+
+interface StalenessRecord {
+  url: string;
+  swHash: string;
+  build: string;
+  observedAt: number;
+}
+
+/**
+ * Dev-only: fetch the SW URL, compute a body hash, compare with the
+ * previously-observed value at the previously-observed build. Warn if the
+ * build identifier changed but the SW hash did not — that's the "browser
+ * never observes a new SW after deploy" failure mode behind iOS PWA
+ * staleness. One warning per detected event per session.
+ */
+async function assertSwChangesAcrossBuilds(
+  url: string,
+  currentBuild: string,
+): Promise<void> {
+  let body: string;
+  try {
+    // `no-store` so the dev check itself doesn't get a cached SW body.
+    const res = await fetch(url, { cache: "no-store", credentials: "same-origin" });
+    if (!res.ok) return;
+    body = await res.text();
+  } catch {
+    return;
+  }
+  const swHash = hashStr(body);
+  let prev: StalenessRecord | null = null;
+  try {
+    const raw = localStorage.getItem(SW_STALENESS_STORAGE);
+    if (raw) prev = JSON.parse(raw) as StalenessRecord;
+  } catch {
+    /* ignore */
+  }
+  if (prev && prev.url === url && prev.build !== currentBuild && prev.swHash === swHash) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      "[@etamong-lab/ui] registerServiceWorker: build SHA changed " +
+        `(${prev.build.slice(0, 8)} → ${currentBuild.slice(0, 8)}) but ` +
+        `${url} is byte-identical. Browsers won't roll over to the new ` +
+        "SW — installed PWAs (esp. iOS) will keep serving the old shell. " +
+        "Stamp the SW source with the build SHA (Vite: __BUILD_ID__ + define; " +
+        "static sw.js: generate at build time). See " +
+        "wiki/concepts/pwa-cache-and-ios-shell.",
+    );
+  }
+  try {
+    localStorage.setItem(
+      SW_STALENESS_STORAGE,
+      JSON.stringify({
+        url,
+        swHash,
+        build: currentBuild,
+        observedAt: Date.now(),
+      } satisfies StalenessRecord),
+    );
+  } catch {
+    /* ignore */
+  }
+}
+
 /**
  * Register a service worker with the etamong-lab update-flow conventions.
  * Returns a handle for programmatic control. Safe to call from `useEffect`
@@ -95,6 +194,7 @@ export function registerServiceWorker(
     updateIntervalMs = DEFAULT_INTERVAL_MS,
     registerOptions,
     onActivate,
+    currentBuild,
   } = opts;
 
   let registration: ServiceWorkerRegistration | null = null;
@@ -151,6 +251,12 @@ export function registerServiceWorker(
       const id = toast(updateToastText, "info", 10000);
       void id;
     }
+  }
+
+  // Dev-only: detect the "SW byte-identical across deploys" failure
+  // mode (the primary cause of iOS PWA staleness in the fleet).
+  if (isDevBuild() && currentBuild) {
+    void assertSwChangesAcrossBuilds(url, currentBuild);
   }
 
   // Start the registration. The SW load is deferred until window load to

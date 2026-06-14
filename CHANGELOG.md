@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.28.2
+
+iPhone PWA staleness — proactive detection for the "browser never
+observes a new SW after deploy" failure mode (the canonical cause of
+"the app updates very slowly on iOS PWA"). Same pattern as the
+viewport-fit assertions shipped in 0.28.1 (planning
+concepts/viewport-fit-assertions): catch the bug at the developer's
+localhost first, not at a user report.
+
+- `registerServiceWorker(url, { currentBuild })` — new option. Pass the
+  deploy SHA (typically the same one fed into `<DeployInfo>`). When
+  set, the helper fetches `url` with `cache: "no-store"`, hashes the
+  body, and persists `{ url, swHash, build }` in `localStorage`. On the
+  next reload, if `build` changed but the SW body is byte-identical,
+  it emits a `console.warn` naming the SW URL, the SHA change, and the
+  fix (stamp the SW source with the build SHA via `__BUILD_ID__` + Vite
+  `define`, or generate the static `sw.js` at build time).
+  - Dev-only — production short-circuits via `NODE_ENV === "production"`
+    so neither the fetch nor the storage write runs in prod bundles.
+  - One warning per detected event per session.
+- The existing 2-minute `registration.update()` polling +
+  `visibilitychange` refresh + `controllerchange` reload remain the
+  authoritative update path — they handle the "SW *is* per-build but
+  the registration isn't aggressively polled" half of the staleness
+  story. The new check covers the *other* half.
+
 ## 0.28.1
 
 `<NavigationBar>` hardening + a proactive dev-mode layout assertion so
