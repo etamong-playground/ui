@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.29.0
+
+`@etamong-lab/ui/testing` extension — three fleet-wide test helpers in one
+optional entry. Apps that don't import them pull no extra peer (`msw`,
+`@playwright/test` are optionalPeerDependencies).
+
+- **MSW helpers** (`createMeHandler`, `createMeSignedOutHandler`,
+  `createHealthzHandler`, `defaultMockHandlers`, `httperrBody`,
+  `mockHttperrRef`). Mock the two endpoints every fleet webui shares
+  (`/me`, `/healthz`) and the httperr `{error, ref}` body without
+  re-deriving them per app.
+- **Playwright fleet fixture** (`fleetTest`) — `test.extend` preset that
+  sets `locale: "ko-KR"` + `timezoneId: "Asia/Seoul"` +
+  `Accept-Language: ko-KR` + default desktop viewport, matching the
+  production [[fleet_language_policy]] defaults so tests don't drift.
+- **Viewport-fit assertions** (`assertViewportFit`,
+  `defineViewportFitTests`, `FLEET_VIEWPORT_PROFILES`) — unchanged from
+  0.28.1+, now re-exported from a barrel alongside the new helpers.
+
+Internal file split: `src/testing-viewport-fit.ts`, `src/testing-msw.ts`,
+`src/testing-playwright.ts`; `src/testing.ts` is a barrel. tsup entry
+unchanged, public `./testing` export unchanged.
+
+Relates to etamong-lab/planning#244 #249.
+
 ## 0.28.2
 
 iPhone PWA staleness — proactive detection for the "browser never

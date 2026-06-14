@@ -9,7 +9,7 @@ export default defineConfig({
   dts: true,
   clean: true,
   treeshake: true,
-  external: ["react", "react-dom", "@playwright/test"],
+  external: ["react", "react-dom", "@playwright/test", "msw"],
   // styles.css is a separate, opt-in export — copy it verbatim into dist.
   onSuccess: "cp src/styles.css dist/styles.css",
   esbuildOptions(options) {
