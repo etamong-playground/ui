@@ -35,7 +35,7 @@ React/ReactDOM are peer deps.
 | `useRouteState` | React hook | In-page state slice synced with the URL query string (works with both regular and hash routers); restores on refresh, syncs with back/forward | Tabs, filters, sort, search term, expanded row id |
 | `useSessionState` | React hook | Same shape as `useRouteState` but backed by `sessionStorage`, keyed per route | Scroll offset, cmdk query, unsubmitted form draft |
 | `useInAppBack` | React hook | Tracks an in-app history stack via a marker in `history.state`; returns `{ canGoBack, goBack, push, replace }` | Once per app — wire to a back button + every in-app nav |
-| `BackButton` | React component | Token-styled back button; renders only when there's somewhere to go (or when `onClick` is set) | Above page headings / detail views |
+| `BackButton` | React component | Token-styled back button; mounts `useInAppBack` internally so `<BackButton fallback="/more" />` is the canonical one-liner. Renders when there's an in-app entry behind us OR `fallback`/`onClick` is set | Above page headings / detail views |
 | `createFetch` | factory | `fetch` wrapper: JSON in/out, parses the httperr `{error, ref}` body into an `HttpError`, redirects to `oauth2-proxy` sign-in on 401 | Once per app — `const api = createFetch({ baseUrl: "/api" })` |
 | `HttpError` | class | Thrown for every non-2xx; carries `status`, `ref`, `body` — drop `err.ref` into `<ErrorPage refCode={...}>` | `try { … } catch (e) { if (e instanceof HttpError) … }` |
 | `useMe` | React hook | Fetches `/api/me` (or a custom `fetcher`), returns `{ me, loading, error, refresh }`; treats 401 as anonymous by default | Once near the app root |
@@ -501,15 +501,32 @@ browser's and your in-UI one — should stay inside the app.
 `useInAppBack` tracks an in-app history stack by writing a marker into
 `history.state` on every in-app navigation. `canGoBack` is true when at
 least one in-app entry sits behind the current one; `goBack()` calls
-`history.back()` when true, otherwise it runs the optional `onExit`
-fallback so cold-entry users (someone landed on a deep link from
-outside) still go somewhere sensible.
+`history.back()` when true, otherwise it runs the `fallback` so
+cold-entry users (someone landed on a deep link from outside) still go
+somewhere sensible.
+
+The canonical one-liner (v0.27.0+) — `<BackButton>` mounts the hook
+internally, so apps that don't need the hook's values elsewhere just
+drop in:
+
+```tsx
+import { BackButton } from "@etamong-lab/ui";
+
+// Hash/path-routed apps — string fallback (pushState + popstate)
+<BackButton fallback="/more" />
+
+// Next.js / React Router — pass the router action as a callback
+<BackButton fallback={() => router.push("/more")} />
+```
+
+Mount the hook explicitly when you need the values somewhere besides the
+button (e.g. swipe gesture, keyboard shortcut, custom layout):
 
 ```tsx
 import { useInAppBack, BackButton } from "@etamong-lab/ui";
 
 function App() {
-  const back = useInAppBack({ onExit: () => (location.href = "/") });
+  const back = useInAppBack({ fallback: "/more" });
 
   function openSite(slug: string) {
     back.push(`#/sites/${slug}`);   // grows the in-app stack
@@ -520,7 +537,7 @@ function App() {
 
   return (
     <>
-      <BackButton canGoBack={back.canGoBack} goBack={back.goBack} />
+      <BackButton {...back} />
       {/* …rest of the app */}
     </>
   );
@@ -538,9 +555,12 @@ Notes:
   later `push()` has a baseline to count from. Browser back across a
   push restores the marker; a hard reload starts fresh from `0`
   (correct: the page IS the entry point).
-- `<BackButton>` renders nothing when there's nowhere to go, unless
-  `alwaysShow` or an `onClick` is set. Default label: "뒤로"; override
-  via `label`.
+- `<BackButton>` renders when there's an in-app entry behind us OR when
+  `fallback`/`onClick` is set OR `alwaysShow` is on. Default label:
+  "뒤로"; override via `label`.
+- The `onExit` option on `useInAppBack` (from v0.8.0) is `@deprecated`
+  in favour of `fallback`. It still works — calls go through the same
+  code path — but the JSDoc nudges new code toward `fallback`.
 
 ## createFetch / HttpError
 

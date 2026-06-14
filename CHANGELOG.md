@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.27.0
+
+Adoption-first refinements to `useInAppBack` + `<BackButton>` (shipped
+v0.8.0) so the SPA navigation contract from
+`planning/wiki/concepts/spa-navigation-state.md` can be satisfied by
+one line of consumer code. No new conceptual primitives — the existing
+hook stays the same shape; this release makes it the lowest-friction
+choice.
+
+- `<BackButton fallback>` — the button now mounts `useInAppBack`
+  internally when no `canGoBack`/`goBack` props are passed. Consumers
+  can drop in `<BackButton fallback="/more" />` (or
+  `fallback={() => router.push("/more")}` for Next.js) and the button
+  does the right thing on both warm in-app navigations (`history.back()`)
+  and cold entries (use the fallback). The previous explicit-hook shape
+  — `<BackButton {...useInAppBack({ … })} />` — keeps working.
+- `useInAppBack({ fallback })` — accepts the same `string | () => void`
+  union. String fallbacks pushState + dispatch popstate so vanilla
+  hash/path routers re-render without a full reload.
+- `runInAppBackFallback(fallback)` exported — useful for non-button
+  trigger points (swipe gesture, keyboard shortcut).
+- `onExit` is now `@deprecated` in JSDoc and routed through the same
+  code path as `fallback`; existing v0.8.0–v0.26.0 callers keep working.
+- Bootstrapped Vitest (jsdom + @testing-library/react) and a
+  `tests/backButton.test.tsx` covering the new shape + back-compat
+  paths (12 cases). `pnpm test` is now a CI gate alongside `typecheck`
+  and `build`.
+
 ## 0.26.0
 
 - `<DocsHub>`: `DocsHubSkill.publicUrl` — when set, the default Claude-skill

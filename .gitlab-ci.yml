@@ -1,6 +1,6 @@
 # CI/CD for @etamong-lab/ui — publishes to THIS project's GitLab npm registry.
 #
-#   - MR / main:    typecheck + build  (catch breakage before it's merged)
+#   - MR / main:    typecheck + test + build  (catch breakage before it's merged)
 #   - Tag vX.Y.Z:   publish that exact version (must equal package.json)
 #
 # Release flow (see README → "Releasing"):
@@ -42,6 +42,7 @@ check:
     - when: on_success
   script:
     - pnpm typecheck
+    - pnpm test
     - pnpm build
 
 # ── Tag vX.Y.Z: publish to the registry ───────────────────────────

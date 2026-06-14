@@ -57,6 +57,8 @@ export {
 } from "./useRouteState";
 export {
   useInAppBack,
+  runInAppBackFallback,
+  type InAppBackFallback,
   type UseInAppBackOptions,
   type UseInAppBackResult,
 } from "./useInAppBack";
