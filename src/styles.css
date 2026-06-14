@@ -1680,3 +1680,125 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   padding-left: 20px;
   margin: 6px 0 12px;
 }
+
+/* --- DataTable -------------------------------------------------------- */
+/* Wide = real <table>. Narrow (container < 720px) = row-per-field cards.
+   Container-query driven so an open sidebar collapsing the main area
+   below 720px flips the table to cards on desktop too, not just on
+   phones. Falls back to viewport @media for browsers without
+   container queries. */
+
+.etu-dt {
+  container-type: inline-size;
+  container-name: etu-dt;
+  width: 100%;
+}
+
+/* shared cell styling */
+.etu-dt-cell {
+  text-align: left;
+  vertical-align: top;
+}
+.etu-dt-align-right { text-align: right; }
+.etu-dt-align-center { text-align: center; }
+.etu-dt-nowrap { white-space: nowrap; }
+
+/* WIDE — real table */
+.etu-dt-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.etu-dt-table thead th {
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--etu-dim, #999);
+  text-transform: none;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--etu-border, #333);
+  white-space: nowrap;
+}
+.etu-dt-table tbody td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--etu-border-subtle, #222);
+  color: var(--etu-text, inherit);
+}
+.etu-dt-table tbody tr:last-child td { border-bottom: 0; }
+.etu-dt-actions { text-align: right; }
+.etu-dt-actions > * + * { margin-left: 0.4rem; }
+
+/* CARDS — row-per-field stacked card */
+.etu-dt-cards {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+.etu-dt-card {
+  border: 1px solid var(--etu-border, #333);
+  border-radius: 8px;
+  padding: 0.75rem 0.9rem;
+  background: var(--etu-surface, transparent);
+}
+.etu-dt-card-header {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.4rem;
+  color: var(--etu-text, inherit);
+  word-break: break-word;
+}
+.etu-dt-card-fields {
+  margin: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+.etu-dt-card-field {
+  display: grid;
+  grid-template-columns: minmax(7rem, auto) 1fr;
+  gap: 0.75rem;
+  align-items: baseline;
+}
+.etu-dt-card-label {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--etu-dim, #999);
+  white-space: nowrap;
+}
+.etu-dt-card-value {
+  margin: 0;
+  font-size: 0.9rem;
+  text-align: right;
+  word-break: break-word;
+}
+.etu-dt-card-actions {
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--etu-border-subtle, #222);
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* AUTO mode (default): show table on wide, cards on narrow. */
+.etu-dt .etu-dt-cards { display: none; }
+.etu-dt .etu-dt-table { display: table; }
+@container etu-dt (max-width: 720px) {
+  .etu-dt:not(.etu-dt--force-wide) .etu-dt-table { display: none; }
+  .etu-dt:not(.etu-dt--force-wide) .etu-dt-cards { display: grid; }
+}
+/* @container fallback for browsers without support */
+@supports not (container-type: inline-size) {
+  @media (max-width: 720px) {
+    .etu-dt:not(.etu-dt--force-wide) .etu-dt-table { display: none; }
+    .etu-dt:not(.etu-dt--force-wide) .etu-dt-cards { display: grid; }
+  }
+}
+
+/* FORCE modes */
+.etu-dt--force-wide .etu-dt-cards { display: none !important; }
+.etu-dt--force-wide .etu-dt-table { display: table !important; }
+.etu-dt--force-cards .etu-dt-table { display: none !important; }
+.etu-dt--force-cards .etu-dt-cards { display: grid !important; }
