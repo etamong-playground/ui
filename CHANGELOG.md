@@ -27,6 +27,14 @@ a user report.
     eating `env(safe-area-inset-top)`) sits above this bar
   The check is dead-code in production builds via a `process.env.NODE_ENV
   === "production"` short-circuit.
+- **CI gate** — new optional subpath export `@etamong-lab/ui/testing`
+  ships Playwright helpers (`assertViewportFit`,
+  `defineViewportFitTests`, `FLEET_VIEWPORT_PROFILES`) that lift the
+  dev-mode warnings into a test failure. Companion
+  `ci/viewport-fit.gitlab-ci.yml` snippet for `include:` in any app
+  pipeline. `@playwright/test` is an optional peer — apps without e2e
+  are unaffected. See planning
+  `wiki/concepts/viewport-fit-assertions.md`.
 
 ## 0.28.0
 
