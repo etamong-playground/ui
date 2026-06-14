@@ -134,10 +134,37 @@ export {
 } from "./mobileTabBar";
 export {
   Sidebar,
+  SidebarToggle,
+  useSidebarDrawer,
   type SidebarProps,
   type SidebarItem,
   type SidebarSecondarySection,
+  type SidebarToggleProps,
 } from "./sidebar";
+export {
+  I18nProvider,
+  useI18n,
+  useT,
+  useLocale,
+  getLocale,
+  setLocale,
+  noFlashLocaleScript,
+  interpolate,
+  SUPPORTED_LOCALES,
+  type Locale,
+  type Messages,
+  type MessageBundle,
+  type I18nProviderProps,
+} from "./i18n";
+export {
+  ViewportProvider,
+  useViewport,
+  getViewport,
+  noFlashViewportScript,
+  TABLET_MIN,
+  DESKTOP_MIN,
+  type ViewportTier,
+} from "./viewport";
 export {
   NavigationBar,
   type NavigationBarProps,
