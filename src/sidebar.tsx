@@ -48,6 +48,22 @@ export interface SidebarItem {
   href?: string;
 }
 
+/**
+ * Captioned secondary subsection — used by large apps whose `/more` content
+ * grows past ~6 rows and benefits from concern-based grouping
+ * (`OPERATE / INVENTORY / GOVERNANCE`, …). Each group renders as its own
+ * `<nav>` with an optional caption header above the items. Within a section
+ * items are still frequency-ordered.
+ */
+export interface SidebarSecondarySection {
+  /** Stable key used for React reconciliation. Falls back to array index. */
+  id?: string;
+  /** Caption text shown above the section's items. Omit for a header-less group. */
+  caption?: ReactNode;
+  /** Items in this section — same row markup as the flat secondary list. */
+  items: SidebarItem[];
+}
+
 export interface SidebarProps {
   /** App display name shown in the header (e.g. "schedule-manager", "🎪 Festplan"). */
   appName?: ReactNode;
@@ -61,12 +77,28 @@ export interface SidebarProps {
    */
   primary: SidebarItem[];
   /**
-   * Secondary destinations — mirror the array that feeds the `/more`
-   * page (Settings, Admin, …). Pass an empty array if the app has no
-   * secondary nav.
+   * Secondary destinations as a flat list — mirror the array that feeds the
+   * `/more` page (Settings, Admin, …). Suitable for small apps. Pass an empty
+   * array if the app has no secondary nav. When `secondarySections` is also
+   * supplied, `secondarySections` wins and this prop is ignored (a dev-only
+   * `console.warn` is emitted so consumers notice the override).
    */
   secondary?: SidebarItem[];
-  /** Caption above the secondary list. Default: "더보기". Pass `null` to omit. */
+  /**
+   * Secondary destinations grouped into captioned subsections — for large apps
+   * whose `/more` grows past ~6 rows. Each group is concern-based
+   * (`OPERATE / INVENTORY / GOVERNANCE`, …) and renders as a separate `<nav>`
+   * with an optional caption header. Within a section items are still
+   * frequency-ordered. Overrides `secondary` when both are supplied.
+   * The same array shape drives the mobile `/more` drill-down rows; see
+   * `planning/wiki/concepts/sidebar-composition.md` for the contract.
+   */
+  secondarySections?: SidebarSecondarySection[];
+  /**
+   * Caption above the flat secondary list. Default: "더보기". Pass `null` to
+   * omit. Applies only when `secondary` is rendered — `secondarySections`
+   * carry their own captions per group.
+   */
   secondaryCaption?: ReactNode | null;
   /**
    * Footer node — identity + Logout + build info. The convention is to
@@ -129,12 +161,27 @@ export function Sidebar({
   appHeaderExtra,
   primary,
   secondary,
+  secondarySections,
   secondaryCaption = "더보기",
   footer,
   ariaLabel = "주 메뉴",
   className,
 }: SidebarProps) {
-  const showSecondary = secondary && secondary.length > 0;
+  const hasSections = secondarySections && secondarySections.length > 0;
+  const hasFlatSecondary = secondary && secondary.length > 0;
+
+  if (hasSections && hasFlatSecondary) {
+    const proc = (globalThis as { process?: { env?: { NODE_ENV?: string } } })
+      .process;
+    if (!proc || !proc.env || proc.env.NODE_ENV !== "production") {
+      // eslint-disable-next-line no-console
+      console.warn(
+        "[@etamong-lab/ui] <Sidebar>: both `secondary` and `secondarySections` " +
+          "were passed; `secondarySections` wins. Drop one to silence this warning.",
+      );
+    }
+  }
+
   return (
     <aside
       className={"etu-sidebar" + (className ? " " + className : "")}
@@ -164,21 +211,40 @@ export function Sidebar({
           <Item key={it.id} item={it} />
         ))}
       </nav>
-      {showSecondary ? (
-        <nav
-          className="etu-sidebar-section etu-sidebar-section--secondary"
-          aria-label={
-            typeof secondaryCaption === "string" ? secondaryCaption : undefined
-          }
-        >
-          {secondaryCaption ? (
-            <div className="etu-sidebar-caption">{secondaryCaption}</div>
-          ) : null}
-          {secondary!.map((it) => (
-            <Item key={it.id} item={it} />
-          ))}
-        </nav>
-      ) : null}
+      {hasSections
+        ? secondarySections!.map((section, idx) => (
+            <nav
+              key={section.id ?? idx}
+              className="etu-sidebar-section etu-sidebar-section--secondary"
+              aria-label={
+                typeof section.caption === "string" ? section.caption : undefined
+              }
+            >
+              {section.caption ? (
+                <div className="etu-sidebar-section-caption">
+                  {section.caption}
+                </div>
+              ) : null}
+              {section.items.map((it) => (
+                <Item key={it.id} item={it} />
+              ))}
+            </nav>
+          ))
+        : hasFlatSecondary ? (
+          <nav
+            className="etu-sidebar-section etu-sidebar-section--secondary"
+            aria-label={
+              typeof secondaryCaption === "string" ? secondaryCaption : undefined
+            }
+          >
+            {secondaryCaption ? (
+              <div className="etu-sidebar-caption">{secondaryCaption}</div>
+            ) : null}
+            {secondary!.map((it) => (
+              <Item key={it.id} item={it} />
+            ))}
+          </nav>
+        ) : null}
       {footer ? <div className="etu-sidebar-footer">{footer}</div> : null}
     </aside>
   );

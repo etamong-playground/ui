@@ -1376,6 +1376,12 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   border-top: 1px solid var(--etu-border);
 }
 
+.etu-sidebar-section--secondary + .etu-sidebar-section--secondary {
+  margin-top: 0.5rem;
+  padding-top: 0.25rem;
+  border-top: 0;
+}
+
 .etu-sidebar-caption {
   font-size: 0.7rem;
   font-weight: 600;
@@ -1383,6 +1389,15 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   letter-spacing: 0.04em;
   color: var(--etu-text-subtle);
   padding: 0.25rem 0.5rem;
+}
+
+.etu-sidebar-section-caption {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--etu-text-subtle);
+  padding: 0.4rem 0.5rem 0.15rem;
 }
 
 .etu-sidebar-item {
