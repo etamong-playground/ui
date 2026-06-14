@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.29.1
+
+Fix Next.js RSC consumers crashing with `g.createContext is not a function`
+when a server component imports anything from `@etamong-lab/ui` (root
+entry). The bundled `dist/index.{js,cjs}` evaluates several modules that
+call `createContext()` at module-init time (`i18n.tsx`, `viewport.tsx`,
+`toast.tsx`, `statusBanner.tsx`, …); the RSC build of React doesn't expose
+`createContext`, so server-loading the barrel exploded.
+
+- Mark `src/index.ts` as `"use client"` so the bundled barrel ships as a
+  client module. Drawn at the package boundary — server components in
+  Next.js apps can still import & render any of these and pass primitives
+  as props.
+- `./helpers` (framework-agnostic) and `./testing` (test-only) stay
+  server-safe — they have separate tsup entries and no client directive.
+
+Caught by res-train `build-web` after the 0.28 bump: `/me` page is a
+server component that imports `Avatar` from the root entry.
+
 ## 0.29.0
 
 `@etamong-lab/ui/testing` extension — three fleet-wide test helpers in one
