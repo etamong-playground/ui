@@ -1842,3 +1842,120 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 .etu-dt--force-wide .etu-dt-table { display: table !important; }
 .etu-dt--force-cards .etu-dt-table { display: none !important; }
 .etu-dt--force-cards .etu-dt-cards { display: grid !important; }
+
+/* ----------------------------------------------------------------------------
+ * 3-tier responsive contract (v0.28).
+ *
+ * `data-vp` is set on <html> by `noFlashViewportScript` + the
+ * <ViewportProvider>. Tier names mirror `responsive-3tier.md`:
+ *
+ *   mobile  : <  720px   <MobileTabBar> owns nav; <Sidebar> hidden
+ *   tablet  : 720–1023   <Sidebar tabletMode="rail|drawer|full">
+ *   desktop : ≥ 1024px   <Sidebar> full width
+ *
+ * Media-query fallbacks are kept so apps that haven't injected the
+ * no-flash script still get the right layout (CSS-only, slightly more
+ * verbose since data-vp isn't available).
+ * ------------------------------------------------------------------------- */
+
+/* Tablet tier — rail mode (default). 64px icon-only column. */
+@media (min-width: 720px) and (max-width: 1023px) {
+  .etu-sidebar[data-tablet-mode="rail"] {
+    width: 64px;
+    flex: 0 0 64px;
+    padding: 0.5rem 0.25rem;
+  }
+  .etu-sidebar[data-tablet-mode="rail"] .etu-sidebar-header-name,
+  .etu-sidebar[data-tablet-mode="rail"] .etu-sidebar-header-extra,
+  .etu-sidebar[data-tablet-mode="rail"] .etu-sidebar-item-label,
+  .etu-sidebar[data-tablet-mode="rail"] .etu-sidebar-caption,
+  .etu-sidebar[data-tablet-mode="rail"] .etu-sidebar-section-caption,
+  .etu-sidebar[data-tablet-mode="rail"] .etu-sidebar-footer {
+    display: none;
+  }
+  .etu-sidebar[data-tablet-mode="rail"] .etu-sidebar-item {
+    justify-content: center;
+    padding: 0.5rem 0;
+    gap: 0;
+  }
+  .etu-sidebar[data-tablet-mode="rail"] .etu-sidebar-header {
+    padding: 0.25rem 0;
+    justify-content: center;
+    align-items: center;
+  }
+  .etu-sidebar[data-tablet-mode="rail"] .etu-sidebar-header-app {
+    justify-content: center;
+  }
+
+  /* Drawer mode — hidden by default, slides in over a scrim when open. */
+  .etu-sidebar[data-tablet-mode="drawer"] {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 50;
+    width: 280px;
+    max-width: 86vw;
+    transform: translateX(-100%);
+    transition: transform 200ms ease;
+    box-shadow: 4px 0 24px color-mix(in srgb, var(--etu-text) 18%, transparent);
+  }
+  .etu-sidebar[data-tablet-mode="drawer"][data-open="true"] {
+    transform: translateX(0);
+  }
+  .etu-sidebar-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 49;
+    background: color-mix(in srgb, var(--etu-text) 32%, transparent);
+    backdrop-filter: blur(2px);
+  }
+
+  /* Toggle button is visible only at the tablet tier. */
+  .etu-sidebar-toggle {
+    display: inline-flex;
+  }
+}
+
+/* Mobile + desktop hide the toggle (mobile uses MobileTabBar, desktop the
+ * full sidebar is already visible). */
+@media (max-width: 719px), (min-width: 1024px) {
+  .etu-sidebar-toggle {
+    display: none;
+  }
+}
+
+/* Drawer in desktop tier — show full inline (defeat tablet's fixed positioning
+ * in case the consumer left tabletMode="drawer" wired up). */
+@media (min-width: 1024px) {
+  .etu-sidebar[data-tablet-mode="drawer"] {
+    position: static;
+    transform: none;
+    width: var(--etu-sidebar-w, 240px);
+    flex: 0 0 var(--etu-sidebar-w, 240px);
+    box-shadow: none;
+  }
+  .etu-sidebar-scrim {
+    display: none;
+  }
+}
+
+/* Toggle button — chrome-bar hamburger. */
+.etu-sidebar-toggle {
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 10px;
+  color: var(--etu-text);
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.etu-sidebar-toggle:hover {
+  background: color-mix(in srgb, var(--etu-text) 8%, transparent);
+}
+.etu-sidebar-toggle:focus-visible {
+  outline: 2px solid var(--etu-accent);
+  outline-offset: 2px;
+}

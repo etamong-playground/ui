@@ -1,7 +1,8 @@
 /**
- * `<Sidebar>` — desktop sidebar shell. The wide-viewport counterpart to
- * `<MobileTabBar>`; together they implement the fleet nav-shape contract
- * documented in `planning/wiki/concepts/sidebar-composition.md`.
+ * `<Sidebar>` — tablet+desktop sidebar shell. The wide-viewport counterpart
+ * to `<MobileTabBar>`; together they implement the fleet nav-shape contract
+ * documented in `planning/wiki/concepts/sidebar-composition.md` and the
+ * 3-tier breakpoint contract in `responsive-3tier.md`.
  *
  * Composition (top → bottom):
  *
@@ -18,9 +19,21 @@
  * Drive `primary` and `secondary` from the same arrays you feed
  * `<MobileTabBar items={primary.slice(0, 4).concat([moreTab])} />` and the
  * `/more` page renderer respectively — one source of truth, two
- * renderers. The desktop bar hides itself at the mobile breakpoint
+ * renderers. The bar hides itself at the mobile breakpoint
  * (`max-width: 719px`) and `<MobileTabBar>` hides itself above it, so
  * mounting both unconditionally is correct.
+ *
+ * Tablet behavior (720–1023px) is controlled by `tabletMode`:
+ *   - "rail"   — icon-only rail (~64px). Default. Keeps the content area
+ *                wide while leaving nav glanceable. Recommended for most
+ *                apps. iPad Mini portrait (768px) needs this — a full
+ *                240px sidebar leaves only 528px for content and many
+ *                grid layouts collapse to an empty column.
+ *   - "drawer" — hidden by default; consumer mounts `<SidebarToggle>` in
+ *                their app bar. The drawer slides in over a scrim and
+ *                auto-dismisses on route change (parent flips `open`).
+ *   - "full"   — keeps the old v0.27 behavior (240px at ≥720px). Use only
+ *                when the app is desktop-first and tablet sizes are rare.
  *
  * Router-agnostic: each item is `{ id, label, icon, active, onClick?
  * | href? }` (same shape as `MobileTabBarItem`). Active state is supplied
@@ -31,7 +44,7 @@
  * UserMenus are the retired anti-pattern.
  */
 
-import type { ReactNode, MouseEvent } from "react";
+import { useCallback, useEffect, useState, type ReactNode, type MouseEvent } from "react";
 
 export interface SidebarItem {
   /** Stable key used for React reconciliation. */
@@ -111,6 +124,24 @@ export interface SidebarProps {
   ariaLabel?: string;
   /** Extra class merged with `etu-sidebar`. */
   className?: string;
+  /**
+   * Behavior at the tablet tier (720–1023px). Default: `"rail"`.
+   *   - "rail"   icon-only ~64px rail
+   *   - "drawer" hidden until `open` is true; mount `<SidebarToggle>` in
+   *              your app bar to flip it
+   *   - "full"   v0.27 behavior — full 240px sidebar at all ≥720px widths
+   * Has no effect at the mobile (<720) or desktop (≥1024) tier.
+   */
+  tabletMode?: "rail" | "drawer" | "full";
+  /**
+   * Drawer open state (drawer mode only). Controlled — pair with
+   * `onOpenChange`. Auto-flips to `false` when the route changes (the
+   * parent component is expected to call `onOpenChange(false)` after
+   * navigation; or use the built-in `<SidebarToggle>` helper which wires
+   * this up). Ignored unless `tabletMode === "drawer"`.
+   */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 function Item({ item }: { item: SidebarItem }) {
@@ -166,7 +197,27 @@ export function Sidebar({
   footer,
   ariaLabel = "주 메뉴",
   className,
+  tabletMode = "rail",
+  open,
+  onOpenChange,
 }: SidebarProps) {
+  const dataAttrs: Record<string, string> = {
+    "data-tablet-mode": tabletMode,
+  };
+  if (tabletMode === "drawer") {
+    dataAttrs["data-open"] = open ? "true" : "false";
+  }
+
+  // Close drawer on Escape.
+  useEffect(() => {
+    if (tabletMode !== "drawer" || !open) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onOpenChange?.(false);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [tabletMode, open, onOpenChange]);
+
   const hasSections = secondarySections && secondarySections.length > 0;
   const hasFlatSecondary = secondary && secondary.length > 0;
 
@@ -183,9 +234,18 @@ export function Sidebar({
   }
 
   return (
+    <>
+      {tabletMode === "drawer" && open ? (
+        <div
+          className="etu-sidebar-scrim"
+          aria-hidden
+          onClick={() => onOpenChange?.(false)}
+        />
+      ) : null}
     <aside
       className={"etu-sidebar" + (className ? " " + className : "")}
       aria-label={ariaLabel}
+      {...dataAttrs}
     >
       {(appName || appIcon || appHeaderExtra) && (
         <div className="etu-sidebar-header">
@@ -247,5 +307,106 @@ export function Sidebar({
         ) : null}
       {footer ? <div className="etu-sidebar-footer">{footer}</div> : null}
     </aside>
+    </>
   );
+}
+
+export interface SidebarToggleProps {
+  /** Whether the drawer is currently open. */
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  /** ARIA label. Default: "메뉴 열기" / "메뉴 닫기" via `labelOpen`/`labelClose`. */
+  labelOpen?: string;
+  labelClose?: string;
+  /** Extra class merged with `etu-sidebar-toggle`. */
+  className?: string;
+}
+
+/**
+ * Hamburger button that flips the `<Sidebar tabletMode="drawer">` open
+ * state. Visible only at the tablet tier (≥720 and <1024). Mobile users
+ * use `<MobileTabBar>`; desktop users see the full sidebar already.
+ */
+export function SidebarToggle({
+  open,
+  onOpenChange,
+  labelOpen = "메뉴 열기",
+  labelClose = "메뉴 닫기",
+  className,
+}: SidebarToggleProps) {
+  const onClick = useCallback(
+    () => onOpenChange(!open),
+    [open, onOpenChange],
+  );
+  return (
+    <button
+      type="button"
+      className={"etu-sidebar-toggle" + (className ? " " + className : "")}
+      aria-label={open ? labelClose : labelOpen}
+      aria-expanded={open}
+      onClick={onClick}
+    >
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        aria-hidden
+      >
+        {open ? (
+          <>
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </>
+        ) : (
+          <>
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </>
+        )}
+      </svg>
+    </button>
+  );
+}
+
+/**
+ * State hook for the drawer mode. Persists open/closed in sessionStorage
+ * (not localStorage — drawer state is per-session, not a preference) and
+ * auto-closes when `routeKey` changes (pass your current path/hash).
+ */
+export function useSidebarDrawer(
+  appKey: string,
+  routeKey?: string,
+): [boolean, (open: boolean) => void] {
+  const storage = `${appKey}-sidebar-drawer-open`;
+  const [open, setOpen] = useState<boolean>(() => {
+    try {
+      return sessionStorage.getItem(storage) === "1";
+    } catch {
+      return false;
+    }
+  });
+  const set = useCallback(
+    (next: boolean) => {
+      setOpen(next);
+      try {
+        if (next) sessionStorage.setItem(storage, "1");
+        else sessionStorage.removeItem(storage);
+      } catch {
+        /* ignore */
+      }
+    },
+    [storage],
+  );
+  // Auto-close on navigation.
+  useEffect(() => {
+    if (routeKey === undefined) return;
+    set(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeKey]);
+  return [open, set];
 }

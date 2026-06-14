@@ -1,5 +1,51 @@
 # Changelog
 
+## 0.28.0
+
+Fleet-wide responsive + i18n + theme-fallback bundle. Three orthogonal
+primitives landing in one release so apps can adopt them in one MR.
+
+### i18n (KO + EN, system default, EN fallback)
+
+- `<I18nProvider appKey messages>` + `useT()` + `useLocale()`. Two
+  locales — `"ko"` and `"en"`. Resolution: saved user choice →
+  `navigator.languages` first KO/EN match → `"en"`.
+- `noFlashLocaleScript(appKey)` — synchronous `<head>` snippet that sets
+  `<html lang>` before first paint.
+- Tiny `{name}` interpolation only; apps needing plural/select graduate
+  to a real lib (this primitive's surface area is nav strings + prompts).
+- React-free entry: `getLocale`, `setLocale`, `interpolate`,
+  `noFlashLocaleScript` are exported from `@etamong-lab/ui/helpers` too.
+
+### 3-tier responsive layout
+
+- `noFlashViewportScript` + `<ViewportProvider>` + `useViewport()`.
+  Tiers: `"mobile"` < 720, `"tablet"` 720–1023, `"desktop"` ≥ 1024.
+- `<Sidebar tabletMode>` — controls behavior at the tablet tier:
+  - `"rail"` (default) — icon-only 64px column. Fixes the iPad Mini
+    portrait (768px) case where a full 240px sidebar squeezed content
+    into an empty column.
+  - `"drawer"` — hidden until `open`; consumer mounts `<SidebarToggle>`.
+    Auto-closes on Escape and (with `useSidebarDrawer(appKey, routeKey)`)
+    on route change. Scrim + slide-in.
+  - `"full"` — v0.27 behavior, 240px at all ≥720px widths. Use only when
+    tablet sizes are rare.
+- Default is `"rail"`, not `"full"` — this is a visible change to apps
+  that mount `<Sidebar>` without specifying `tabletMode`. To preserve
+  the v0.27 look, pass `tabletMode="full"`.
+
+### Theme — fallback dark
+
+- `noFlashThemeScript` / `getTheme` now fall back to `"dark"` (not
+  `"light"`) when no saved choice and no OS preference is detected. The
+  saved-choice + `prefers-color-scheme` paths are unchanged.
+
+### Wiki / fleet rules
+
+- `planning/wiki/concepts/i18n-ko-en.md` — i18n contract
+- `planning/wiki/concepts/responsive-3tier.md` — viewport contract
+- `planning/wiki/concepts/theme-system-dark-fallback.md` — theme contract
+
 ## 0.27.0
 
 Adoption-first refinements to `useInAppBack` + `<BackButton>` (shipped

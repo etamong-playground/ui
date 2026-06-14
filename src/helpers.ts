@@ -14,3 +14,20 @@ export {
   setTheme,
   type Theme,
 } from "./theme";
+export {
+  noFlashLocaleScript,
+  getLocale,
+  setLocale,
+  interpolate,
+  SUPPORTED_LOCALES,
+  type Locale,
+  type Messages,
+  type MessageBundle,
+} from "./i18nCore";
+export {
+  noFlashViewportScript,
+  getViewport,
+  TABLET_MIN,
+  DESKTOP_MIN,
+  type ViewportTier,
+} from "./viewportCore";
