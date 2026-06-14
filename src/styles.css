@@ -1157,6 +1157,13 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   padding-top: env(safe-area-inset-top);
 }
 
+/* `safeAreaTop={false}` — for apps that already have a global top chrome
+ * bar above the per-page NavigationBar. Drops the safe-area padding so
+ * the two don't stack into an offscreen title row on notched iOS PWAs. */
+.etu-navbar--no-safe-top {
+  padding-top: 0;
+}
+
 .etu-navbar--borderless {
   border-bottom: 0;
 }
@@ -1190,7 +1197,12 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 
 .etu-navbar-title {
   margin: 0;
-  font-size: 1rem;
+  /* Hard-coded 17px (HIG default for navigation title) instead of 1rem to
+   * survive any host-side root font-size scaling. iOS PWA report: title
+   * appeared visibly smaller in standalone than in Safari, traced to a
+   * consumer that set html font-size < 16px; rem-based sizing inherited
+   * the shrink. Fixed pixel keeps the title at HIG size in every host. */
+  font-size: 17px;
   font-weight: 600;
   line-height: 1.2;
   color: var(--etu-text);

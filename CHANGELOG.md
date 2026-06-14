@@ -1,5 +1,41 @@
 # Changelog
 
+## 0.28.1
+
+`<NavigationBar>` hardening + a proactive dev-mode layout assertion so
+the kind of layout bug the user just hit (iOS PWA: title row partially
+below the visible viewport on iPhone notched devices, title font
+shrinking in standalone) is caught the next time it slips in, not after
+a user report.
+
+- `<NavigationBar safeAreaTop>` — new prop, default `true`. When `false`,
+  the sticky bar omits `padding-top: env(safe-area-inset-top)`. For apps
+  that already have a global top-chrome bar above their per-page nav
+  (festplan/xatu pattern). Avoids the double safe-area stack that pushed
+  page titles ~60px below the visible viewport on notched iOS PWAs.
+- `.etu-navbar-title` font-size is now hard-coded `17px` (the HIG
+  navigation-title default) instead of `1rem`. Insulates the title from
+  any host that sets `html { font-size: < 16px }` — root-relative sizing
+  was inheriting the shrink. iOS PWA title shrink reports closed.
+- **Dev-only runtime assertion**: on mount + on viewport resize the bar
+  measures its bounding rect, computed font-size, and ancestor chain. It
+  emits a `console.warn` (one per condition per instance) when:
+  - the bar's bottom edge is below the visible viewport
+  - the bar is partially clipped at the bottom edge
+  - the title computed font-size is below the 16px floor
+  - a sticky/fixed ancestor with `padding-top ≥ 20px` (i.e. already
+    eating `env(safe-area-inset-top)`) sits above this bar
+  The check is dead-code in production builds via a `process.env.NODE_ENV
+  === "production"` short-circuit.
+- **CI gate** — new optional subpath export `@etamong-lab/ui/testing`
+  ships Playwright helpers (`assertViewportFit`,
+  `defineViewportFitTests`, `FLEET_VIEWPORT_PROFILES`) that lift the
+  dev-mode warnings into a test failure. Companion
+  `ci/viewport-fit.gitlab-ci.yml` snippet for `include:` in any app
+  pipeline. `@playwright/test` is an optional peer — apps without e2e
+  are unaffected. See planning
+  `wiki/concepts/viewport-fit-assertions.md`.
+
 ## 0.28.0
 
 Fleet-wide responsive + i18n + theme-fallback bundle. Three orthogonal
