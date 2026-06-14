@@ -1148,6 +1148,49 @@ Notes:
   router-agnostic and never read the URL.
 - **CSS variable `--etu-sidebar-w` overrides the 240px default width.**
 
+### Captioned secondary subsections (large apps)
+
+Once an app's secondary list grows past ~6 rows, swap the flat
+`secondary` prop for `secondarySections` — captioned, concern-based
+groups (`OPERATE / INVENTORY / GOVERNANCE`, …) that render as separate
+`<nav>` blocks. The same array drives the mobile `/more` drill-down
+rows. See the
+[sidebar-composition](https://gitlab.com/etamong-lab/planning/-/blob/main/wiki/concepts/sidebar-composition.md)
+"Ordering and grouping" section for the rule.
+
+```tsx
+import { Sidebar, type SidebarSecondarySection } from "@etamong-lab/ui";
+
+const secondarySections: SidebarSecondarySection[] = [
+  {
+    id: "operate",
+    caption: "OPERATE",
+    items: [
+      { id: "audit", label: "Audit", onClick: () => go("audit") },
+      { id: "schedule", label: "Schedule", onClick: () => go("schedule") },
+    ],
+  },
+  {
+    id: "governance",
+    caption: "GOVERNANCE",
+    items: [
+      { id: "legal", label: "Legal", onClick: () => go("legal") },
+      { id: "settings", label: "Settings", onClick: () => go("settings") },
+    ],
+  },
+];
+
+<Sidebar
+  appName="service-admin"
+  primary={primary}
+  secondarySections={secondarySections}
+  footer={footer}
+/>;
+```
+
+When both `secondary` and `secondarySections` are passed,
+`secondarySections` wins (and a dev-only `console.warn` fires).
+
 ## NavigationBar + floating tab bar (iOS 26 Liquid Glass)
 
 v0.23.0 adds `<NavigationBar>` — an iOS-style small-title bar — as the default

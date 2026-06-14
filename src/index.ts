@@ -134,6 +134,7 @@ export {
   Sidebar,
   type SidebarProps,
   type SidebarItem,
+  type SidebarSecondarySection,
 } from "./sidebar";
 export {
   NavigationBar,
