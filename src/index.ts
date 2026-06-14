@@ -140,6 +140,11 @@ export {
   type NavigationBarProps,
 } from "./navigationBar";
 export { installIOSPwaShell } from "./installIOSPwaShell";
+export {
+  DataTable,
+  type DataTableProps,
+  type DataTableColumn,
+} from "./dataTable";
 // alpha — API may change before stable 0.20.0
 export {
   DocsHub,
