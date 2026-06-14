@@ -1695,6 +1695,31 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   padding-left: 20px;
   margin: 6px 0 12px;
 }
+.etu-docs-hub-skill-install {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  margin: 8px 0 12px;
+  background: var(--etu-surface-2);
+  border: 1px solid var(--etu-border);
+  border-radius: 6px;
+  overflow-x: auto;
+}
+.etu-docs-hub-skill-install-cmd {
+  flex: 1 1 auto;
+  font-family: var(--etu-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 13px;
+  white-space: nowrap;
+  color: var(--etu-text);
+  background: transparent;
+  padding: 0;
+}
+.etu-docs-hub-skill-install-note {
+  font-size: 12px;
+  color: var(--etu-text-muted);
+  margin: 0 0 12px;
+}
 
 /* --- DataTable -------------------------------------------------------- */
 /* Wide = real <table>. Narrow (container < 720px) = row-per-field cards.
