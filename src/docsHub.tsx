@@ -13,6 +13,7 @@
  */
 
 import { useState, type ReactNode } from "react";
+import { CopyButton } from "./copyButton";
 
 export interface DocsHubSection {
   /** Stable key used in the left nav + as the section anchor. */
@@ -32,6 +33,15 @@ export interface DocsHubSkill {
   description: string;
   /** The skill body in markdown. */
   body: string;
+  /**
+   * Stable public URL serving the same skill markdown bytes as the
+   * download button. Convention: `https://<app>.m.etamong.com/skill.md`.
+   * When set, DocsHub shows a `curl … -o ~/.claude/skills/<slug>/SKILL.md`
+   * one-liner as the primary install path (download stays as fallback).
+   * The endpoint must be unauthenticated and return `text/markdown`.
+   * See wiki/concepts/docs-hub.md.
+   */
+  publicUrl?: string;
   /** Optional CTA label override. Default: "📥 Claude skill 받기". */
   buttonLabel?: ReactNode;
   /**
@@ -83,33 +93,70 @@ function downloadSkill(skill: DocsHubSkill): void {
   URL.revokeObjectURL(url);
 }
 
+function curlOneLiner(publicUrl: string, slug: string): string {
+  return `curl -fsSL ${publicUrl} -o ~/.claude/skills/${slug}/SKILL.md`;
+}
+
 function defaultSkillUsageSection(skill: DocsHubSkill): DocsHubSection {
   const filename = `${skill.name}.md`;
+  const oneLiner = skill.publicUrl
+    ? curlOneLiner(skill.publicUrl, skill.name)
+    : undefined;
   return {
     id: "__skill_usage__",
     label: "Claude skill 사용법",
-    summary: "다운로드한 .md 파일을 LLM과 함께 쓰는 법.",
+    summary: oneLiner
+      ? "한 줄 install 또는 파일 다운로드로 LLM과 함께 쓰는 법."
+      : "다운로드한 .md 파일을 LLM과 함께 쓰는 법.",
     content: (
       <div className="etu-docs-hub-skill-usage">
-        <p>
-          위 "📥" 버튼이 <code>{filename}</code> 파일 한 개를 내려받아요. 그
-          안에 이 페이지의 핵심이 마크다운으로 들어 있어서, 어느 LLM과도
-          그대로 같이 쓸 수 있어요.
-        </p>
+        {oneLiner ? (
+          <>
+            <p>
+              아래 한 줄이면 Claude Code 가 다음 세션부터 이 스킬을 인식해요.
+              헤드리스/CI/SSH 어디서나 같은 명령으로 깔리고, 다시 실행하면
+              최신 배포본으로 덮어써져요.
+            </p>
+            <div className="etu-docs-hub-skill-install">
+              <code className="etu-docs-hub-skill-install-cmd">{oneLiner}</code>
+              <CopyButton value={oneLiner} label="명령 복사" />
+            </div>
+            <p className="etu-docs-hub-skill-install-note">
+              파일이 필요하면 우측 위 "📥" 버튼으로 <code>{filename}</code> 을
+              직접 받아 <code>~/.claude/skills/{skill.name}/SKILL.md</code> 에
+              두셔도 돼요 (오프라인/에어갭).
+            </p>
+          </>
+        ) : (
+          <p>
+            위 "📥" 버튼이 <code>{filename}</code> 파일 한 개를 내려받아요. 그
+            안에 이 페이지의 핵심이 마크다운으로 들어 있어서, 어느 LLM과도
+            그대로 같이 쓸 수 있어요.
+          </p>
+        )}
         <h4>Claude Code (CLI)</h4>
-        <ol>
-          <li>
-            <code>~/.claude/skills/{skill.name}/SKILL.md</code> 경로로 옮기세요
-            (디렉터리 이름과 파일 이름은 위와 그대로).
-          </li>
-          <li>
-            Claude Code를 재시작하거나 새 세션을 열면 스킬이 자동으로 인식돼요.
-          </li>
-          <li>
-            대화 중에 "<em>{skill.name}</em> 스킬 써서…" 같이 부르면 Claude가
-            이 가이드를 바탕으로 동작해요.
-          </li>
-        </ol>
+        {oneLiner ? (
+          <p>
+            한 줄 install 후 Claude Code 를 재시작하거나 새 세션을 열면 스킬이
+            자동으로 인식돼요. 대화 중에 "<em>{skill.name}</em> 스킬 써서…" 같이
+            부르면 Claude 가 이 가이드를 바탕으로 동작해요.
+          </p>
+        ) : (
+          <ol>
+            <li>
+              <code>~/.claude/skills/{skill.name}/SKILL.md</code> 경로로 옮기세요
+              (디렉터리 이름과 파일 이름은 위와 그대로).
+            </li>
+            <li>
+              Claude Code를 재시작하거나 새 세션을 열면 스킬이 자동으로
+              인식돼요.
+            </li>
+            <li>
+              대화 중에 "<em>{skill.name}</em> 스킬 써서…" 같이 부르면 Claude가
+              이 가이드를 바탕으로 동작해요.
+            </li>
+          </ol>
+        )}
         <h4>Codex / 기타 코딩 에이전트</h4>
         <p>
           툴이 권장하는 위치(예: <code>~/.codex/skills/</code>,
@@ -119,13 +166,24 @@ function defaultSkillUsageSection(skill: DocsHubSkill): DocsHubSection {
         </p>
         <h4>그 외 LLM (ChatGPT, Gemini, 자체 봇 등)</h4>
         <p>
-          파일을 열어 본문을 통째로 첫 메시지(또는 시스템 프롬프트)에 붙여
-          넣으면 돼요. 짧은 한 파일이라 컨텍스트 부담이 거의 없어요.
+          {skill.publicUrl ? (
+            <>
+              파일을 열어 본문을 통째로 첫 메시지(또는 시스템 프롬프트)에 붙여
+              넣거나, <code>{skill.publicUrl}</code> 을 가져오게 해도 돼요.
+              짧은 한 파일이라 컨텍스트 부담이 거의 없어요.
+            </>
+          ) : (
+            <>
+              파일을 열어 본문을 통째로 첫 메시지(또는 시스템 프롬프트)에 붙여
+              넣으면 돼요. 짧은 한 파일이라 컨텍스트 부담이 거의 없어요.
+            </>
+          )}
         </p>
         <h4>업데이트</h4>
         <p>
-          이 페이지에 새 기능이 반영되면 같은 버튼으로 다시 받아 덮어쓰면
-          돼요. 스킬은 앱 변경과 같은 커밋에서 갱신돼요 — 늘 최신.
+          {oneLiner
+            ? "이 페이지에 새 기능이 반영되면 같은 명령을 다시 실행해 덮어쓰면 돼요. URL 은 늘 최신 배포본을 가리켜요."
+            : "이 페이지에 새 기능이 반영되면 같은 버튼으로 다시 받아 덮어쓰면 돼요. 스킬은 앱 변경과 같은 커밋에서 갱신돼요 — 늘 최신."}
         </p>
       </div>
     ),
