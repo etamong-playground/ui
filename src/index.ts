@@ -1,6 +1,13 @@
 // React entry. For the framework-agnostic helpers (no React/cmdk), import from
 // "@etamong-lab/ui/helpers". For the token + palette styles, import
 // "@etamong-lab/ui/styles.css" once at the app root.
+//
+// The bundled `dist/index.{js,cjs}` is shipped with a `"use client";` banner
+// (see tsup.config.ts) so Next.js RSC consumers can server-render a tree that
+// imports anything from here without exploding on `createContext` — several
+// sub-modules call it at module-init time and the RSC build of React doesn't
+// expose it. The directive lives in the tsup banner, not in this source
+// file, because esbuild strips bare source-level "use client" during bundling.
 export { CommandPalette, type CommandPaletteProps } from "./CommandPalette";
 export {
   CommandPaletteTrigger,
