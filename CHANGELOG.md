@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.30.0
+## 0.31.0
 
 `<OpenInBrowserButton href>` — uniform fleet affordance for "open this URL in
 the system default browser." Wraps an `<a target="_blank" rel="noopener
@@ -19,6 +19,36 @@ Styled via `.etu-open-in-browser-button` (+ `--ghost` / `--primary` /
 Use for external docs, OAuth handoffs, payment provider redirects, sibling
 fleet apps the user hasn't installed yet — anywhere that staying inside the
 PWA shell would be the wrong default.
+
+## 0.30.0
+
+Fleet-auth primitives — implements the route contract documented at
+`planning/wiki/concepts/fleet-auth.md` (planning#252) so apps can stop
+hand-rolling login/logout/expired-session UI and the
+oauth2-proxy-vs-in-app-OIDC split can be retired.
+
+- `AuthGate` — gates a subtree on `/api/me`; anonymous browser navigation
+  → redirect to `/auth/login?rd=<here>`. Share-preview crawlers (UA
+  match — same list as `og-share-previews`) and SSR get `children`
+  unconditionally so the static `<meta og:*>` block stays readable.
+- `useIdentity()` — thin wrapper around `useMe()` with fleet defaults
+  (`/api/me`, 401-as-anonymous) + `signIn`/`signOut` bound to the fleet
+  URLs.
+- `LoginButton` / `LogoutButton` — standard pill buttons.
+- `SessionBadge` — sidebar bottom-slot user pill (avatar circle + name).
+- `SessionExpiredDialog` — global; listens for `etu:session-expired` and
+  prompts re-sign-in. App's XHR layer dispatches the event on `/api/*`
+  401 after the initial me-fetch succeeded.
+- `fleetLoginUrl` / `fleetLogoutUrl` / `fleetSignIn` / `fleetSignOut` —
+  URL + redirect helpers for `/auth/{login,logout}`.
+- `isShareCrawler(ua)` + `SHARE_CRAWLER_UA_SUBSTRINGS` — the single
+  source of the crawler UA list; mirrored by `shared/libs/auth-go` and
+  `apps/pages/apiserver/main.go`.
+- `notifySessionExpired()` / `refreshIdentity()` — event dispatchers
+  apps can call from their fetch wrapper.
+
+Legacy `useMe`/`signInUrl`/`signOutUrl` (oauth2-proxy paths) remain
+exported unchanged — apps still on the sidecar keep working.
 
 ## 0.29.1
 
