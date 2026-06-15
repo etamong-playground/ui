@@ -1165,6 +1165,182 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 }
 
 /* ----------------------------------------------------------------------------
+ * NotificationBell — bell trigger + badge + desktop popover / mobile sheet.
+ * ------------------------------------------------------------------------- */
+
+.etu-notif-bell {
+  position: relative;
+  display: inline-block;
+}
+
+.etu-notif-bell-trigger {
+  position: relative;
+  background: transparent;
+  border: none;
+  padding: 0.4rem;
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--etu-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+.etu-notif-bell-trigger:hover {
+  background: var(--etu-surface-2);
+}
+
+.etu-notif-bell-trigger:focus-visible {
+  outline: 2px solid var(--etu-accent);
+  outline-offset: 2px;
+}
+
+.etu-notif-bell-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--etu-danger, #dc2626);
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+  pointer-events: none;
+  box-shadow: 0 0 0 2px var(--etu-surface);
+}
+
+.etu-notif-bell-popover {
+  position: absolute;
+  width: min(360px, calc(100vw - 1rem));
+  max-height: min(70vh, 520px);
+  background: var(--etu-surface);
+  border: 1px solid var(--etu-border);
+  border-radius: 0.6rem;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.16);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.etu-notif-bell-popover--bottom-right { right: 0; top: calc(100% + 0.4rem); }
+.etu-notif-bell-popover--bottom-left  { left:  0; top: calc(100% + 0.4rem); }
+.etu-notif-bell-popover--top-right    { right: 0; bottom: calc(100% + 0.4rem); }
+.etu-notif-bell-popover--top-left     { left:  0; bottom: calc(100% + 0.4rem); }
+
+.etu-notif-bell-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 70;
+  animation: etu-notif-bell-fade 0.15s ease-out;
+}
+
+.etu-notif-bell-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 71;
+  background: var(--etu-surface);
+  border-radius: 1rem 1rem 0 0;
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.18);
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  animation: etu-notif-bell-slide-up 0.2s ease-out;
+}
+
+.etu-notif-bell-sheet-grabber {
+  width: 36px;
+  height: 4px;
+  background: var(--etu-border);
+  border-radius: 999px;
+  margin: 0.55rem auto 0.25rem;
+  flex: 0 0 auto;
+}
+
+@keyframes etu-notif-bell-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes etu-notif-bell-slide-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.etu-notif-bell-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid var(--etu-border);
+  flex: 0 0 auto;
+}
+
+.etu-notif-bell-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--etu-text);
+}
+
+.etu-notif-bell-close {
+  background: transparent;
+  border: none;
+  color: var(--etu-text-muted);
+  font-size: 1.4rem;
+  line-height: 1;
+  padding: 0.1rem 0.4rem;
+  cursor: pointer;
+  border-radius: 0.3rem;
+}
+
+.etu-notif-bell-close:hover {
+  background: var(--etu-surface-2);
+  color: var(--etu-text);
+}
+
+.etu-notif-bell-items {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.3rem 0;
+}
+
+.etu-notif-bell-item {
+  padding: 0.7rem 0.9rem;
+  border-bottom: 1px solid var(--etu-border);
+  font-size: 0.85rem;
+  color: var(--etu-text);
+}
+
+.etu-notif-bell-item:last-child {
+  border-bottom: none;
+}
+
+.etu-notif-bell-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--etu-text-muted);
+  font-size: 0.85rem;
+}
+
+.etu-notif-bell-footer {
+  padding: 0.6rem 0.9rem;
+  border-top: 1px solid var(--etu-border);
+  flex: 0 0 auto;
+  font-size: 0.82rem;
+}
+
+/* ----------------------------------------------------------------------------
  * MobileTabBar — fixed bottom tab bar; hidden at desktop widths.
  * ------------------------------------------------------------------------- */
 

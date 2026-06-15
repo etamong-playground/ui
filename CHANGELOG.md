@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.32.0
+
+`<NotificationBell items count? onOpen? footer? placement?>` — fleet-wide
+bell-icon notification surface. Click opens a popover dropdown on
+desktop/tablet (anchored to the trigger, same placement contract as
+`<UserMenu>`) and a bottom sheet on mobile (iOS-native pattern: backdrop +
+slide-up + safe-area inset + body-scroll lock). The component is
+content-agnostic — consumers pass an `items` array with rendered `content`
+nodes and any inline actions.
+
+Replaces per-app "inbox" tabs / routes: incoming notifications (access
+requests, deploy completions, mentions) belong on a global header bell,
+not in the primary nav. First consumer = pages access-request inbox.
+
+Styled via `.etu-notif-bell*` (trigger / badge / popover / sheet / item /
+empty / footer). Badge auto-renders as `99+` past 99.
+
 ## 0.31.0
 
 `<OpenInBrowserButton href>` — uniform fleet affordance for "open this URL in

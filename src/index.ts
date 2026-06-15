@@ -144,6 +144,11 @@ export {
   type MobileTabBarItem,
 } from "./mobileTabBar";
 export {
+  NotificationBell,
+  type NotificationBellProps,
+  type NotificationBellItem,
+} from "./notificationBell";
+export {
   Sidebar,
   SidebarToggle,
   useSidebarDrawer,
