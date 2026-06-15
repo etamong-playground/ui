@@ -190,3 +190,29 @@ export {
   type DocsHubSection,
   type DocsHubSkill,
 } from "./docsHub";
+// Fleet-auth primitives — see planning/wiki/concepts/fleet-auth.md
+// (planning#252). Implements the unified `/auth/{login,callback,logout}` +
+// `/api/me` contract. Apps still on oauth2-proxy keep using the legacy
+// `useMe`/`signInUrl`/`signOutUrl` exports above.
+export {
+  AuthGate,
+  LoginButton,
+  LogoutButton,
+  SessionBadge,
+  SessionExpiredDialog,
+  useIdentity,
+  fleetLoginUrl,
+  fleetLogoutUrl,
+  fleetSignIn,
+  fleetSignOut,
+  isShareCrawler,
+  notifySessionExpired,
+  refreshIdentity,
+  SHARE_CRAWLER_UA_SUBSTRINGS,
+  type AuthGateProps,
+  type LoginButtonProps,
+  type LogoutButtonProps,
+  type SessionBadgeProps,
+  type SessionExpiredDialogProps,
+  type UseIdentityResult,
+} from "./auth";
