@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.30.0
+
+`<OpenInBrowserButton href>` — uniform fleet affordance for "open this URL in
+the system default browser." Wraps an `<a target="_blank" rel="noopener
+noreferrer">` styled as a button with an external-link glyph. On installed
+PWAs (iOS standalone, Android Chrome) `target="_blank"` already pops the link
+out to Safari / Chrome rather than navigating away the PWA window; the
+component exists so the visual affordance is consistent across apps instead
+of each one re-rolling its own icon button.
+
+Props: `href`, `label` (default `"브라우저에서 열기"`), `icon`, `iconOnly`,
+`ariaLabel`, `variant: "ghost" | "primary"` (default `ghost`, matching
+`<CopyButton>`), `className`, plus pass-through `AnchorHTMLAttributes`.
+Styled via `.etu-open-in-browser-button` (+ `--ghost` / `--primary` /
+`--icon-only` modifiers).
+
+Use for external docs, OAuth handoffs, payment provider redirects, sibling
+fleet apps the user hasn't installed yet — anywhere that staying inside the
+PWA shell would be the wrong default.
+
 ## 0.29.1
 
 Fix Next.js RSC consumers crashing with `g.createContext is not a function`

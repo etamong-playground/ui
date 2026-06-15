@@ -97,6 +97,10 @@ export {
   type UseClipboardResult,
 } from "./copyButton";
 export {
+  OpenInBrowserButton,
+  type OpenInBrowserButtonProps,
+} from "./openInBrowserButton";
+export {
   registerServiceWorker,
   networkFirstSwSource,
   type RegisterServiceWorkerOptions,
