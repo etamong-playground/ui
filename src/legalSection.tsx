@@ -191,21 +191,38 @@ export function useLegalAvailability(
   return { kinds, status, refresh };
 }
 
-// ----- Shared row ------------------------------------------------------
+// ----- LegalRow (shared row primitive, also useful for sibling 문의하기 row) ----
 
-interface LegalRowProps {
+export interface LegalRowProps {
   icon: ReactNode;
   label: ReactNode;
-  /** `›` for in-app nav, `↗` for external. */
-  trailing: ReactNode;
+  /** `›` for in-app nav, `↗` for external. Default chosen from `external`. */
+  trailing?: ReactNode;
   href: string;
   /** When set, called instead of the default link navigation. */
   onClick?: (event: MouseEvent<HTMLAnchorElement>) => void;
+  /** When true, opens the link in a new tab with `rel="noopener noreferrer"`. */
   external?: boolean;
+  /**
+   * When `false` (default), the row renders a top divider (matches "second-row-onwards"
+   * inside a multi-row card). Set `true` for the first row of a card to suppress it.
+   * `<LegalMenuItem>` and `<LegalPage>` set this automatically.
+   */
   isFirst?: boolean;
 }
 
-function LegalRow({ icon, label, trailing, href, onClick, external, isFirst }: LegalRowProps) {
+/** A single row inside an `.etu-legal-card`. Use when you want to compose your own
+ *  card with a `<LegalMenuItem>` and additional rows (e.g. 문의하기 mailto). */
+export function LegalRow({
+  icon,
+  label,
+  trailing,
+  href,
+  onClick,
+  external,
+  isFirst,
+}: LegalRowProps) {
+  const trailingNode = trailing ?? (external ? "↗" : "›");
   return (
     <a
       className={"etu-legal-row" + (isFirst ? "" : " etu-legal-row--divided")}
@@ -224,7 +241,7 @@ function LegalRow({ icon, label, trailing, href, onClick, external, isFirst }: L
       </span>
       <span className="etu-legal-row-label">{label}</span>
       <span className="etu-legal-row-trailing" aria-hidden>
-        {trailing}
+        {trailingNode}
       </span>
     </a>
   );
@@ -243,33 +260,42 @@ export interface LegalMenuItemProps {
   icon?: ReactNode | null;
   /** Override the row label. Default: `법률 정보`. */
   label?: ReactNode;
-  /** Extra class merged with `etu-legal-card`. Wrap multiple `<LegalMenuItem>`s? Use the same card. */
-  className?: string;
+  /**
+   * Set `true` when this is the first row inside its enclosing
+   * `.etu-legal-card` (suppresses the top divider). Default `false` — the row
+   * draws a top border so it sits cleanly under sibling rows like 문의하기.
+   */
+  isFirst?: boolean;
 }
 
+/**
+ * `법률 정보 ›` row. Renders only the row — the caller wraps it (and any
+ * sibling rows like 문의하기) in an `.etu-legal-card` so the legal entry
+ * shares the same visual card as adjacent contact/help rows (matches
+ * planning concepts/mobile-more-page diagram).
+ */
 export function LegalMenuItem({
   appSlug: _appSlug,
   to = "/more/legal",
   onNavigate,
   icon = "⚖️",
   label = "법률 정보",
-  className,
+  isFirst,
 }: LegalMenuItemProps) {
-  // `appSlug` is unused on the menu row itself (the L2 list lives at `/more/legal`),
-  // but we keep it in the prop set so all three primitives share the same calling
-  // convention — apps pass `appSlug` once into both `<LegalMenuItem>` and `<LegalPage>`.
+  // `appSlug` is unused on the menu row itself (the L2 list lives at
+  // `/more/legal`), but we keep it in the prop set so all three primitives
+  // share the same calling convention — apps pass `appSlug` once into both
+  // `<LegalMenuItem>` and `<LegalPage>`.
   void _appSlug;
   return (
-    <div className={"etu-legal-card" + (className ? " " + className : "")}>
-      <LegalRow
-        icon={icon}
-        label={label}
-        trailing="›"
-        href={to}
-        onClick={onNavigate ? () => onNavigate(to) : undefined}
-        isFirst
-      />
-    </div>
+    <LegalRow
+      icon={icon}
+      label={label}
+      trailing="›"
+      href={to}
+      onClick={onNavigate ? () => onNavigate(to) : undefined}
+      isFirst={isFirst}
+    />
   );
 }
 

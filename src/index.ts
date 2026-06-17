@@ -190,12 +190,14 @@ export {
   useLegalAvailability,
   LegalMenuItem,
   LegalPage,
+  LegalRow,
   LEGAL_HUB_BASE_URL,
   LEGAL_MANIFEST_URL,
   type LegalAvailability,
   type LegalKind,
   type LegalMenuItemProps,
   type LegalPageProps,
+  type LegalRowProps,
   type UseLegalAvailabilityOptions,
 } from "./legalSection";
 export {

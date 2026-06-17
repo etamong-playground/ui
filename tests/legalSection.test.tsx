@@ -124,6 +124,20 @@ describe("<LegalMenuItem>", () => {
     link.click();
     expect(onNavigate).toHaveBeenCalledWith("/custom/legal");
   });
+
+  it("renders just the row — the enclosing card class is the caller's responsibility", () => {
+    const { container } = render(<LegalMenuItem appSlug="alert-ops" />);
+    // No `.etu-legal-card` wrapper: the component is composable inside the app's own card.
+    expect(container.querySelector(".etu-legal-card")).toBeNull();
+    expect(container.querySelector(".etu-legal-row")).not.toBeNull();
+  });
+
+  it("draws a top divider by default (suppressed when isFirst is set)", () => {
+    const { container, rerender } = render(<LegalMenuItem appSlug="alert-ops" />);
+    expect(container.querySelector(".etu-legal-row--divided")).not.toBeNull();
+    rerender(<LegalMenuItem appSlug="alert-ops" isFirst />);
+    expect(container.querySelector(".etu-legal-row--divided")).toBeNull();
+  });
 });
 
 describe("<LegalPage>", () => {
