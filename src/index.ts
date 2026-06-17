@@ -187,6 +187,18 @@ export {
 } from "./navigationBar";
 export { installIOSPwaShell } from "./installIOSPwaShell";
 export {
+  useLegalAvailability,
+  LegalMenuItem,
+  LegalPage,
+  LEGAL_HUB_BASE_URL,
+  LEGAL_MANIFEST_URL,
+  type LegalAvailability,
+  type LegalKind,
+  type LegalMenuItemProps,
+  type LegalPageProps,
+  type UseLegalAvailabilityOptions,
+} from "./legalSection";
+export {
   DataTable,
   type DataTableProps,
   type DataTableColumn,
