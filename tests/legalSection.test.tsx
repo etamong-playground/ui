@@ -151,7 +151,7 @@ describe("<LegalPage>", () => {
     });
     const terms = screen.getByRole("link", { name: /이용약관/ });
     const privacy = screen.getByRole("link", { name: /개인정보처리방침/ });
-    const identity = screen.getByRole("link", { name: /etamong 식별\/SSO 안내/ });
+    const identity = screen.getByRole("link", { name: /로그인 정책/ });
     expect(terms.getAttribute("href")).toBe(`${LEGAL_HUB_BASE_URL}/#alert-ops-terms`);
     expect(privacy.getAttribute("href")).toBe(`${LEGAL_HUB_BASE_URL}/#alert-ops-privacy`);
     expect(identity.getAttribute("href")).toBe(`${LEGAL_HUB_BASE_URL}/#identity`);
@@ -168,7 +168,7 @@ describe("<LegalPage>", () => {
       expect(screen.getByText("현재 등록된 법률 문서가 없습니다.")).toBeDefined();
     });
     // L1 still present.
-    expect(screen.getByRole("link", { name: /etamong 식별\/SSO 안내/ })).toBeDefined();
+    expect(screen.getByRole("link", { name: /로그인 정책/ })).toBeDefined();
   });
 
   it("does NOT show the empty-state line while loading — only after a successful fetch returns nothing", () => {
@@ -177,6 +177,6 @@ describe("<LegalPage>", () => {
     render(<LegalPage appSlug="alert-ops" manifestUrl={MANIFEST_URL} />);
     expect(screen.queryByText("현재 등록된 법률 문서가 없습니다.")).toBeNull();
     // L1 still present even during the indeterminate state.
-    expect(screen.getByRole("link", { name: /etamong 식별\/SSO 안내/ })).toBeDefined();
+    expect(screen.getByRole("link", { name: /로그인 정책/ })).toBeDefined();
   });
 });

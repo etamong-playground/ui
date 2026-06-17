@@ -304,7 +304,7 @@ export function LegalMenuItem({
 export interface LegalPageProps {
   /** Hub `serviceId` — the codename slug, e.g. `alert-ops`, `xatu`. */
   appSlug: string;
-  /** Override the L1 identity row label. Default: `etamong 식별/SSO 안내`. */
+  /** Override the L1 identity row label. Default: `로그인 정책`. */
   identityLabel?: ReactNode;
   /** Override the legal hub base URL (e.g. for staging). */
   hubBaseUrl?: string;
@@ -327,7 +327,7 @@ const KIND_ICONS: Record<string, string> = {
 
 export function LegalPage({
   appSlug,
-  identityLabel = "etamong 식별/SSO 안내",
+  identityLabel = "로그인 정책",
   hubBaseUrl = LEGAL_HUB_BASE_URL,
   kindLabels,
   anchorOverride,
