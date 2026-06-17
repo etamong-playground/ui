@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.32.1
+
+`<Sidebar>` — sticky on tablet+desktop. `.etu-sidebar` now uses
+`position: sticky; top: 0; height: 100dvh; overflow-y: auto;
+align-self: flex-start;` so header / primary nav / secondary nav stay
+visible regardless of page scroll. Long sidebars scroll internally
+instead of scrolling out of view with the page body. Fixes alert-ops
+Console (200+ firing alerts) where only the `margin-top:auto` footer
+remained visible at the bottom. Drawer (`position: fixed`) and rail
+modes unaffected; desktop-tier drawer override switched from `static` →
+`sticky` so it doesn't regress.
+
 ## 0.32.0
 
 `<NotificationBell items count? onOpen? footer? placement?>` — fleet-wide
