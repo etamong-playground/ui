@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.33.0
+
+`<LegalMenuItem appSlug>` + `<LegalPage appSlug>` + `useLegalAvailability(appSlug)` —
+three primitives for the fleet-wide `/more` → `법률 정보 ›` → `/more/legal` three-level
+grouping (see planning concept `legal-section-pattern`). The hub manifest
+(`legal.m.etamong.com/api/public-manifest`) drives which doc rows render at the second
+level; the top-level `법률 정보 ›` row is unconditional so per-app published-doc
+differences never produce menu jitter. L1 `로그인 정책` row is pinned last on every
+app. `<LegalRow>` is also exported so apps compose sibling rows (e.g. 문의하기 mailto)
+into the same `.etu-legal-card`. SWR-style hook (1h soft TTL / 24h hard TTL,
+localStorage cache). Empty L2 state: `로그인 정책` row + a single muted line —
+suppressed while loading / on a transient fetch error so an offline blip doesn't read
+as "this app legally has nothing".
+
+## 0.32.1
+
+`<Sidebar>` — sticky on tablet+desktop. `.etu-sidebar` now uses
+`position: sticky; top: 0; height: 100dvh; overflow-y: auto;
+align-self: flex-start;` so header / primary nav / secondary nav stay
+visible regardless of page scroll. Long sidebars scroll internally
+instead of scrolling out of view with the page body. Fixes alert-ops
+Console (200+ firing alerts) where only the `margin-top:auto` footer
+remained visible at the bottom. Drawer (`position: fixed`) and rail
+modes unaffected; desktop-tier drawer override switched from `static` →
+`sticky` so it doesn't regress.
+
 ## 0.32.0
 
 `<NotificationBell items count? onOpen? footer? placement?>` — fleet-wide

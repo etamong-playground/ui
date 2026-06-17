@@ -1605,7 +1605,11 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 .etu-sidebar {
   width: var(--etu-sidebar-w, 240px);
   flex: 0 0 var(--etu-sidebar-w, 240px);
-  min-height: 100dvh;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  height: 100dvh;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -2222,7 +2226,8 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
  * in case the consumer left tabletMode="drawer" wired up). */
 @media (min-width: 1024px) {
   .etu-sidebar[data-tablet-mode="drawer"] {
-    position: static;
+    position: sticky;
+    top: 0;
     transform: none;
     width: var(--etu-sidebar-w, 240px);
     flex: 0 0 var(--etu-sidebar-w, 240px);
