@@ -9,7 +9,7 @@
 # The source package name is @etamong-lab/ui (GitLab origin name).
 # We rename to @etamong-playground/ui before publishing.
 #
-# Forgejo token fetched from Vault at runtime (role: npm-publish on auth/jwt/github).
+# Forgejo token fetched from Vault at runtime (role: arc-runner-workflows on auth/kubernetes).
 # No GitHub org/repo secrets used.
 #
 # Release flow:
@@ -32,11 +32,10 @@ on:
 jobs:
   publish:
     name: Build + dual publish
-    runs-on: ubuntu-latest
+    runs-on: arc-etamong-playground
     permissions:
       contents: read
       packages: write   # needed for GitHub Packages publish
-      id-token: write   # needed for Vault JWT auth
 
     steps:
       - uses: actions/checkout@v4
@@ -93,10 +92,10 @@ jobs:
       - uses: hashicorp/vault-action@v3
         with:
           url: https://vault.m.etamong.com
-          method: jwt
-          path: github
-          role: npm-publish
-          jwtGithubAudience: https://vault.m.etamong.com
+          method: kubernetes
+          path: kubernetes
+          role: arc-runner-workflows
+          kubernetesTokenPath: /vault/sa/token
           secrets: |
             homelab/apps/forgejo/npm-publish token | FORGEJO_NPM_TOKEN
 
