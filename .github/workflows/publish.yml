@@ -97,7 +97,7 @@ jobs:
           role: arc-runner-workflows
           kubernetesTokenPath: /vault/sa/token
           secrets: |
-            homelab/apps/forgejo/npm-publish token | FORGEJO_NPM_TOKEN
+            homelab/data/apps/forgejo/npm-publish token | FORGEJO_NPM_TOKEN
 
       # ── Rename package scope for publishing ────────────────────────
       - name: Rename package scope to @etamong-playground
