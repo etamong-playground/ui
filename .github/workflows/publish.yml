@@ -96,6 +96,7 @@ jobs:
           method: kubernetes
           path: kubernetes
           role: arc-runner-workflows
+          kubernetesTokenPath: /vault/sa/token
           secrets: |
             homelab/apps/forgejo/npm-publish token | FORGEJO_NPM_TOKEN
 
