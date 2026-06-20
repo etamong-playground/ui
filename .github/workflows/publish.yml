@@ -22,6 +22,12 @@ on:
   push:
     tags:
       - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      dist_tag:
+        description: "npm dist-tag (default: latest)"
+        required: false
+        default: "latest"
 
 jobs:
   publish:
@@ -51,10 +57,14 @@ jobs:
       - name: Verify tag matches package.json version
         run: |
           PKG_VERSION=$(node -p "require('./package.json').version")
-          TAG_VERSION="${GITHUB_REF_NAME#v}"
-          if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
-            echo "ERROR: tag ${GITHUB_REF_NAME} does not match package.json version ${PKG_VERSION}"
-            exit 1
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "workflow_dispatch: using package.json version ${PKG_VERSION}"
+          else
+            TAG_VERSION="${GITHUB_REF_NAME#v}"
+            if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
+              echo "ERROR: tag ${GITHUB_REF_NAME} does not match package.json version ${PKG_VERSION}"
+              exit 1
+            fi
           fi
           echo "version=${PKG_VERSION}" >> "$GITHUB_ENV"
 
@@ -64,16 +74,20 @@ jobs:
       # ── Determine dist-tag (latest vs pre-release slug) ────────────
       - name: Set dist-tag
         run: |
-          PKG_VERSION="${{ env.version }}"
-          PUBLISH_TAG="latest"
-          case "$PKG_VERSION" in
-            *-*)
-              PRE="${PKG_VERSION#*-}"
-              PUBLISH_TAG="${PRE%%.*}"
-              echo "Pre-release detected — publishing to dist-tag: ${PUBLISH_TAG}"
-              ;;
-          esac
-          echo "publish_tag=${PUBLISH_TAG}" >> "$GITHUB_ENV"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ github.event.inputs.dist_tag }}" ]]; then
+            echo "publish_tag=${{ github.event.inputs.dist_tag }}" >> "$GITHUB_ENV"
+          else
+            PKG_VERSION="${{ env.version }}"
+            PUBLISH_TAG="latest"
+            case "$PKG_VERSION" in
+              *-*)
+                PRE="${PKG_VERSION#*-}"
+                PUBLISH_TAG="${PRE%%.*}"
+                echo "Pre-release detected — publishing to dist-tag: ${PUBLISH_TAG}"
+                ;;
+            esac
+            echo "publish_tag=${PUBLISH_TAG}" >> "$GITHUB_ENV"
+          fi
 
       # ── Fetch Forgejo npm token from Vault ─────────────────────────
       - uses: hashicorp/vault-action@v3
