@@ -1,4 +1,6 @@
-# @etamong-lab/ui
+> Canonical: https://github.com/etamong-playground/ui | Mirror: https://git.m.etamong.com/etamong-playground/ui (read-only)
+
+# @etamong-playground/ui
 
 Shared frontend scaffold for etamong-lab apps. Ships the design-token contract
 (`styles.css`), the **cmdk command palette** + discoverable trigger, Korean-IME-
@@ -7,8 +9,8 @@ safe go-to shortcuts, **toast + dialog** notification primitives, and the
 (`concepts/frontend-conventions`, `design-system`, `command-palette`,
 `app-notifications`, `build-version-info`).
 
-Published to this project's GitLab npm registry; consumed by all 8 app
-frontends. **Current: v0.4.** Releasing + consuming are documented at the bottom.
+Published to GitHub Packages and Forgejo Packages; consumed by all app
+frontends. **Current: v0.32.** Releasing + consuming are documented at the bottom.
 
 Works in both house stacks — Next.js (React 19) and Vite + apiserver (React 18).
 React/ReactDOM are peer deps.
