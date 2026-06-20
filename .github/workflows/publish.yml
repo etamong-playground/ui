@@ -92,7 +92,7 @@ jobs:
       # ── Fetch Forgejo npm token from Vault ─────────────────────────
       - uses: hashicorp/vault-action@v3
         with:
-          url: http://vault.vault.svc:8200
+          url: https://vault.m.etamong.com
           method: kubernetes
           path: kubernetes
           role: arc-runner-workflows
