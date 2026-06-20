@@ -32,7 +32,7 @@ on:
 jobs:
   publish:
     name: Build + dual publish
-    runs-on: ubuntu-latest
+    runs-on: arc-etamong-playground
     permissions:
       contents: read
       packages: write   # needed for GitHub Packages publish
@@ -51,7 +51,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
       # ── Tag vs package.json version guard ──────────────────────────
       - name: Verify tag matches package.json version
@@ -92,7 +92,7 @@ jobs:
       # ── Fetch Forgejo npm token from Vault ─────────────────────────
       - uses: hashicorp/vault-action@v3
         with:
-          url: https://vault.m.etamong.com
+          url: http://vault.vault.svc:8200
           method: jwt
           path: github
           role: npm-publish
