@@ -994,6 +994,60 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   text-decoration: underline;
 }
 
+/* Legal section primitives — `<LegalMenuItem>` row on `/more` + `<LegalPage>`
+   list on `/more/legal`. Mirrors the legal/contact card shape from
+   planning concepts/mobile-more-page. */
+.etu-legal-card {
+  border: 1px solid var(--etu-border);
+  border-radius: 0.5rem;
+  background: var(--etu-surface);
+  overflow: hidden;
+}
+
+.etu-legal-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.875rem;
+  min-height: 3rem;
+  color: var(--etu-text);
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+
+.etu-legal-row--divided {
+  border-top: 1px solid var(--etu-border);
+}
+
+.etu-legal-row:hover {
+  background: var(--etu-surface-2);
+}
+
+.etu-legal-row-icon {
+  width: 1.5rem;
+  text-align: center;
+  font-size: 1.125rem;
+  flex: none;
+}
+
+.etu-legal-row-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.etu-legal-row-trailing {
+  color: var(--etu-text-muted);
+  flex: none;
+}
+
+.etu-legal-empty {
+  padding: 0.75rem 0.875rem;
+  margin: 0;
+  border-top: 1px solid var(--etu-border);
+  color: var(--etu-text-muted);
+  font-size: 0.82rem;
+}
+
 /* Avatar — round profile picture with an initial-letter fallback. */
 .etu-avatar {
   display: inline-flex;
@@ -1551,7 +1605,11 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 .etu-sidebar {
   width: var(--etu-sidebar-w, 240px);
   flex: 0 0 var(--etu-sidebar-w, 240px);
-  min-height: 100dvh;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  height: 100dvh;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -2168,7 +2226,8 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
  * in case the consumer left tabletMode="drawer" wired up). */
 @media (min-width: 1024px) {
   .etu-sidebar[data-tablet-mode="drawer"] {
-    position: static;
+    position: sticky;
+    top: 0;
     transform: none;
     width: var(--etu-sidebar-w, 240px);
     flex: 0 0 var(--etu-sidebar-w, 240px);
