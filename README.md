@@ -1292,3 +1292,11 @@ git add package.json pnpm-lock.yaml && git commit -m "bump @etamong-playground/u
 Note `^0.x` is narrow: `^0.4.0` = `>=0.4.0 <0.5.0`, so a **minor** bump needs the
 pin changed in every consumer (a patch stays in range but still needs the
 lockfile updated).
+
+## Acknowledgements
+
+Uses [`cmdk`](https://github.com/pacocoursey/cmdk) (MIT) for the command palette.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
