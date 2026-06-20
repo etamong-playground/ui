@@ -6,13 +6,11 @@
 #   1. GitHub Packages  (npm.pkg.github.com, scope @etamong-playground)
 #   2. Forgejo Packages (git.m.etamong.com,  scope @etamong-playground)
 #
-# The source package name is @etamong-lab/ui (GitLab origin).
-# We rename to @etamong-playground/ui in package.json before publishing,
-# then restore the original — the published artifact carries the playground scope.
+# The source package name is @etamong-lab/ui (GitLab origin name).
+# We rename to @etamong-playground/ui before publishing.
 #
-# Required secrets:
-#   GITHUB_TOKEN      — auto-provided by Actions (for GitHub Packages)
-#   FORGEJO_NPM_TOKEN — PAT with package:write on git.m.etamong.com/etamong-playground
+# Forgejo token fetched from Vault at runtime (role: npm-publish on auth/jwt/github).
+# No GitHub org/repo secrets used.
 #
 # Release flow:
 #   1. Bump version in package.json → PR → merge to main
@@ -32,6 +30,7 @@ jobs:
     permissions:
       contents: read
       packages: write   # needed for GitHub Packages publish
+      id-token: write   # needed for Vault JWT auth
 
     steps:
       - uses: actions/checkout@v4
@@ -55,7 +54,6 @@ jobs:
           TAG_VERSION="${GITHUB_REF_NAME#v}"
           if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
             echo "ERROR: tag ${GITHUB_REF_NAME} does not match package.json version ${PKG_VERSION}"
-            echo "  Bump package.json to ${TAG_VERSION} (or push a matching tag) and try again."
             exit 1
           fi
           echo "version=${PKG_VERSION}" >> "$GITHUB_ENV"
@@ -77,9 +75,18 @@ jobs:
           esac
           echo "publish_tag=${PUBLISH_TAG}" >> "$GITHUB_ENV"
 
+      # ── Fetch Forgejo npm token from Vault ─────────────────────────
+      - uses: hashicorp/vault-action@v3
+        with:
+          url: https://vault.m.etamong.com
+          method: jwt
+          path: github
+          role: npm-publish
+          jwtGithubAudience: https://vault.m.etamong.com
+          secrets: |
+            homelab/apps/forgejo/npm-publish token | FORGEJO_NPM_TOKEN
+
       # ── Rename package scope for publishing ────────────────────────
-      # The checked-out source uses @etamong-lab/ui (GitLab origin name).
-      # GitHub/Forgejo packages live under @etamong-playground; rename inline.
       - name: Rename package scope to @etamong-playground
         run: |
           node -e "
@@ -87,7 +94,6 @@ jobs:
             const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
             pkg._originalName = pkg.name;
             pkg.name = pkg.name.replace('@etamong-lab/', '@etamong-playground/');
-            // Remove GitLab-specific publishConfig; .npmrc will handle registry routing
             delete pkg.publishConfig;
             fs.writeFileSync('package.json', JSON.stringify(pkg, null, '\t') + '\n');
             console.log('Renamed:', pkg._originalName, '->', pkg.name);
@@ -107,7 +113,7 @@ jobs:
       # ── Publish to Forgejo Packages ─────────────────────────────────
       - name: Publish to Forgejo Packages
         env:
-          FORGEJO_NPM_TOKEN: ${{ secrets.FORGEJO_NPM_TOKEN }}
+          FORGEJO_NPM_TOKEN: ${{ env.FORGEJO_NPM_TOKEN }}
         run: |
           cat > .npmrc <<'EOF'
           @etamong-playground:registry=https://git.m.etamong.com/api/packages/etamong-playground/npm/
@@ -125,8 +131,6 @@ jobs:
             if (pkg._originalName) {
               pkg.name = pkg._originalName;
               delete pkg._originalName;
-              // Restore publishConfig for GitLab
-              pkg.publishConfig = { '@etamong-lab:registry': 'https://gitlab.com/api/v4/projects/83138104/packages/npm/' };
               fs.writeFileSync('package.json', JSON.stringify(pkg, null, '\t') + '\n');
               console.log('Restored:', pkg.name);
             }
