@@ -1,15 +1,17 @@
-> Canonical: https://github.com/etamong-playground/ui | Mirror: https://git.m.etamong.com/etamong-playground/ui (read-only)
+> **About** — One of several shared libraries behind a personal homelab "fleet" of small apps (error handling · audit logging · encryption-at-rest · i18n · UI · …). Published to show the **design decisions** behind these cross-cutting concerns. It is authored and maintained with [Claude Code](https://www.anthropic.com/claude-code) (Anthropic's agentic CLI), not hand-written.
+>
+> **This is a public repository** — keep internal infrastructure details (hostnames, secret/Vault paths, private URLs, internal issue/MR references) out of code, comments, README, and commit messages.
 
 # @etamong-playground/ui
 
-Shared frontend scaffold for etamong-lab apps. Ships the design-token contract
+Shared frontend scaffold for a personal homelab app fleet. Ships the design-token contract
 (`styles.css`), the **cmdk command palette** + discoverable trigger, Korean-IME-
 safe go-to shortcuts, **toast + dialog** notification primitives, and the
-**`DeployInfo`** build-version badge. Conventions: see the planning wiki
-(`concepts/frontend-conventions`, `design-system`, `command-palette`,
+**`DeployInfo`** build-version badge. Conventions: see the concepts sections below
+(`frontend-conventions`, `design-system`, `command-palette`,
 `app-notifications`, `build-version-info`).
 
-Published to GitHub Packages and Forgejo Packages; consumed by all app
+Published to GitHub Packages; consumed by all app
 frontends. **Current: v0.32.** Releasing + consuming are documented at the bottom.
 
 Works in both house stacks — Next.js (React 19) and Vite + apiserver (React 18).
@@ -45,7 +47,7 @@ React/ReactDOM are peer deps.
 | `EmptyState` | React component | "Nothing here yet" card; title + optional description / action / icon, `role="status"` | Empty lists, empty search results |
 | `CopyButton` | React component | Token-styled copy button with success-state flip ("복사" → "복사됨"); fires a toast on success/error | Secret reveal, token / slug / ref copy |
 | `useClipboard()` | React hook | Lower-level — `{ copied, copy(value) }`; clipboard API + legacy fallback | When you want to render your own copy UI |
-| `registerServiceWorker(url, opts)` | function | Registers a service worker with the etamong-lab update flow (aggressive `update()`, "새 버전" toast, auto-reload on `controllerchange`) | Once at app bootstrap, after window load |
+| `registerServiceWorker(url, opts)` | function | Registers a service worker with the house update flow (aggressive `update()`, "새 버전" toast, auto-reload on `controllerchange`) | Once at app bootstrap, after window load |
 | `networkFirstSwSource({ version, … })` | function | Returns the canonical online-first SW recipe as a string — write to `public/sw.js` at build time. Network-first nav + assets, never intercepts `/api/*`, versioned caches. **`version` MUST be a per-build identifier** (git SHA or build timestamp), not a hardcoded constant — see "PWA cache strategy" below | Build step (or served dynamically) |
 | `installIOSPwaShell()` | function | Tags `<html>` with `etu-pwa-standalone` / `etu-ios-pwa` and re-locks `-webkit-text-size-adjust` in iOS PWA mode so Korean body text doesn't shrink in standalone launch. Opt-in `data-etu-lock-zoom` adds `maximum-scale=1` to the viewport meta to suppress input-focus zoom | Once at app bootstrap |
 | `AdminGate` | React component | Renders `children` only when `me` passes `is_admin` / email allowlist / role / predicate (logical OR); otherwise renders `fallback` | Wrap any admin-only route or section |
@@ -63,7 +65,7 @@ React/ReactDOM are peer deps.
 | `useGoToShortcuts` / `setTheme` / `getTheme` / `noFlashThemeScript` | helpers | Theme set/get + the `<head>` no-flash snippet for the `[data-theme]` dark convention | At/before first paint |
 
 Helper-only entry (no React, safe for build-time / non-React runtimes):
-`import { … } from "@etamong-lab/ui/helpers"` — re-exports
+`import { … } from "@etamong-playground/ui/helpers"` — re-exports
 `crossLocaleKeywords`, `shortcutKey`, `noFlashThemeScript`, `getTheme`/`setTheme`,
 `openCommandPalette`, `COMMAND_PALETTE_OPEN_EVENT`, `CODE_TO_KEY`.
 
@@ -79,7 +81,7 @@ event listeners — they need to live in a **client component**.
   ```tsx
   // components/notifications.tsx
   "use client";
-  import { Toaster, DialogHost } from "@etamong-lab/ui";
+  import { Toaster, DialogHost } from "@etamong-playground/ui";
   export function Notifications() { return (<><Toaster /><DialogHost /></>); }
   ```
 
@@ -90,15 +92,15 @@ boundary (they listen for keydown / dispatch events).
 
 ## Install
 
-Consumers resolve `@etamong-lab/*` from the group registry. In the app's
+Consumers resolve `@etamong-playground/*` from the GitHub Packages registry. In the app's
 `.npmrc`:
 
 ```
-@etamong-lab:registry=https://gitlab.com/api/v4/groups/126360447/-/packages/npm/
+@etamong-playground:registry=https://npm.pkg.github.com/
 ```
 
 ```sh
-pnpm add @etamong-lab/ui
+pnpm add @etamong-playground/ui
 ```
 
 ## Design tokens
@@ -106,7 +108,7 @@ pnpm add @etamong-lab/ui
 Import once at the app root:
 
 ```ts
-import "@etamong-lab/ui/styles.css";
+import "@etamong-playground/ui/styles.css";
 ```
 
 The command palette is styled from **namespaced `--etu-*` tokens** (light
@@ -129,7 +131,7 @@ For apps using the `[data-theme]` dark-mode convention, set the theme before
 first paint to avoid a flash:
 
 ```ts
-import { noFlashThemeScript } from "@etamong-lab/ui/helpers";
+import { noFlashThemeScript } from "@etamong-playground/ui/helpers";
 // Next: <script dangerouslySetInnerHTML={{ __html: noFlashThemeScript("myapp") }} />
 // Vite: inline the same string in index.html <head>.
 ```
@@ -141,7 +143,7 @@ import { noFlashThemeScript } from "@etamong-lab/ui/helpers";
 Mount once, globally, when authenticated:
 
 ```tsx
-import { CommandPalette, crossLocaleKeywords } from "@etamong-lab/ui";
+import { CommandPalette, crossLocaleKeywords } from "@etamong-playground/ui";
 import { Home, Calendar } from "lucide-react";
 
 const dicts = [ko, en];
@@ -217,7 +219,7 @@ header so users **discover** the palette. Clicking it dispatches
 `command-palette:open`, no prop-drilling needed:
 
 ```tsx
-import { CommandPaletteTrigger } from "@etamong-lab/ui";
+import { CommandPaletteTrigger } from "@etamong-playground/ui";
 
 <CommandPaletteTrigger label={t.palette.search} />
 ```
@@ -231,7 +233,7 @@ palette vs. not — every multi-surface app should ship it.
 Two-key navigation (`g` then a letter), Korean-IME-safe:
 
 ```tsx
-import { useGoToShortcuts } from "@etamong-lab/ui";
+import { useGoToShortcuts } from "@etamong-playground/ui";
 
 const pending = useGoToShortcuts(
   [{ key: "h", href: "/" }, { key: "s", href: "/schedules" },
@@ -250,14 +252,14 @@ pnpm build      # tsup → dist (esm + cjs + d.ts), styles.css copied verbatim
 pnpm typecheck
 ```
 
-CI runs `pnpm typecheck` + `pnpm build` on every MR (see `.gitlab-ci.yml`).
+CI runs `pnpm typecheck` + `pnpm build` on every pull request.
 
 ## Notifications
 
 Mount the hosts once at the app root (in Next, behind a `"use client"` wrapper):
 
 ```tsx
-import { Toaster, DialogHost, toast, uiConfirm, uiPrompt, dismissToast } from "@etamong-lab/ui";
+import { Toaster, DialogHost, toast, uiConfirm, uiPrompt, dismissToast } from "@etamong-playground/ui";
 
 // app root (client boundary in Next):
 //   <Toaster /> <DialogHost />
@@ -294,7 +296,7 @@ mounted host via a module-level pub/sub, so call them from anywhere.
 ## DeployInfo (build-version badge)
 
 ```tsx
-import { DeployInfo } from "@etamong-lab/ui";
+import { DeployInfo } from "@etamong-playground/ui";
 
 // In an "앱 정보 / App info" section of /settings (preferred) or the backoffice:
 <section>
@@ -325,7 +327,7 @@ Access view). Baking the build env in CI: see `concepts/build-version-info`.
 Mobile-only dismissable banner that does the right thing per platform:
 
 ```tsx
-import { InstallBanner } from "@etamong-lab/ui";
+import { InstallBanner } from "@etamong-playground/ui";
 
 // Once near the app root (same boundary as <Toaster />):
 <InstallBanner
@@ -358,12 +360,11 @@ const { canPrompt, promptInstall, isIOS, isStandalone } = useInstallPrompt();
 ## StatusBanner (service-admin declared-incident strip)
 
 Sticky top-of-app strip that surfaces operator-declared incidents and downtime
-windows from the etamong-lab status hub. Polls the same-origin
-`/.well-known/maintenance.json` endpoint that the cluster's Cloudflare Worker
-serves on every routed host — no app-side wiring, no API client to maintain.
+windows. Polls the same-origin `/.well-known/maintenance.json` endpoint
+served on every routed host — no app-side wiring, no API client to maintain.
 
 ```tsx
-import { StatusBanner } from "@etamong-lab/ui";
+import { StatusBanner } from "@etamong-playground/ui";
 
 // Once at the app root, alongside <Toaster /> / <InstallBanner />:
 <StatusBanner />
@@ -385,8 +386,7 @@ import { StatusBanner } from "@etamong-lab/ui";
   public, max-age=30`, so 60s guarantees a fresh value between polls). Pauses
   while `document.hidden`, immediately re-fetches on visibility return.
 
-Concept page: `etamong-lab/planning` wiki → `concepts/status-hub`. Endpoint
-contract: `etamong-lab/apps/service-admin` README → "Status-hub contracts".
+The endpoint contract is documented in the status-hub admin app's README under "Status-hub contracts".
 
 ```tsx
 // Lower-level hook if you want to render your own UI (header pill,
@@ -405,7 +405,7 @@ Friendly full-page error surface. Pairs with the `httperr` `ref` pattern (see
 reference code, never the raw error / stack trace / repo path.
 
 ```tsx
-import { ErrorPage } from "@etamong-lab/ui";
+import { ErrorPage } from "@etamong-playground/ui";
 
 // Next.js error.tsx (per-route error boundary):
 "use client";
@@ -456,7 +456,7 @@ selected" half of the SPA navigation contract
 and apps without a router lib at all.
 
 ```tsx
-import { useRouteState, useSessionState } from "@etamong-lab/ui";
+import { useRouteState, useSessionState } from "@etamong-playground/ui";
 
 // URL-backed: ends up in the query string (?tab=members), restores on
 // refresh, syncs with browser back/forward.
@@ -512,7 +512,7 @@ internally, so apps that don't need the hook's values elsewhere just
 drop in:
 
 ```tsx
-import { BackButton } from "@etamong-lab/ui";
+import { BackButton } from "@etamong-playground/ui";
 
 // Hash/path-routed apps — string fallback (pushState + popstate)
 <BackButton fallback="/more" />
@@ -525,7 +525,7 @@ Mount the hook explicitly when you need the values somewhere besides the
 button (e.g. swipe gesture, keyboard shortcut, custom layout):
 
 ```tsx
-import { useInAppBack, BackButton } from "@etamong-lab/ui";
+import { useInAppBack, BackButton } from "@etamong-playground/ui";
 
 function App() {
   const back = useInAppBack({ fallback: "/more" });
@@ -566,12 +566,12 @@ Notes:
 
 ## createFetch / HttpError
 
-A small `fetch` wrapper that bakes in the etamong-lab house conventions:
-the [httperr](../../../shared/libs/httperr) JSON shape (`{error, ref}`),
-`oauth2-proxy` sign-in on 401, JSON in / JSON out by default.
+A small `fetch` wrapper that bakes in the house conventions:
+the httperr JSON shape (`{error, ref}`),
+sign-in redirect on 401, JSON in / JSON out by default.
 
 ```ts
-import { createFetch, HttpError } from "@etamong-lab/ui";
+import { createFetch, HttpError } from "@etamong-playground/ui";
 
 export const api = createFetch({ baseUrl: "/api" });
 
@@ -624,12 +624,12 @@ The wrapper:
 
 ## useMe + sign-in / sign-out helpers
 
-Every etamong-lab app sits behind `oauth2-proxy` and exposes a small
+Apps in the fleet sit behind `oauth2-proxy` and expose a small
 `/me` endpoint with the authenticated identity. This hook + the URL
 helpers cover the repeated wiring.
 
 ```tsx
-import { useMe, signIn, signOut, type BaseMe } from "@etamong-lab/ui";
+import { useMe, signIn, signOut, type BaseMe } from "@etamong-playground/ui";
 
 // App-specific shape — extends BaseMe ({ email, preferred_username?,
 // is_admin?, roles? }).
@@ -678,7 +678,7 @@ The "nothing here yet" card. Every list / grid view has one; this is
 the single one to use.
 
 ```tsx
-import { EmptyState } from "@etamong-lab/ui";
+import { EmptyState } from "@etamong-playground/ui";
 
 <EmptyState
   title="아직 사이트가 없어요"
@@ -708,7 +708,7 @@ falls back to a hidden `<textarea>` + `document.execCommand("copy")`
 when `navigator.clipboard` isn't available (non-https / older mobile).
 
 ```tsx
-import { CopyButton, useClipboard } from "@etamong-lab/ui";
+import { CopyButton, useClipboard } from "@etamong-playground/ui";
 
 // Standard text button:
 <CopyButton value={token} />
@@ -747,7 +747,7 @@ cache is only the offline safety net.
 ### registerServiceWorker
 
 ```ts
-import { registerServiceWorker } from "@etamong-lab/ui";
+import { registerServiceWorker } from "@etamong-playground/ui";
 
 const sw = registerServiceWorker("/sw.js", {
   // Default behavior: toast says "새 버전이 준비됐어요. 새로고침할까요?"
@@ -778,7 +778,7 @@ Generates the SW file itself. Use it from a build step so the
 
 ```ts
 // build.mjs
-import { networkFirstSwSource } from "@etamong-lab/ui";
+import { networkFirstSwSource } from "@etamong-playground/ui";
 import { writeFile } from "node:fs/promises";
 
 const sha = process.env.BUILD_SHA ?? Date.now().toString(36);
@@ -853,7 +853,7 @@ export default defineConfig({
 Then in a build hook:
 
 ```ts
-import { networkFirstSwSource } from "@etamong-lab/ui";
+import { networkFirstSwSource } from "@etamong-playground/ui";
 await writeFile(
   "public/sw.js",
   networkFirstSwSource({ version: process.env.VITE_BUILD_SHA ?? sha }),
@@ -867,8 +867,7 @@ config either (a) injects the SHA into the precache manifest, or (b) move
 the app to `networkFirstSwSource()`. Either is acceptable; both must be
 per-build versioned.
 
-Fleet rule canonical: `etamong-lab/planning` wiki →
-`concepts/pwa-cache-and-ios-shell`.
+The canonical strategy is described in the `concepts/pwa-cache-and-ios-shell` design document.
 
 ## iOS PWA shell (`installIOSPwaShell`)
 
@@ -882,7 +881,7 @@ on `html`. `installIOSPwaShell()` is the runtime belt-and-braces — call it
 once from your app bootstrap:
 
 ```ts
-import { installIOSPwaShell } from "@etamong-lab/ui";
+import { installIOSPwaShell } from "@etamong-playground/ui";
 installIOSPwaShell();
 ```
 
@@ -909,7 +908,7 @@ route in the fleet re-implements. Pairs with `useMe<T>` — pass the `me`
 straight through.
 
 ```tsx
-import { useMe, AdminGate, BackofficeLayout } from "@etamong-lab/ui";
+import { useMe, AdminGate, BackofficeLayout } from "@etamong-playground/ui";
 
 interface Me extends BaseMe { can_create_apps?: boolean }
 
@@ -918,7 +917,7 @@ function Console() {
   return (
     <AdminGate
       me={me}
-      emails={["root@etamong.com", "ops@etamong.com"]}
+      emails={["admin@example.com", "ops@example.com"]}
       predicate={(m) => m.can_create_apps === true}
       fallback={<div>권한이 없어요.</div>}
     >
@@ -945,7 +944,7 @@ The gate is a **logical OR** across these signals:
 If you need the boolean without the wrapping component:
 
 ```ts
-import { isAdminLike } from "@etamong-lab/ui";
+import { isAdminLike } from "@etamong-playground/ui";
 if (isAdminLike({ me, emails: ADMIN_EMAILS })) router.push("/admin");
 ```
 
@@ -961,7 +960,7 @@ component is the canonical layout — wraps `<DeployInfo>` so apps stop
 hand-rolling that placement.
 
 ```tsx
-import { AppInfoSection } from "@etamong-lab/ui";
+import { AppInfoSection } from "@etamong-playground/ui";
 
 <AppInfoSection
   name="schedule-manager"
@@ -1008,7 +1007,7 @@ The relative-time + KST-absolute formatting that used to live inside
 `"3분 전"` / KST conversion.
 
 ```tsx
-import { formatRelTime, formatAbsTime, RelTime } from "@etamong-lab/ui";
+import { formatRelTime, formatAbsTime, RelTime } from "@etamong-playground/ui";
 
 formatRelTime("2026-06-13T03:29:00Z");
 // → "3분 전" (when locale defaults to ko)
@@ -1056,7 +1055,7 @@ app's header should expose so users have one consistent place to find
 themselves. Composes with `useMe<T>` (v0.10).
 
 ```tsx
-import { useMe, UserMenu } from "@etamong-lab/ui";
+import { useMe, UserMenu } from "@etamong-playground/ui";
 
 interface Me extends BaseMe { /* picture / preferred_username / is_admin … */ }
 
@@ -1110,15 +1109,13 @@ Pictures that fail to load fall back to the initial letter automatically.
 ## Sidebar + MobileTabBar (fleet nav shell)
 
 `<Sidebar>` is the desktop nav shell; `<MobileTabBar>` is the mobile
-bottom bar. Together they implement the fleet
-[sidebar-composition](https://gitlab.com/etamong-lab/planning/-/blob/main/wiki/concepts/sidebar-composition.md)
-and [mobile-more-page](https://gitlab.com/etamong-lab/planning/-/blob/main/wiki/concepts/mobile-more-page.md)
-contracts. Drive both from the same `primary` and `secondary` arrays —
+bottom bar. Together they implement the fleet sidebar-composition
+and mobile-more-page contracts. Drive both from the same `primary` and `secondary` arrays —
 one source of truth, two renderers. Both are CSS-hidden at the
 opposite breakpoint, so mounting both unconditionally is correct.
 
 ```tsx
-import { Sidebar, MobileTabBar, AppInfoSection, type SidebarItem } from "@etamong-lab/ui";
+import { Sidebar, MobileTabBar, AppInfoSection, type SidebarItem } from "@etamong-playground/ui";
 import { Home, Calendar, Users, Settings, ShieldCheck, MoreHorizontal } from "lucide-react";
 
 const primary: SidebarItem[] = [
@@ -1176,12 +1173,10 @@ Once an app's secondary list grows past ~6 rows, swap the flat
 `secondary` prop for `secondarySections` — captioned, concern-based
 groups (`OPERATE / INVENTORY / GOVERNANCE`, …) that render as separate
 `<nav>` blocks. The same array drives the mobile `/more` drill-down
-rows. See the
-[sidebar-composition](https://gitlab.com/etamong-lab/planning/-/blob/main/wiki/concepts/sidebar-composition.md)
-"Ordering and grouping" section for the rule.
+rows. See the sidebar-composition "Ordering and grouping" rule for guidance.
 
 ```tsx
-import { Sidebar, type SidebarSecondarySection } from "@etamong-lab/ui";
+import { Sidebar, type SidebarSecondarySection } from "@etamong-playground/ui";
 
 const secondarySections: SidebarSecondarySection[] = [
   {
@@ -1222,7 +1217,7 @@ border). The global avatar top bar is retired; profile access lives on `/more`
 + the desktop sidebar footer.
 
 ```tsx
-import { NavigationBar } from "@etamong-lab/ui";
+import { NavigationBar } from "@etamong-playground/ui";
 
 <NavigationBar
   title="일정 상세"
@@ -1260,7 +1255,7 @@ match the fleet's iOS-26 visual.
 The package publishes from CI **on a version tag** — no manual `pnpm publish`.
 
 ```sh
-# 1. bump the version on a branch → MR → merge to main
+# 1. bump the version on a branch → PR → merge to main
 #    (edit "version" in package.json, e.g. 0.4.0 → 0.5.0)
 # 2. tag the merged commit and push the tag:
 git checkout main && git pull
@@ -1269,33 +1264,29 @@ git push origin v0.5.0
 ```
 
 The tag pipeline verifies `vX.Y.Z` matches `package.json`, builds, and publishes
-with `CI_JOB_TOKEN`. Versioning is **semver, but `0.x`**: cut **minor** bumps
+to GitHub Packages. Versioning is **semver, but `0.x`**: cut **minor** bumps
 (0.4 → 0.5) for new components/exports and **patch** (0.4.0 → 0.4.1) for fixes.
 Re-tagging an already-published version fails loudly (npm won't overwrite).
 
 ## Consuming in an app
 
-Four things are needed (or the app's CI 404s / fails to resolve the package):
+Three things are needed (or the app's CI 404s / fails to resolve the package):
 
-1. **App `.npmrc`** — group registry:
-   `@etamong-lab:registry=https://gitlab.com/api/v4/groups/126360447/-/packages/npm/`
-2. **`package.json`** — `"@etamong-lab/ui": "^0.5.0"`.
-3. **Dockerfile deps stage** — `ARG GITLAB_NPM_TOKEN` + before install:
-   `RUN echo "//gitlab.com/api/v4/:_authToken=${GITLAB_NPM_TOKEN}" >> .npmrc`;
-   the build job passes `--build-arg GITLAB_NPM_TOKEN=$CI_JOB_TOKEN`. (Node check
+1. **App `.npmrc`** — GitHub Packages registry:
+   `@etamong-playground:registry=https://npm.pkg.github.com/`
+2. **`package.json`** — `"@etamong-playground/ui": "^0.5.0"`.
+3. **Dockerfile deps stage** — `ARG NPM_TOKEN` + before install:
+   `RUN echo "//npm.pkg.github.com/:_authToken=${NPM_TOKEN}" >> .npmrc`;
+   the build job passes the token via `--build-arg NPM_TOKEN`. (CI check
    jobs need the same `_authToken` line in `before_script`.)
-4. **Job-token allowlist** — this project's inbound allowlist must include the
-   consumer. Already granted for all 8 apps in
-   `cloud-infra/gitlab-infra` (`ui_job_token.tf`, **numeric** ids). New apps: add
-   there.
 
 **Picking up a new release:** bump the pin in `package.json` **and** refresh the
 lockfile, then commit both — the app CIs use `--frozen-lockfile`, so the lockfile
 must move for the new version to install:
 
 ```sh
-pnpm add @etamong-lab/ui@^0.5.0   # updates package.json + pnpm-lock.yaml
-git add package.json pnpm-lock.yaml && git commit -m "bump @etamong-lab/ui to 0.5.0"
+pnpm add @etamong-playground/ui@^0.5.0   # updates package.json + pnpm-lock.yaml
+git add package.json pnpm-lock.yaml && git commit -m "bump @etamong-playground/ui to 0.5.0"
 ```
 
 Note `^0.x` is narrow: `^0.4.0` = `>=0.4.0 <0.5.0`, so a **minor** bump needs the
