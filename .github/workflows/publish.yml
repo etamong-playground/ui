@@ -1,13 +1,14 @@
 name: publish
 
-# Publish the package to GitHub Packages on a version tag. The repo's
-# package.json still carries the legacy @etamong-lab name + a GitLab
-# publishConfig; both are rewritten at publish time so the package lands as
-# @etamong-playground/<name> on GitHub Packages (the org scope GitHub Packages
-# requires). Uses the built-in GITHUB_TOKEN — no external PAT needed.
+# Publish the package on a version tag. One file serves BOTH GitHub and Forgejo
+# (Forgejo Actions reads .github/workflows too): it detects the host via
+# GITHUB_SERVER_URL and publishes to that host's package registry with that
+# host's built-in Actions token — GitHub Packages on github.com, Forgejo
+# Packages on git.m.etamong.com. The repo's legacy @etamong-lab name + GitLab
+# publishConfig are rewritten at publish time so the package lands as
+# @etamong-playground/<repo>. No external PAT and no cross-platform token.
 #
-# workflow_dispatch with a `tag` input backfills already-existing tags
-# (v0.28.2, v0.29.1, …) that predate this workflow.
+# workflow_dispatch with a `tag` input backfills tags that predate this file.
 
 on:
   push:
@@ -32,15 +33,23 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          registry-url: 'https://npm.pkg.github.com'
-          scope: '@etamong-playground'
       - run: corepack enable && corepack prepare pnpm@10 --activate
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      - name: publish to GitHub Packages
-        run: |
-          npm pkg set name="@etamong-playground/$(basename "$GITHUB_REPOSITORY")"
-          npm pkg delete publishConfig
-          npm publish
+      - name: publish to the host's package registry
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eu
+          PKG="@etamong-playground/$(basename "$GITHUB_REPOSITORY")"
+          npm pkg set name="$PKG"
+          npm pkg delete publishConfig
+          if printf '%s' "${GITHUB_SERVER_URL:-}" | grep -q 'git.m.etamong.com'; then
+            REG="https://git.m.etamong.com/api/packages/etamong-playground/npm/"
+            printf '@etamong-playground:registry=%s\n//git.m.etamong.com/api/packages/etamong-playground/npm/:_authToken=%s\n' "$REG" "$TOKEN" > .npmrc
+          else
+            REG="https://npm.pkg.github.com/"
+            printf '@etamong-playground:registry=%s\n//npm.pkg.github.com/:_authToken=%s\n' "$REG" "$TOKEN" > .npmrc
+          fi
+          echo "publishing $PKG to $REG"
+          npm publish --registry="$REG"
