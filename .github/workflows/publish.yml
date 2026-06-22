@@ -1,0 +1,46 @@
+name: publish
+
+# Publish the package to GitHub Packages on a version tag. The repo's
+# package.json still carries the legacy @etamong-lab name + a GitLab
+# publishConfig; both are rewritten at publish time so the package lands as
+# @etamong-playground/<name> on GitHub Packages (the org scope GitHub Packages
+# requires). Uses the built-in GITHUB_TOKEN — no external PAT needed.
+#
+# workflow_dispatch with a `tag` input backfills already-existing tags
+# (v0.28.2, v0.29.1, …) that predate this workflow.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'existing tag to (re)publish, e.g. v0.28.2'
+        required: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@etamong-playground'
+      - run: corepack enable && corepack prepare pnpm@10 --activate
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: publish to GitHub Packages
+        run: |
+          npm pkg set name="@etamong-playground/$(basename "$GITHUB_REPOSITORY")"
+          npm pkg delete publishConfig
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
