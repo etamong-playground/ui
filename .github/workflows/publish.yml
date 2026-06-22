@@ -45,13 +45,17 @@ jobs:
           npm pkg delete publishConfig
           # One file, both hosts: Forgejo Actions reads .github/workflows too, so
           # branch on the host and publish to that host's registry with its own
-          # built-in Actions token (no cross-platform PAT).
-          if printf '%s' "${GITHUB_SERVER_URL:-}" | grep -q 'git.m.etamong.com'; then
-            REG="https://git.m.etamong.com/api/packages/etamong-playground/npm/"
-            printf '@etamong-playground:registry=%s\n//git.m.etamong.com/api/packages/etamong-playground/npm/:_authToken=%s\n' "$REG" "$TOKEN" > .npmrc
-          else
-            REG="https://npm.pkg.github.com/"
-            printf '@etamong-playground:registry=%s\n//npm.pkg.github.com/:_authToken=%s\n' "$REG" "$TOKEN" > .npmrc
-          fi
+          # built-in Actions token (no cross-platform PAT). Detect by github.com
+          # (always set on GitHub); anything else is the Forgejo instance — its
+          # GITHUB_SERVER_URL is the internal service URL, not git.m.etamong.com.
+          echo "GITHUB_SERVER_URL=${GITHUB_SERVER_URL:-<unset>}"
+          case "${GITHUB_SERVER_URL:-}" in
+            *github.com*)
+              REG="https://npm.pkg.github.com/"; HOST="npm.pkg.github.com" ;;
+            *)
+              REG="https://git.m.etamong.com/api/packages/etamong-playground/npm/"
+              HOST="git.m.etamong.com/api/packages/etamong-playground/npm" ;;
+          esac
+          printf '@etamong-playground:registry=%s\n//%s/:_authToken=%s\n' "$REG" "$HOST" "$TOKEN" > .npmrc
           echo "publishing $PKG to $REG"
           npm publish --registry="$REG"
