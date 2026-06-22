@@ -32,15 +32,26 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          registry-url: 'https://npm.pkg.github.com'
-          scope: '@etamong-playground'
       - run: corepack enable && corepack prepare pnpm@10 --activate
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      - name: publish to GitHub Packages
-        run: |
-          npm pkg set name="@etamong-playground/$(basename "$GITHUB_REPOSITORY")"
-          npm pkg delete publishConfig
-          npm publish
+      - name: publish to the host's package registry
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eu
+          PKG="@etamong-playground/$(basename "$GITHUB_REPOSITORY")"
+          npm pkg set name="$PKG"
+          npm pkg delete publishConfig
+          # One file, both hosts: Forgejo Actions reads .github/workflows too, so
+          # branch on the host and publish to that host's registry with its own
+          # built-in Actions token (no cross-platform PAT).
+          if printf '%s' "${GITHUB_SERVER_URL:-}" | grep -q 'git.m.etamong.com'; then
+            REG="https://git.m.etamong.com/api/packages/etamong-playground/npm/"
+            printf '@etamong-playground:registry=%s\n//git.m.etamong.com/api/packages/etamong-playground/npm/:_authToken=%s\n' "$REG" "$TOKEN" > .npmrc
+          else
+            REG="https://npm.pkg.github.com/"
+            printf '@etamong-playground:registry=%s\n//npm.pkg.github.com/:_authToken=%s\n' "$REG" "$TOKEN" > .npmrc
+          fi
+          echo "publishing $PKG to $REG"
+          npm publish --registry="$REG"
