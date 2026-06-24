@@ -1843,6 +1843,57 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 }
 
 /* ----------------------------------------------------------------------------
+ * PolicyChangeBanner — hub-driven upcoming legal-change announcement.
+ * ------------------------------------------------------------------------- */
+
+.etu-policy-change-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.85rem;
+  font-family: var(--etu-font);
+  font-size: 0.83rem;
+  line-height: 1.3;
+  background: color-mix(in srgb, #f5a524 18%, var(--etu-bg));
+  color: color-mix(in srgb, #f5a524 82%, var(--etu-text));
+  border-bottom: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+}
+
+/* Adverse (불리/중대): danger-coloured for stronger emphasis. */
+.etu-policy-change-banner--adverse {
+  background: color-mix(in srgb, var(--etu-err) 20%, var(--etu-bg));
+  color: color-mix(in srgb, var(--etu-err) 82%, var(--etu-text));
+  font-weight: 500;
+}
+
+.etu-policy-change-banner-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.etu-policy-change-banner-body a {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  color: inherit;
+  white-space: nowrap;
+}
+
+.etu-policy-change-banner-close {
+  flex-shrink: 0;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.1rem 0.35rem;
+  border-radius: var(--etu-r-sm);
+  opacity: 0.7;
+}
+.etu-policy-change-banner-close:hover { opacity: 1; }
+
+/* ----------------------------------------------------------------------------
  * DocsHub — in-app docs surface with optional skill download (alpha).
  * ------------------------------------------------------------------------- */
 
