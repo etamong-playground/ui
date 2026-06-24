@@ -201,6 +201,10 @@ export {
   type UseLegalAvailabilityOptions,
 } from "./legalSection";
 export {
+  PolicyChangeBanner,
+  type PolicyChangeBannerProps,
+} from "./policyChangeBanner";
+export {
   DataTable,
   type DataTableProps,
   type DataTableColumn,
