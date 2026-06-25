@@ -101,4 +101,8 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
+          # Bootstrap auth via explicit .npmrc (overrides the GitHub-Packages scope mapping
+          # written by the earlier step). After a Trusted Publisher is configured on npmjs,
+          # this whole step moves to setup-node registry-url + id-token OIDC (no token).
+          printf '@etamong-playground:registry=https://registry.npmjs.org\n//registry.npmjs.org/:_authToken=%s\n' "$NODE_AUTH_TOKEN" > .npmrc
           pnpm publish --no-git-checks --access public --tag "${{ env.publish_tag }}" --registry https://registry.npmjs.org
