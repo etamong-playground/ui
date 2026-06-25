@@ -1,5 +1,5 @@
 /**
- * Barrel for `@etamong-lab/ui/testing` — fleet-wide test helpers.
+ * Barrel for `@etamong-playground/ui/testing` — fleet-wide test helpers.
  *
  *   - viewport-fit assertions (chrome primitive layout checks)
  *   - MSW handlers (`/me`, `/healthz`, httperr error shape)

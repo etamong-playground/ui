@@ -1,6 +1,6 @@
 // React entry. For the framework-agnostic helpers (no React/cmdk), import from
-// "@etamong-lab/ui/helpers". For the token + palette styles, import
-// "@etamong-lab/ui/styles.css" once at the app root.
+// "@etamong-playground/ui/helpers". For the token + palette styles, import
+// "@etamong-playground/ui/styles.css" once at the app root.
 //
 // The bundled `dist/index.{js,cjs}` is shipped with a `"use client";` banner
 // (see tsup.config.ts) so Next.js RSC consumers can server-render a tree that

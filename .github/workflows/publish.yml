@@ -1,64 +1,104 @@
-name: publish
-
-# Publish the package to GitHub Packages on a version tag. The repo's
-# package.json still carries the legacy @etamong-lab name + a GitLab
-# publishConfig; both are rewritten at publish time so the package lands as
-# @etamong-playground/<name> on GitHub Packages (the org scope GitHub Packages
-# requires). Uses the built-in GITHUB_TOKEN — no external PAT needed.
+# Publish @etamong-playground/ui on tag push
 #
-# workflow_dispatch with a `tag` input backfills already-existing tags
-# (v0.28.2, v0.29.1, …) that predate this workflow.
+# Trigger: push of a tag matching v*  (e.g. v0.34.0, v1.0.0-alpha.1)
+#          workflow_dispatch for bootstrap / manual re-publishes
+#
+# Publishes to two registries in the same job:
+#   1. GitHub Packages  (npm.pkg.github.com, scope @etamong-playground)
+#   2. npmjs            (registry.npmjs.org,  scope @etamong-playground, public)
+#
+# The package name in package.json is @etamong-playground/ui — no runtime
+# rename needed. publishConfig only carries "access": "public".
+#
+# GitHub Packages auth:  built-in GITHUB_TOKEN (packages: write)
+# npmjs auth:            NPM_TOKEN secret (bootstrap; remove once Trusted
+#                        Publisher is configured — id-token: write handles
+#                        OIDC token-less publish with auto-provenance)
+#
+# Release flow:
+#   1. Bump version in package.json → PR → merge to main
+#   2. git tag vX.Y.Z && git push origin vX.Y.Z  → this workflow publishes
+
+name: Publish
 
 on:
   push:
-    tags: ['v*']
+    tags:
+      - "v*"
   workflow_dispatch:
     inputs:
       tag:
-        description: 'existing tag to (re)publish, e.g. v0.28.2'
-        required: true
+        description: "existing tag to (re)publish, e.g. v0.34.0"
+        required: false
+      dist_tag:
+        description: "npm dist-tag (default: latest)"
+        required: false
+        default: "latest"
 
 permissions:
   contents: read
-  packages: write
+  packages: write   # GitHub Packages publish
+  id-token: write   # npmjs OIDC trusted publishing (provenance)
 
 jobs:
   publish:
+    name: Build + dual publish
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.tag || github.ref }}
+
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: "24"
+
       - run: corepack enable && corepack prepare pnpm@10 --activate
+
+      - run: npm install -g npm@latest
+
       - run: pnpm install --frozen-lockfile
+
       - run: pnpm build
-      - name: publish to the host's package registry
-        env:
-          # GitHub: the built-in GITHUB_TOKEN can publish to GitHub Packages.
-          # Forgejo: the built-in token CANNOT publish packages, so an org-level
-          # Actions secret (Vault homelab/apps/forgejo/npm-publish) is used.
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          FORGEJO_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
+
+      # ── Determine dist-tag (latest vs pre-release slug) ─────────────────
+      - name: Set dist-tag
         run: |
-          set -eu
-          PKG="@etamong-playground/$(basename "$GITHUB_REPOSITORY")"
-          npm pkg set name="$PKG"
-          npm pkg delete publishConfig
-          # One file, both hosts: Forgejo Actions reads .github/workflows too.
-          # Detect by github.com (always set on GitHub); anything else is the
-          # Forgejo instance (its GITHUB_SERVER_URL is the internal service url).
-          echo "GITHUB_SERVER_URL=${GITHUB_SERVER_URL:-<unset>}"
-          case "${GITHUB_SERVER_URL:-}" in
-            *github.com*)
-              REG="https://npm.pkg.github.com/"; HOST="npm.pkg.github.com"; TOKEN="$GH_TOKEN" ;;
-            *)
-              REG="https://git.m.etamong.com/api/packages/etamong-playground/npm/"
-              HOST="git.m.etamong.com/api/packages/etamong-playground/npm"; TOKEN="$FORGEJO_TOKEN" ;;
-          esac
-          test -n "$TOKEN" || { echo "no publish token for this host"; exit 1; }
-          printf '@etamong-playground:registry=%s\n//%s/:_authToken=%s\n' "$REG" "$HOST" "$TOKEN" > .npmrc
-          echo "publishing $PKG to $REG"
-          npm publish --registry="$REG"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ github.event.inputs.dist_tag }}" ]]; then
+            echo "publish_tag=${{ github.event.inputs.dist_tag }}" >> "$GITHUB_ENV"
+          else
+            PKG_VERSION=$(node -p "require('./package.json').version")
+            PUBLISH_TAG="latest"
+            case "$PKG_VERSION" in
+              *-*)
+                PRE="${PKG_VERSION#*-}"
+                PUBLISH_TAG="${PRE%%.*}"
+                echo "Pre-release detected — publishing to dist-tag: ${PUBLISH_TAG}"
+                ;;
+            esac
+            echo "publish_tag=${PUBLISH_TAG}" >> "$GITHUB_ENV"
+          fi
+
+      # ── Publish to GitHub Packages ───────────────────────────────────────
+      - name: Publish to GitHub Packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          printf '@etamong-playground:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=%s\n' "$NODE_AUTH_TOKEN" > .npmrc
+          pnpm publish --no-git-checks --tag "${{ env.publish_tag }}" --registry https://npm.pkg.github.com
+
+      # ── Publish to npmjs ─────────────────────────────────────────────────
+      # Bootstrap auth: NODE_AUTH_TOKEN. After the package exists on npmjs and
+      # a Trusted Publisher is configured under https://www.npmjs.com/package/@etamong-playground/ui,
+      # remove NODE_AUTH_TOKEN — OIDC (id-token: write) publishes token-less
+      # with auto-provenance.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Publish to npmjs
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          pnpm publish --no-git-checks --access public --tag "${{ env.publish_tag }}" --registry https://registry.npmjs.org

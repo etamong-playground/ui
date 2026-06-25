@@ -38,7 +38,7 @@ const DEFAULT_LABELS: CommandPaletteLabels = {
 
 /**
  * A configurable ⌘K command palette built on cmdk and styled from the
- * @etamong-lab/ui tokens (import "@etamong-lab/ui/styles.css"). Mount it once,
+ * @etamong-playground/ui tokens (import "@etamong-playground/ui/styles.css"). Mount it once,
  * globally, when the user is authenticated.
  *
  * Opens on ⌘K / Ctrl+K, on "/" (unless typing), and on the

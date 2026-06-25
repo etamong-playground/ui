@@ -3,7 +3,7 @@
  * build timestamp into their frontend at build time (CI build-arg →
  * `VITE_BUILD_SHA`/`NEXT_PUBLIC_BUILD_SHA` etc.) and render this in a
  * backoffice/console footer so operators can see *what* is live and *when* it
- * shipped. Styled from the @etamong-lab/ui tokens.
+ * shipped. Styled from the @etamong-playground/ui tokens.
  */
 
 export interface DeployInfoProps {

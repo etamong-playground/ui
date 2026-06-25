@@ -227,7 +227,7 @@ export function Sidebar({
     if (!proc || !proc.env || proc.env.NODE_ENV !== "production") {
       // eslint-disable-next-line no-console
       console.warn(
-        "[@etamong-lab/ui] <Sidebar>: both `secondary` and `secondarySections` " +
+        "[@etamong-playground/ui] <Sidebar>: both `secondary` and `secondarySections` " +
           "were passed; `secondarySections` wins. Drop one to silence this warning.",
       );
     }
