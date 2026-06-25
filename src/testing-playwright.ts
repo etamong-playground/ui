@@ -29,7 +29,7 @@ export interface FleetFixtures {
  *   - sets a 1280×800 desktop viewport unless the test overrides it
  *
  * Use:
- *   import { fleetTest as test } from "@etamong-lab/ui/testing";
+ *   import { fleetTest as test } from "@etamong-playground/ui/testing";
  *   test("works", async ({ page }) => { ... });
  */
 export const fleetTest = base.extend<FleetFixtures>({

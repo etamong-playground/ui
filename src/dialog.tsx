@@ -40,7 +40,7 @@ export function uiPrompt(opts: Omit<PromptReq, "kind" | "resolve">): Promise<str
 /**
  * Mount once at the app root. Renders the pending uiConfirm/uiPrompt dialog with
  * Escape (cancel), Enter (confirm), and backdrop-click (cancel) handling. Styled
- * from the @etamong-lab/ui tokens (import "@etamong-lab/ui/styles.css").
+ * from the @etamong-playground/ui tokens (import "@etamong-playground/ui/styles.css").
  */
 export function DialogHost() {
   const [req, setLocalReq] = useState<Req | null>(current);

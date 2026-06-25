@@ -37,8 +37,8 @@ export function dismissToast(id: number): void {
 
 /**
  * Mount once at the app root (alongside the router/shell). Renders the toast
- * queue bottom-center, styled from the @etamong-lab/ui tokens
- * (import "@etamong-lab/ui/styles.css").
+ * queue bottom-center, styled from the @etamong-playground/ui tokens
+ * (import "@etamong-playground/ui/styles.css").
  */
 export function Toaster() {
   const [list, setList] = useState<ToastItem[]>(items);

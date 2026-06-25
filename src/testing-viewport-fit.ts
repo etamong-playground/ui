@@ -3,7 +3,7 @@
  *
  * The chrome primitives (`<NavigationBar>` v0.28.1+, MobileTabBar/Sidebar
  * to follow) emit dev-mode `console.warn` lines prefixed with
- * `[@etamong-lab/ui]` when layout breaks (off-screen bar, shrunk title,
+ * `[@etamong-playground/ui]` when layout breaks (off-screen bar, shrunk title,
  * stacked safe-area-top). This module lifts the dev-mode signal into a
  * CI gate.
  *
@@ -11,7 +11,7 @@
  *      urls)`.
  *   2. CI runs it at each fleet device profile (mobile/tablet/desktop +
  *      iPhone-Pro-PWA).
- *   3. Any `[@etamong-lab/ui]` warning fails the test with the original
+ *   3. Any `[@etamong-playground/ui]` warning fails the test with the original
  *      message — so the diagnosis is the same one the developer would
  *      have seen at localhost.
  *
@@ -29,7 +29,7 @@ import type {
 } from "@playwright/test";
 
 /** Marker the chrome primitives prefix every layout warning with. */
-export const VIEWPORT_FIT_WARN_PREFIX = "[@etamong-lab/ui]";
+export const VIEWPORT_FIT_WARN_PREFIX = "[@etamong-playground/ui]";
 
 /**
  * Canonical device profiles to drive viewport-fit checks at. These
@@ -86,14 +86,14 @@ export interface AssertViewportFitOptions {
   settleMs?: number;
   /**
    * Additional console-message predicate. Default matches anything
-   * starting with `[@etamong-lab/ui]`.
+   * starting with `[@etamong-playground/ui]`.
    */
   predicate?: (msg: ConsoleMessage) => boolean;
 }
 
 /**
  * Open each URL at each profile and assert no chrome primitive emitted
- * a `[@etamong-lab/ui]` warning. The first violation throws with the
+ * a `[@etamong-playground/ui]` warning. The first violation throws with the
  * original message — the failing test's stack carries the URL + profile.
  */
 export async function assertViewportFit(
@@ -193,7 +193,7 @@ export async function assertViewportFit(
  * report names the profile). Apps wire this in their `tests/` dir as:
  *
  * ```ts
- * import { defineViewportFitTests } from "@etamong-lab/ui/testing";
+ * import { defineViewportFitTests } from "@etamong-playground/ui/testing";
  * defineViewportFitTests({
  *   urls: ["/", "/settings", "/me"],
  *   beforeEach: async ({ page }) => { /* auth, mocks */ /* },

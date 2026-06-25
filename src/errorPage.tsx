@@ -12,7 +12,7 @@
  *
  * Mount it from your error boundary or a top-level `error.tsx` (Next.js):
  *
- *   import { ErrorPage } from "@etamong-lab/ui";
+ *   import { ErrorPage } from "@etamong-playground/ui";
  *   <ErrorPage
  *     title="문제가 발생했어요"
  *     description="잠시 후 다시 시도해 주세요."

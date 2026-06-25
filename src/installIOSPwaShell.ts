@@ -4,7 +4,7 @@
  *
  *   - Korean body text "shrinks" when the app is launched from the home screen
  *     because iOS's text-size-adjust kicks in without the Safari toolbar. The
- *     `@etamong-lab/ui/styles.css` reset locks this declaratively; this helper
+ *     `@etamong-playground/ui/styles.css` reset locks this declaratively; this helper
  *     re-applies the lock via an explicit inline style, defensively, for hosts
  *     that mount their own stylesheet after ours.
  *   - Tapping a `<input>` whose font-size is below 16px triggers a zoom that

@@ -11,7 +11,7 @@ export interface CommandPaletteTriggerProps {
 /**
  * A search-box-styled button that opens the command palette — so users discover
  * it exists. Shows a magnifier + label + the ⌘K / Ctrl+K hint and dispatches the
- * `command-palette:open` event. Styled from @etamong-lab/ui tokens; drop it in a
+ * `command-palette:open` event. Styled from @etamong-playground/ui tokens; drop it in a
  * sidebar/header.
  */
 export function CommandPaletteTrigger({ label = "Search…", className }: CommandPaletteTriggerProps) {

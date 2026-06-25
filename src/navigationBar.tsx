@@ -132,7 +132,7 @@ function assertNavbarFits(el: HTMLElement): void {
   if (rect.bottom > viewportH + 0.5) {
     // eslint-disable-next-line no-console
     console.warn(
-      "[@etamong-lab/ui] <NavigationBar>: bottom edge is off-screen — " +
+      "[@etamong-playground/ui] <NavigationBar>: bottom edge is off-screen — " +
         `bar.bottom=${rect.bottom.toFixed(1)}px, viewport.h=${viewportH}px. ` +
         "Likely cause: an outer sticky/fixed bar already eats " +
         "env(safe-area-inset-top) and this <NavigationBar> stacks its " +
@@ -143,7 +143,7 @@ function assertNavbarFits(el: HTMLElement): void {
     // Just barely clipped — same root cause, weaker signal.
     // eslint-disable-next-line no-console
     console.warn(
-      "[@etamong-lab/ui] <NavigationBar>: bottom edge clipped by ~" +
+      "[@etamong-playground/ui] <NavigationBar>: bottom edge clipped by ~" +
         `${(rect.bottom - viewportH).toFixed(1)}px. ` +
         "Check for double safe-area stacking on iOS PWA.",
       el,
@@ -155,7 +155,7 @@ function assertNavbarFits(el: HTMLElement): void {
     if (fs > 0 && fs < 15.5) {
       // eslint-disable-next-line no-console
       console.warn(
-        "[@etamong-lab/ui] <NavigationBar>: title font-size is " +
+        "[@etamong-playground/ui] <NavigationBar>: title font-size is " +
           `${fs.toFixed(1)}px, below the 16px floor. Root font-size ` +
           "may be set < 16px in your app's CSS. The bar uses px not " +
           "rem to insulate itself; check for an override.",
@@ -167,7 +167,7 @@ function assertNavbarFits(el: HTMLElement): void {
   if (above) {
     // eslint-disable-next-line no-console
     console.warn(
-      "[@etamong-lab/ui] <NavigationBar>: detected a sticky/fixed " +
+      "[@etamong-playground/ui] <NavigationBar>: detected a sticky/fixed " +
         "ancestor with padding-top ≥ 20px above this bar. Both will " +
         "consume env(safe-area-inset-top) — pass safeAreaTop={false} " +
         "to this bar (or to the outer one) so the inset is only " +

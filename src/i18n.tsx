@@ -122,7 +122,7 @@ export function useI18n(): I18nContextValue {
   const ctx = useContext(I18nContext);
   if (!ctx) {
     throw new Error(
-      "[@etamong-lab/ui] useI18n / useT must be used inside <I18nProvider>",
+      "[@etamong-playground/ui] useI18n / useT must be used inside <I18nProvider>",
     );
   }
   return ctx;
