@@ -11,9 +11,9 @@
 # rename needed. publishConfig only carries "access": "public".
 #
 # GitHub Packages auth:  built-in GITHUB_TOKEN (packages: write)
-# npmjs auth:            NPM_TOKEN secret (bootstrap; remove once Trusted
-#                        Publisher is configured — id-token: write handles
-#                        OIDC token-less publish with auto-provenance)
+# npmjs auth:            token-less OIDC via Trusted Publisher (id-token: write)
+#                        Do NOT use setup-node registry-url for the npmjs step —
+#                        it injects a placeholder NODE_AUTH_TOKEN that breaks OIDC.
 #
 # Release flow:
 #   1. Bump version in package.json → PR → merge to main
@@ -88,21 +88,12 @@ jobs:
           pnpm publish --no-git-checks --tag "${{ env.publish_tag }}" --registry https://npm.pkg.github.com
 
       # ── Publish to npmjs ─────────────────────────────────────────────────
-      # Bootstrap auth: NODE_AUTH_TOKEN. After the package exists on npmjs and
-      # a Trusted Publisher is configured under https://www.npmjs.com/package/@etamong-playground/ui,
-      # remove NODE_AUTH_TOKEN — OIDC (id-token: write) publishes token-less
-      # with auto-provenance.
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "24"
-          registry-url: "https://registry.npmjs.org"
-
-      - name: Publish to npmjs
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish to npmjs (OIDC trusted publishing)
         run: |
-          # Bootstrap auth via explicit .npmrc (overrides the GitHub-Packages scope mapping
-          # written by the earlier step). After a Trusted Publisher is configured on npmjs,
-          # this whole step moves to setup-node registry-url + id-token OIDC (no token).
-          printf '@etamong-playground:registry=https://registry.npmjs.org\n//registry.npmjs.org/:_authToken=%s\n' "$NODE_AUTH_TOKEN" > .npmrc
-          pnpm publish --no-git-checks --access public --tag "${{ env.publish_tag }}" --registry https://registry.npmjs.org
+          # Token-less OIDC: id-token: write + the npmjs Trusted Publisher. Do NOT use
+          # setup-node registry-url here (it injects a placeholder NODE_AUTH_TOKEN that
+          # overrides OIDC). Clear any stray npmrc; npm uses OIDC against the default
+          # registry (registry.npmjs.org) and auto-attaches provenance.
+          rm -f .npmrc
+          npm config delete //registry.npmjs.org/:_authToken 2>/dev/null || true
+          npm publish --access public
