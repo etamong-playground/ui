@@ -2237,8 +2237,9 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
     justify-content: center;
   }
 
-  /* Drawer mode — hidden by default, slides in over a scrim when open. */
-  .etu-sidebar[data-tablet-mode="drawer"] {
+  /* Drawer mode and expanded rail — fixed overlay with scrim. */
+  .etu-sidebar[data-tablet-mode="drawer"],
+  .etu-sidebar[data-tablet-mode="rail"][data-rail-expanded="true"] {
     position: fixed;
     inset: 0 auto 0 0;
     z-index: 50;
@@ -2248,8 +2249,33 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
     transition: transform 200ms ease;
     box-shadow: 4px 0 24px color-mix(in srgb, var(--etu-text) 18%, transparent);
   }
-  .etu-sidebar[data-tablet-mode="drawer"][data-open="true"] {
+  .etu-sidebar[data-tablet-mode="drawer"][data-open="true"],
+  .etu-sidebar[data-tablet-mode="rail"][data-rail-expanded="true"] {
     transform: translateX(0);
+  }
+  .etu-sidebar[data-tablet-mode="rail"][data-rail-expanded="true"] {
+    padding: 0.75rem 0.5rem;
+  }
+  .etu-sidebar[data-tablet-mode="rail"][data-rail-expanded="true"] .etu-sidebar-header-name,
+  .etu-sidebar[data-tablet-mode="rail"][data-rail-expanded="true"] .etu-sidebar-header-extra,
+  .etu-sidebar[data-tablet-mode="rail"][data-rail-expanded="true"] .etu-sidebar-item-label,
+  .etu-sidebar[data-tablet-mode="rail"][data-rail-expanded="true"] .etu-sidebar-caption,
+  .etu-sidebar[data-tablet-mode="rail"][data-rail-expanded="true"] .etu-sidebar-section-caption,
+  .etu-sidebar[data-tablet-mode="rail"][data-rail-expanded="true"] .etu-sidebar-footer {
+    display: revert;
+  }
+  .etu-sidebar[data-tablet-mode="rail"][data-rail-expanded="true"] .etu-sidebar-item {
+    justify-content: flex-start;
+    padding: 0.5rem 0.6rem;
+    gap: 0.6rem;
+  }
+  .etu-sidebar[data-tablet-mode="rail"][data-rail-expanded="true"] .etu-sidebar-header {
+    padding: 0.5rem 0.5rem 0.25rem;
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
+  .etu-sidebar[data-tablet-mode="rail"][data-rail-expanded="true"] .etu-sidebar-header-app {
+    justify-content: flex-start;
   }
   .etu-sidebar-scrim {
     position: fixed;
@@ -2259,16 +2285,18 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
     backdrop-filter: blur(2px);
   }
 
-  /* Toggle button is visible only at the tablet tier. */
-  .etu-sidebar-toggle {
+  /* Toggle buttons are visible only at the tablet tier. */
+  .etu-sidebar-toggle,
+  .etu-sidebar-rail-toggle {
     display: inline-flex;
   }
 }
 
-/* Mobile + desktop hide the toggle (mobile uses MobileTabBar, desktop the
+/* Mobile + desktop hide the toggles (mobile uses MobileTabBar, desktop the
  * full sidebar is already visible). */
 @media (max-width: 719px), (min-width: 1024px) {
-  .etu-sidebar-toggle {
+  .etu-sidebar-toggle,
+  .etu-sidebar-rail-toggle {
     display: none;
   }
 }
@@ -2307,6 +2335,29 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   background: color-mix(in srgb, var(--etu-text) 8%, transparent);
 }
 .etu-sidebar-toggle:focus-visible {
+  outline: 2px solid var(--etu-accent);
+  outline-offset: 2px;
+}
+
+/* Rail expand/collapse toggle — inlined in the rail, tablet-only. */
+.etu-sidebar-rail-toggle {
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 10px;
+  color: var(--etu-text-muted);
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.etu-sidebar-rail-toggle:hover {
+  background: color-mix(in srgb, var(--etu-text) 8%, transparent);
+}
+.etu-sidebar-rail-toggle:focus-visible {
   outline: 2px solid var(--etu-accent);
   outline-offset: 2px;
 }
