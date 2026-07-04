@@ -60,12 +60,12 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",
-    "msw": "^2.14.6",
     "@testing-library/react": "^16.0.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.0",
     "@vitest/coverage-v8": "^2.1.5",
     "jsdom": "^25.0.1",
+    "msw": "^2.14.6",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "tsup": "^8.3.5",
@@ -73,7 +73,8 @@
     "vitest": "^3.2.6"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://npm.pkg.github.com"
   },
   "license": "MIT"
 }
