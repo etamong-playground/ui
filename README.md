@@ -1208,6 +1208,27 @@ const secondarySections: SidebarSecondarySection[] = [
 When both `secondary` and `secondarySections` are passed,
 `secondarySections` wins (and a dev-only `console.warn` fires).
 
+### Rail expand toggle (v0.35.0)
+
+In `tabletMode="rail"`, a chevrons button appears below the app-icon header. Clicking it
+expands the rail into a full-width overlay (280px, `max-width: 86vw`) with a scrim —
+identical to an open drawer. Labels, captions, and the footer become visible. Collapse via
+the toggle, the scrim, or Escape. Clicking any nav item also collapses.
+
+```tsx
+<Sidebar
+  tabletMode="rail"
+  railExpandLabel="메뉴 펼치기"   // default; override for i18n
+  railCollapseLabel="메뉴 접기"   // default; override for i18n
+  primary={primary}
+  footer={footer}
+/>
+```
+
+`aria-label` is set on every item whose `label` is a string (including in collapsed rail
+where the label span is hidden). A native `title` tooltip is added at the tablet tier so
+icon-only rail items are self-describing on hover.
+
 ## NavigationBar + floating tab bar (iOS 26 Liquid Glass)
 
 v0.23.0 adds `<NavigationBar>` — an iOS-style small-title bar — as the default

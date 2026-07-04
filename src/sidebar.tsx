@@ -45,6 +45,7 @@
  */
 
 import { useCallback, useEffect, useState, type ReactNode, type MouseEvent } from "react";
+import { useViewport, type ViewportTier } from "./viewport";
 
 export interface SidebarItem {
   /** Stable key used for React reconciliation. */
@@ -142,11 +143,33 @@ export interface SidebarProps {
    */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  /**
+   * ARIA label for the expand button shown in rail mode at the tablet tier.
+   * Default: "메뉴 펼치기".
+   */
+  railExpandLabel?: string;
+  /**
+   * ARIA label for the collapse button shown when the rail is expanded.
+   * Default: "메뉴 접기".
+   */
+  railCollapseLabel?: string;
 }
 
-function Item({ item }: { item: SidebarItem }) {
+function Item({
+  item,
+  tabletMode,
+  viewport,
+  onCollapse,
+}: {
+  item: SidebarItem;
+  tabletMode?: "rail" | "drawer" | "full";
+  viewport?: ViewportTier;
+  onCollapse?: () => void;
+}) {
   const cls =
     "etu-sidebar-item" + (item.active ? " etu-sidebar-item--active" : "");
+  const strLabel = typeof item.label === "string" ? item.label : undefined;
+  const showTitle = tabletMode === "rail" && viewport === "tablet" && strLabel != null;
   const inner = (
     <>
       {item.icon ? (
@@ -163,11 +186,14 @@ function Item({ item }: { item: SidebarItem }) {
         className={cls}
         href={item.href}
         aria-current={item.active ? "page" : undefined}
+        aria-label={strLabel}
+        title={showTitle ? strLabel : undefined}
         onClick={(e: MouseEvent<HTMLAnchorElement>) => {
           if (item.onClick) {
             e.preventDefault();
             item.onClick();
           }
+          onCollapse?.();
         }}
       >
         {inner}
@@ -179,7 +205,12 @@ function Item({ item }: { item: SidebarItem }) {
       type="button"
       className={cls}
       aria-current={item.active ? "page" : undefined}
-      onClick={item.onClick}
+      aria-label={strLabel}
+      title={showTitle ? strLabel : undefined}
+      onClick={() => {
+        item.onClick?.();
+        onCollapse?.();
+      }}
     >
       {inner}
     </button>
@@ -200,15 +231,22 @@ export function Sidebar({
   tabletMode = "rail",
   open,
   onOpenChange,
+  railExpandLabel = "메뉴 펼치기",
+  railCollapseLabel = "메뉴 접기",
 }: SidebarProps) {
+  const viewport = useViewport();
+  const [railExpanded, setRailExpanded] = useState(false);
+
   const dataAttrs: Record<string, string> = {
     "data-tablet-mode": tabletMode,
   };
   if (tabletMode === "drawer") {
     dataAttrs["data-open"] = open ? "true" : "false";
   }
+  if (tabletMode === "rail") {
+    dataAttrs["data-rail-expanded"] = railExpanded ? "true" : "false";
+  }
 
-  // Close drawer on Escape.
   useEffect(() => {
     if (tabletMode !== "drawer" || !open) return;
     function onKey(e: KeyboardEvent) {
@@ -217,6 +255,17 @@ export function Sidebar({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [tabletMode, open, onOpenChange]);
+
+  useEffect(() => {
+    if (tabletMode !== "rail" || !railExpanded) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setRailExpanded(false);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [tabletMode, railExpanded]);
+
+  const collapse = useCallback(() => setRailExpanded(false), []);
 
   const hasSections = secondarySections && secondarySections.length > 0;
   const hasFlatSecondary = secondary && secondary.length > 0;
@@ -233,6 +282,12 @@ export function Sidebar({
     }
   }
 
+  const itemProps = {
+    tabletMode,
+    viewport,
+    onCollapse: tabletMode === "rail" ? collapse : undefined,
+  };
+
   return (
     <>
       {tabletMode === "drawer" && open ? (
@@ -240,6 +295,13 @@ export function Sidebar({
           className="etu-sidebar-scrim"
           aria-hidden
           onClick={() => onOpenChange?.(false)}
+        />
+      ) : null}
+      {tabletMode === "rail" && railExpanded ? (
+        <div
+          className="etu-sidebar-scrim"
+          aria-hidden
+          onClick={collapse}
         />
       ) : null}
     <aside
@@ -266,9 +328,42 @@ export function Sidebar({
           ) : null}
         </div>
       )}
+      {tabletMode === "rail" ? (
+        <button
+          type="button"
+          className="etu-sidebar-rail-toggle"
+          aria-label={railExpanded ? railCollapseLabel : railExpandLabel}
+          aria-expanded={railExpanded}
+          onClick={() => setRailExpanded((v) => !v)}
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+          >
+            {railExpanded ? (
+              <>
+                <polyline points="11 17 6 12 11 7" />
+                <polyline points="18 17 13 12 18 7" />
+              </>
+            ) : (
+              <>
+                <polyline points="13 17 18 12 13 7" />
+                <polyline points="6 17 11 12 6 7" />
+              </>
+            )}
+          </svg>
+        </button>
+      ) : null}
       <nav className="etu-sidebar-section etu-sidebar-section--primary">
         {primary.map((it) => (
-          <Item key={it.id} item={it} />
+          <Item key={it.id} item={it} {...itemProps} />
         ))}
       </nav>
       {hasSections
@@ -286,7 +381,7 @@ export function Sidebar({
                 </div>
               ) : null}
               {section.items.map((it) => (
-                <Item key={it.id} item={it} />
+                <Item key={it.id} item={it} {...itemProps} />
               ))}
             </nav>
           ))
@@ -301,7 +396,7 @@ export function Sidebar({
               <div className="etu-sidebar-caption">{secondaryCaption}</div>
             ) : null}
             {secondary!.map((it) => (
-              <Item key={it.id} item={it} />
+              <Item key={it.id} item={it} {...itemProps} />
             ))}
           </nav>
         ) : null}
