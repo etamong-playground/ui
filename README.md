@@ -1251,12 +1251,14 @@ const secondarySections: SidebarSecondarySection[] = [
 When both `secondary` and `secondarySections` are passed,
 `secondarySections` wins (and a dev-only `console.warn` fires).
 
-### Rail expand toggle (v0.35.0)
+### Rail inline collapse (v0.36.0)
 
-In `tabletMode="rail"`, a chevrons button appears below the app-icon header. Clicking it
-expands the rail into a full-width overlay (280px, `max-width: 86vw`) with a scrim —
-identical to an open drawer. Labels, captions, and the footer become visible. Collapse via
-the toggle, the scrim, or Escape. Clicking any nav item also collapses.
+`tabletMode="rail"` is an inline-collapsible sidebar: collapsed it is a 64px icon-only
+column, expanded it is the normal in-flow 240px sidebar pushing content — no overlay, no
+scrim (the v0.35.0 overlay expansion is replaced). A chevrons button under the app-icon
+header flips the state at **both** the tablet and desktop tiers. The default follows the
+tier — tablet starts collapsed, desktop starts expanded — and re-derives when the viewport
+crosses 1024px. Clicking nav items does not collapse the sidebar.
 
 ```tsx
 <Sidebar
@@ -1268,9 +1270,9 @@ the toggle, the scrim, or Escape. Clicking any nav item also collapses.
 />
 ```
 
-`aria-label` is set on every item whose `label` is a string (including in collapsed rail
-where the label span is hidden). A native `title` tooltip is added at the tablet tier so
-icon-only rail items are self-describing on hover.
+`aria-label` is set on every item whose `label` is a string (including while collapsed,
+where the label span is hidden). A native `title` tooltip is added while collapsed so
+icon-only items are self-describing on hover.
 
 ## NavigationBar + floating tab bar (iOS 26 Liquid Glass)
 
