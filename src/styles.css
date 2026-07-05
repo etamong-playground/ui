@@ -2210,36 +2210,35 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 
 /* Tablet tier — rail mode (default). 64px icon-only column. */
 @media (min-width: 720px) and (max-width: 1023px) {
-  .etu-sidebar[data-tablet-mode="rail"] {
+  .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) {
     width: 64px;
     flex: 0 0 64px;
     padding: 0.5rem 0.25rem;
   }
-  .etu-sidebar[data-tablet-mode="rail"] .etu-sidebar-header-name,
-  .etu-sidebar[data-tablet-mode="rail"] .etu-sidebar-header-extra,
-  .etu-sidebar[data-tablet-mode="rail"] .etu-sidebar-item-label,
-  .etu-sidebar[data-tablet-mode="rail"] .etu-sidebar-caption,
-  .etu-sidebar[data-tablet-mode="rail"] .etu-sidebar-section-caption,
-  .etu-sidebar[data-tablet-mode="rail"] .etu-sidebar-footer {
+  .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-header-name,
+  .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-header-extra,
+  .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-item-label,
+  .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-caption,
+  .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-section-caption,
+  .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-footer {
     display: none;
   }
-  .etu-sidebar[data-tablet-mode="rail"] .etu-sidebar-item {
+  .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-item {
     justify-content: center;
     padding: 0.5rem 0;
     gap: 0;
   }
-  .etu-sidebar[data-tablet-mode="rail"] .etu-sidebar-header {
+  .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-header {
     padding: 0.25rem 0;
     justify-content: center;
     align-items: center;
   }
-  .etu-sidebar[data-tablet-mode="rail"] .etu-sidebar-header-app {
+  .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-header-app {
     justify-content: center;
   }
 
-  /* Drawer mode and expanded rail — fixed overlay with scrim. */
-  .etu-sidebar[data-tablet-mode="drawer"],
-  .etu-sidebar[data-tablet-mode="rail"][data-rail-expanded="true"] {
+  /* Drawer mode — hidden by default, slides in over a scrim when open. */
+  .etu-sidebar[data-tablet-mode="drawer"] {
     position: fixed;
     inset: 0 auto 0 0;
     z-index: 50;
@@ -2249,33 +2248,8 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
     transition: transform 200ms ease;
     box-shadow: 4px 0 24px color-mix(in srgb, var(--etu-text) 18%, transparent);
   }
-  .etu-sidebar[data-tablet-mode="drawer"][data-open="true"],
-  .etu-sidebar[data-tablet-mode="rail"][data-rail-expanded="true"] {
+  .etu-sidebar[data-tablet-mode="drawer"][data-open="true"] {
     transform: translateX(0);
-  }
-  .etu-sidebar[data-tablet-mode="rail"][data-rail-expanded="true"] {
-    padding: 0.75rem 0.5rem;
-  }
-  .etu-sidebar[data-tablet-mode="rail"][data-rail-expanded="true"] .etu-sidebar-header-name,
-  .etu-sidebar[data-tablet-mode="rail"][data-rail-expanded="true"] .etu-sidebar-header-extra,
-  .etu-sidebar[data-tablet-mode="rail"][data-rail-expanded="true"] .etu-sidebar-item-label,
-  .etu-sidebar[data-tablet-mode="rail"][data-rail-expanded="true"] .etu-sidebar-caption,
-  .etu-sidebar[data-tablet-mode="rail"][data-rail-expanded="true"] .etu-sidebar-section-caption,
-  .etu-sidebar[data-tablet-mode="rail"][data-rail-expanded="true"] .etu-sidebar-footer {
-    display: revert;
-  }
-  .etu-sidebar[data-tablet-mode="rail"][data-rail-expanded="true"] .etu-sidebar-item {
-    justify-content: flex-start;
-    padding: 0.5rem 0.6rem;
-    gap: 0.6rem;
-  }
-  .etu-sidebar[data-tablet-mode="rail"][data-rail-expanded="true"] .etu-sidebar-header {
-    padding: 0.5rem 0.5rem 0.25rem;
-    justify-content: flex-start;
-    align-items: flex-start;
-  }
-  .etu-sidebar[data-tablet-mode="rail"][data-rail-expanded="true"] .etu-sidebar-header-app {
-    justify-content: flex-start;
   }
   .etu-sidebar-scrim {
     position: fixed;
@@ -2285,18 +2259,16 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
     backdrop-filter: blur(2px);
   }
 
-  /* Toggle buttons are visible only at the tablet tier. */
-  .etu-sidebar-toggle,
-  .etu-sidebar-rail-toggle {
+  /* Toggle button is visible only at the tablet tier. */
+  .etu-sidebar-toggle {
     display: inline-flex;
   }
 }
 
-/* Mobile + desktop hide the toggles (mobile uses MobileTabBar, desktop the
+/* Mobile + desktop hide the toggle (mobile uses MobileTabBar, desktop the
  * full sidebar is already visible). */
 @media (max-width: 719px), (min-width: 1024px) {
-  .etu-sidebar-toggle,
-  .etu-sidebar-rail-toggle {
+  .etu-sidebar-toggle {
     display: none;
   }
 }
@@ -2339,8 +2311,10 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   outline-offset: 2px;
 }
 
-/* Rail expand/collapse toggle — inlined in the rail, tablet-only. */
+/* Rail collapse/expand toggle — inlined in the sidebar, tablet + desktop.
+ * Hidden on mobile where <MobileTabBar> owns nav. */
 .etu-sidebar-rail-toggle {
+  display: none;
   align-items: center;
   justify-content: center;
   align-self: center;
@@ -2354,10 +2328,54 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   cursor: pointer;
   transition: background 120ms ease;
 }
+@media (min-width: 720px) {
+  .etu-sidebar-rail-toggle {
+    display: inline-flex;
+  }
+}
 .etu-sidebar-rail-toggle:hover {
   background: color-mix(in srgb, var(--etu-text) 8%, transparent);
 }
 .etu-sidebar-rail-toggle:focus-visible {
   outline: 2px solid var(--etu-accent);
   outline-offset: 2px;
+}
+.etu-sidebar[data-expanded="true"] .etu-sidebar-rail-toggle {
+  align-self: flex-end;
+}
+
+/* Rail mode, inline collapse (keycloak-console style): collapsed = 64px
+ * icon column, expanded = the normal in-flow sidebar pushing content — no
+ * overlay, no scrim. React sets data-expanded after mount (tablet default
+ * collapsed / desktop default expanded); the tablet media block above
+ * covers the pre-hydration window via :not([data-expanded]). Unscoped by
+ * media query — the sidebar is display:none below 720px anyway. */
+.etu-sidebar[data-tablet-mode="rail"] {
+  transition: width 160ms ease, flex-basis 160ms ease;
+}
+.etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] {
+  width: 64px;
+  flex: 0 0 64px;
+  padding: 0.5rem 0.25rem;
+}
+.etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-header-name,
+.etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-header-extra,
+.etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-item-label,
+.etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-caption,
+.etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-section-caption,
+.etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-footer {
+  display: none;
+}
+.etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-item {
+  justify-content: center;
+  padding: 0.5rem 0;
+  gap: 0;
+}
+.etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-header {
+  padding: 0.25rem 0;
+  justify-content: center;
+  align-items: center;
+}
+.etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-header-app {
+  justify-content: center;
 }

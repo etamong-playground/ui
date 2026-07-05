@@ -24,11 +24,16 @@
  * mounting both unconditionally is correct.
  *
  * Tablet behavior (720–1023px) is controlled by `tabletMode`:
- *   - "rail"   — icon-only rail (~64px). Default. Keeps the content area
- *                wide while leaving nav glanceable. Recommended for most
- *                apps. iPad Mini portrait (768px) needs this — a full
- *                240px sidebar leaves only 528px for content and many
- *                grid layouts collapse to an empty column.
+ *   - "rail"   — inline-collapsible sidebar. Default. Collapsed = icon-only
+ *                ~64px column (items carry tooltips); expanded = the normal
+ *                240px sidebar, pushing content — no overlay, no scrim. A
+ *                chevrons toggle under the header flips it at BOTH the
+ *                tablet and desktop tiers; the default follows the tier
+ *                (tablet collapsed / desktop expanded) and re-derives when
+ *                the viewport crosses 1024px. iPad Mini portrait (768px)
+ *                needs the collapsed default — a full 240px sidebar leaves
+ *                only 528px for content and many grid layouts collapse to
+ *                an empty column.
  *   - "drawer" — hidden by default; consumer mounts `<SidebarToggle>` in
  *                their app bar. The drawer slides in over a scrim and
  *                auto-dismisses on route change (parent flips `open`).
@@ -45,7 +50,7 @@
  */
 
 import { useCallback, useEffect, useState, type ReactNode, type MouseEvent } from "react";
-import { useViewport, type ViewportTier } from "./viewport";
+import { useViewport } from "./viewport";
 
 export interface SidebarItem {
   /** Stable key used for React reconciliation. */
@@ -127,11 +132,15 @@ export interface SidebarProps {
   className?: string;
   /**
    * Behavior at the tablet tier (720–1023px). Default: `"rail"`.
-   *   - "rail"   icon-only ~64px rail
+   *   - "rail"   inline-collapsible: icon-only ~64px column ↔ full 240px,
+   *              user-toggled at both the tablet and desktop tiers; the
+   *              default follows the tier (tablet collapsed / desktop
+   *              expanded)
    *   - "drawer" hidden until `open` is true; mount `<SidebarToggle>` in
    *              your app bar to flip it
    *   - "full"   v0.27 behavior — full 240px sidebar at all ≥720px widths
-   * Has no effect at the mobile (<720) or desktop (≥1024) tier.
+   * "drawer"/"full" have no effect at the mobile (<720) or desktop (≥1024)
+   * tier.
    */
   tabletMode?: "rail" | "drawer" | "full";
   /**
@@ -144,12 +153,12 @@ export interface SidebarProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   /**
-   * ARIA label for the expand button shown in rail mode at the tablet tier.
+   * ARIA label for the rail-mode toggle while collapsed (clicking expands).
    * Default: "메뉴 펼치기".
    */
   railExpandLabel?: string;
   /**
-   * ARIA label for the collapse button shown when the rail is expanded.
+   * ARIA label for the rail-mode toggle while expanded (clicking collapses).
    * Default: "메뉴 접기".
    */
   railCollapseLabel?: string;
@@ -157,19 +166,15 @@ export interface SidebarProps {
 
 function Item({
   item,
-  tabletMode,
-  viewport,
-  onCollapse,
+  collapsed,
 }: {
   item: SidebarItem;
-  tabletMode?: "rail" | "drawer" | "full";
-  viewport?: ViewportTier;
-  onCollapse?: () => void;
+  collapsed?: boolean;
 }) {
   const cls =
     "etu-sidebar-item" + (item.active ? " etu-sidebar-item--active" : "");
   const strLabel = typeof item.label === "string" ? item.label : undefined;
-  const showTitle = tabletMode === "rail" && viewport === "tablet" && strLabel != null;
+  const showTitle = collapsed === true && strLabel != null;
   const inner = (
     <>
       {item.icon ? (
@@ -193,7 +198,6 @@ function Item({
             e.preventDefault();
             item.onClick();
           }
-          onCollapse?.();
         }}
       >
         {inner}
@@ -207,10 +211,7 @@ function Item({
       aria-current={item.active ? "page" : undefined}
       aria-label={strLabel}
       title={showTitle ? strLabel : undefined}
-      onClick={() => {
-        item.onClick?.();
-        onCollapse?.();
-      }}
+      onClick={item.onClick}
     >
       {inner}
     </button>
@@ -235,7 +236,16 @@ export function Sidebar({
   railCollapseLabel = "메뉴 접기",
 }: SidebarProps) {
   const viewport = useViewport();
-  const [railExpanded, setRailExpanded] = useState(false);
+  // Inline collapse state for rail mode. `null` until the tier default is
+  // derived (pre-hydration CSS covers that window); re-derives whenever the
+  // tier changes so a resize across 1024px lands on the tier's default.
+  const [expanded, setExpanded] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (tabletMode !== "rail") return;
+    if (viewport === "desktop") setExpanded(true);
+    else if (viewport === "tablet") setExpanded(false);
+  }, [tabletMode, viewport]);
+  const collapsed = !(expanded ?? viewport === "desktop");
 
   const dataAttrs: Record<string, string> = {
     "data-tablet-mode": tabletMode,
@@ -243,8 +253,8 @@ export function Sidebar({
   if (tabletMode === "drawer") {
     dataAttrs["data-open"] = open ? "true" : "false";
   }
-  if (tabletMode === "rail") {
-    dataAttrs["data-rail-expanded"] = railExpanded ? "true" : "false";
+  if (tabletMode === "rail" && expanded !== null) {
+    dataAttrs["data-expanded"] = expanded ? "true" : "false";
   }
 
   useEffect(() => {
@@ -255,17 +265,6 @@ export function Sidebar({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [tabletMode, open, onOpenChange]);
-
-  useEffect(() => {
-    if (tabletMode !== "rail" || !railExpanded) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setRailExpanded(false);
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [tabletMode, railExpanded]);
-
-  const collapse = useCallback(() => setRailExpanded(false), []);
 
   const hasSections = secondarySections && secondarySections.length > 0;
   const hasFlatSecondary = secondary && secondary.length > 0;
@@ -283,9 +282,7 @@ export function Sidebar({
   }
 
   const itemProps = {
-    tabletMode,
-    viewport,
-    onCollapse: tabletMode === "rail" ? collapse : undefined,
+    collapsed: tabletMode === "rail" ? collapsed : false,
   };
 
   return (
@@ -295,13 +292,6 @@ export function Sidebar({
           className="etu-sidebar-scrim"
           aria-hidden
           onClick={() => onOpenChange?.(false)}
-        />
-      ) : null}
-      {tabletMode === "rail" && railExpanded ? (
-        <div
-          className="etu-sidebar-scrim"
-          aria-hidden
-          onClick={collapse}
         />
       ) : null}
     <aside
@@ -332,9 +322,9 @@ export function Sidebar({
         <button
           type="button"
           className="etu-sidebar-rail-toggle"
-          aria-label={railExpanded ? railCollapseLabel : railExpandLabel}
-          aria-expanded={railExpanded}
-          onClick={() => setRailExpanded((v) => !v)}
+          aria-label={collapsed ? railExpandLabel : railCollapseLabel}
+          aria-expanded={!collapsed}
+          onClick={() => setExpanded(collapsed)}
         >
           <svg
             width="18"
@@ -347,15 +337,15 @@ export function Sidebar({
             strokeLinejoin="round"
             aria-hidden
           >
-            {railExpanded ? (
-              <>
-                <polyline points="11 17 6 12 11 7" />
-                <polyline points="18 17 13 12 18 7" />
-              </>
-            ) : (
+            {collapsed ? (
               <>
                 <polyline points="13 17 18 12 13 7" />
                 <polyline points="6 17 11 12 6 7" />
+              </>
+            ) : (
+              <>
+                <polyline points="11 17 6 12 11 7" />
+                <polyline points="18 17 13 12 18 7" />
               </>
             )}
           </svg>
