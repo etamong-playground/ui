@@ -1,0 +1,21 @@
+import { defineConfig, devices } from "@playwright/test";
+
+export default defineConfig({
+  testDir: "e2e",
+  retries: process.env.CI ? 1 : 0,
+  reporter: process.env.CI ? "list" : [["list"], ["html", { open: "never" }]],
+  use: {
+    baseURL: "http://localhost:5173",
+  },
+  projects: [
+    {
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
+    },
+  ],
+  webServer: {
+    command: "pnpm showcase:dev",
+    port: 5173,
+    reuseExistingServer: !process.env.CI,
+  },
+});

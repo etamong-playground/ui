@@ -41,7 +41,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "showcase:dev": "pnpm --filter @etamong-playground/ui-showcase dev",
-    "showcase:build": "pnpm --filter @etamong-playground/ui-showcase build"
+    "showcase:build": "pnpm --filter @etamong-playground/ui-showcase build",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "cmdk": "^1.1.1"

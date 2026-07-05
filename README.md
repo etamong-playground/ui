@@ -297,6 +297,11 @@ always reflects the working tree — no separate library build needed.
 static site on every push to `main`. The deploy step is guarded by the `PAGES_TOKEN` secret
 so the workflow stays green on forks or before the secret is configured.
 
+**E2E tests:** a Playwright suite in `e2e/` drives the showcase to verify component behaviour
+end-to-end (palette overlay dismiss, dialog locale defaults, toast, theme persistence, mobile
+layout). It uses `fleetTest` from `src/testing-playwright` so the same fixture conventions
+apply here as in consuming apps. Run with `pnpm e2e`; CI runs it as a parallel `e2e` job.
+
 ## Notifications
 
 Mount the hosts once at the app root (in Next, behind a `"use client"` wrapper):
