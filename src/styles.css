@@ -359,6 +359,7 @@ body.etu-no-safe-padding { padding: 0; }
 
 .etu-dialog-input {
   width: 100%;
+  box-sizing: border-box;
   border-radius: var(--etu-r-sm);
   border: 1px solid var(--etu-border);
   background: var(--etu-bg);
