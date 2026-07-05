@@ -254,6 +254,36 @@ pnpm typecheck
 
 CI runs `pnpm typecheck` + `pnpm build` on every pull request.
 
+## Showcase
+
+A live component showcase is rebuilt and redeployed automatically on every push to `main`:
+
+**https://ui-showcase.custom-site.m.etamong.com/**
+
+The showcase dogfoods the library — the shell itself uses `Sidebar`, `MobileTabBar`,
+`NavigationBar`, `CommandPalette`, theme, and i18n from this package — so it doubles as a
+real integration test alongside the unit tests.
+
+**Run locally:**
+
+```sh
+pnpm install
+pnpm showcase:dev   # Vite dev server with HMR, aliased to library source
+```
+
+**Build the showcase:**
+
+```sh
+pnpm showcase:build   # tsc + vite build → showcase/dist/
+```
+
+The Vite config aliases `@etamong-playground/ui` to `../src/index.ts` so the showcase
+always reflects the working tree — no separate library build needed.
+
+**Auto-deploy:** `.github/workflows/showcase.yml` builds the showcase and publishes it as a
+static site on every push to `main`. The deploy step is guarded by the `PAGES_TOKEN` secret
+so the workflow stays green on forks or before the secret is configured.
+
 ## Notifications
 
 Mount the hosts once at the app root (in Next, behind a `"use client"` wrapper):
