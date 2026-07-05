@@ -38,6 +38,14 @@ export function getLocale(appKey: string): Locale {
   try {
     const saved = localStorage.getItem(storageKey(appKey));
     if (saved === "ko" || saved === "en") return saved;
+    // One-time migration: standalone @etamong-playground/i18n stored the choice
+    // under the bare key "locale". Adopt and re-persist under the namespaced key
+    // so the user's language preference survives the package switch.
+    const legacy = localStorage.getItem("locale");
+    if (legacy === "ko" || legacy === "en") {
+      localStorage.setItem(storageKey(appKey), legacy);
+      return legacy;
+    }
   } catch {
     /* storage unavailable */
   }
