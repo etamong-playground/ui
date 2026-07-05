@@ -111,6 +111,19 @@ Import once at the app root:
 import "@etamong-playground/ui/styles.css";
 ```
 
+The stylesheet only paints the library's own components — **the page itself is the
+app's job**. Wire the shell once in your app CSS, or dark mode renders light text
+on the browser's default white body:
+
+```css
+body {
+  margin: 0;
+  background: var(--etu-bg);
+  color: var(--etu-text);
+  font-family: var(--etu-font);
+}
+```
+
 The command palette is styled from **namespaced `--etu-*` tokens** (light
 defaults on `:root`, dark under either `[data-theme="dark"]` or the `.dark`
 class) — deliberately prefixed so this file is safe to import into any app,

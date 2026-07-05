@@ -7,15 +7,11 @@ interface EtuVar {
 }
 
 function isColorValue(v: string): boolean {
-  const s = v.trim();
-  return (
-    s.startsWith("#") ||
-    s.startsWith("rgb") ||
-    s.startsWith("hsl") ||
-    s.startsWith("oklch") ||
-    s.startsWith("color(") ||
-    /^[\w-]+$/.test(s) // named colors like "white", "black"
-  );
+  return typeof CSS !== "undefined" && CSS.supports("color", v.trim());
+}
+
+function isLengthValue(v: string): boolean {
+  return /^-?\d*\.?\d+(px|rem|em)$/.test(v.trim());
 }
 
 function getEtuVars(): EtuVar[] {
@@ -46,18 +42,28 @@ function getEtuVars(): EtuVar[] {
 }
 
 function TokenSwatch({ name, value }: EtuVar) {
-  const isColor = isColorValue(value);
+  if (isColorValue(value)) {
+    return (
+      <div className="sc-token-swatch">
+        <div className="sc-token-color" style={{ background: `var(${name})` }} />
+        <code className="sc-token-name">{name}</code>
+        <span className="sc-token-value">{value}</span>
+      </div>
+    );
+  }
+  if (isLengthValue(value)) {
+    return (
+      <div className="sc-token-swatch">
+        <div className="sc-token-radius" style={{ borderRadius: `var(${name})` }} />
+        <code className="sc-token-name">{name}</code>
+        <span className="sc-token-value">{value}</span>
+      </div>
+    );
+  }
   return (
-    <div className="sc-token-swatch">
-      {isColor && (
-        <div
-          className="sc-token-color"
-          style={{ background: `var(${name})` }}
-          title={value}
-        />
-      )}
+    <div className="sc-token-swatch sc-token-swatch--text">
       <code className="sc-token-name">{name}</code>
-      {!isColor && <span className="sc-token-value">{value}</span>}
+      <span className="sc-token-value">{value}</span>
     </div>
   );
 }
@@ -67,11 +73,15 @@ export function Overview({ navigate }: { navigate: (id: string) => void }) {
   const [etuVars, setEtuVars] = useState<EtuVar[]>([]);
 
   useEffect(() => {
-    setEtuVars(getEtuVars());
+    const read = () => setEtuVars(getEtuVars());
+    read();
+    const mo = new MutationObserver(read);
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => mo.disconnect();
   }, []);
 
-  const colorVars = etuVars.filter((v) => isColorValue(v.value));
-  const otherVars = etuVars.filter((v) => !isColorValue(v.value));
+  const swatchVars = etuVars.filter((v) => isColorValue(v.value) || isLengthValue(v.value));
+  const textVars = etuVars.filter((v) => !isColorValue(v.value) && !isLengthValue(v.value));
 
   return (
     <div className="sc-section">
@@ -142,26 +152,26 @@ export function Overview({ navigate }: { navigate: (id: string) => void }) {
         </div>
       </div>
 
-      {colorVars.length > 0 && (
+      {swatchVars.length > 0 && (
         <div className="sc-card">
           <div className="sc-card-header">
-            Design tokens — <code>--etu-*</code> colors ({colorVars.length})
+            Design tokens — <code>--etu-*</code> colors & radii ({swatchVars.length})
           </div>
           <div className="sc-token-grid">
-            {colorVars.map((v) => (
+            {swatchVars.map((v) => (
               <TokenSwatch key={v.name} {...v} />
             ))}
           </div>
         </div>
       )}
 
-      {otherVars.length > 0 && (
+      {textVars.length > 0 && (
         <div className="sc-card">
           <div className="sc-card-header">
-            Design tokens — other ({otherVars.length})
+            Design tokens — other ({textVars.length})
           </div>
-          <div className="sc-token-grid sc-token-grid--text">
-            {otherVars.map((v) => (
+          <div className="sc-token-list">
+            {textVars.map((v) => (
               <TokenSwatch key={v.name} {...v} />
             ))}
           </div>
