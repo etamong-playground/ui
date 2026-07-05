@@ -34,6 +34,7 @@ import {
   interpolate,
   setLocale,
   storageKey,
+  SUPPORTED_LOCALES,
   type Locale,
   type MessageBundle,
 } from "./i18nCore";
@@ -137,4 +138,33 @@ export function useT(): I18nContextValue["t"] {
 export function useLocale(): [Locale, (next: Locale) => void] {
   const { locale, setLocale } = useI18n();
   return [locale, setLocale];
+}
+
+const LOCALE_LABELS: Record<Locale, string> = {
+  ko: "한국어",
+  en: "English",
+};
+
+export interface LanguageSwitcherProps {
+  className?: string;
+  "aria-label"?: string;
+}
+
+/** Drop-in `<select>` that switches the active locale. Must be inside `<I18nProvider>`. */
+export function LanguageSwitcher({ className, "aria-label": ariaLabel }: LanguageSwitcherProps) {
+  const { locale, setLocale } = useI18n();
+  return (
+    <select
+      className={className}
+      value={locale}
+      aria-label={ariaLabel ?? "Language"}
+      onChange={(e) => setLocale(e.target.value as Locale)}
+    >
+      {SUPPORTED_LOCALES.map((l) => (
+        <option key={l} value={l}>
+          {LOCALE_LABELS[l]}
+        </option>
+      ))}
+    </select>
+  );
 }

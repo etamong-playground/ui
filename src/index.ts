@@ -162,6 +162,7 @@ export {
   useI18n,
   useT,
   useLocale,
+  LanguageSwitcher,
   getLocale,
   setLocale,
   noFlashLocaleScript,
@@ -171,6 +172,7 @@ export {
   type Messages,
   type MessageBundle,
   type I18nProviderProps,
+  type LanguageSwitcherProps,
 } from "./i18n";
 export {
   ViewportProvider,
