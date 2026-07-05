@@ -8,6 +8,7 @@ import {
   useT,
   type DataTableColumn,
 } from "@etamong-playground/ui";
+import { FeatureTag } from "../FeatureTag";
 
 interface ExportRow {
   name: string;
@@ -62,7 +63,10 @@ export function DataTimeSection() {
       </div>
 
       <div className="sc-card">
-        <div className="sc-card-header">DataTable</div>
+        <div className="sc-card-header">
+          <span>DataTable</span>
+          <FeatureTag id="data-table" />
+        </div>
         <p className="sc-card-body">
           At wide viewports renders a real <code>{"<table>"}</code>; below 720 px
           collapses to stacked card rows. Never <code>overflow-x: auto</code>.
@@ -84,7 +88,10 @@ export function DataTimeSection() {
       </div>
 
       <div className="sc-card">
-        <div className="sc-card-header">RelTime + formatRelTime + formatAbsTime</div>
+        <div className="sc-card-header">
+          <span>RelTime + formatRelTime + formatAbsTime</span>
+          <FeatureTag id="rel-time" />
+        </div>
         <p className="sc-card-body">
           <code>{"<RelTime>"}</code> auto-refreshes every 15 s (under 1 min),
           every minute (under 1 hour), every 10 minutes beyond.{" "}
@@ -116,7 +123,10 @@ formatAbsTime(date, { style: "datetime" })
       </div>
 
       <div className="sc-card">
-        <div className="sc-card-header">CopyButton + useClipboard</div>
+        <div className="sc-card-header">
+          <span>CopyButton + useClipboard</span>
+          <FeatureTag id="copy-button" />
+        </div>
         <p className="sc-card-body">
           Token-styled copy button with success-state flip. Falls back to{" "}
           <code>execCommand("copy")</code> on non-https. Fires a toast on

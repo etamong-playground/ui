@@ -1,4 +1,5 @@
 import { useRouteState, useSessionState, useT } from "@etamong-playground/ui";
+import { FeatureTag } from "../FeatureTag";
 
 const TABS = ["overview", "details", "activity"] as const;
 type Tab = (typeof TABS)[number];
@@ -37,7 +38,10 @@ export function StateHooksSection() {
       </div>
 
       <div className="sc-card">
-        <div className="sc-card-header">useRouteState — tab persisted in URL</div>
+        <div className="sc-card-header">
+          <span>useRouteState — tab persisted in URL</span>
+          <FeatureTag id="route-state" />
+        </div>
         <p className="sc-card-body">
           Select a tab, then refresh — the tab is restored from the URL.
           Check the address bar for <code>?tab=…</code>.
@@ -66,7 +70,10 @@ export function StateHooksSection() {
       </div>
 
       <div className="sc-card">
-        <div className="sc-card-header">useSessionState — counter per session</div>
+        <div className="sc-card-header">
+          <span>useSessionState — counter per session</span>
+          <FeatureTag id="session-state" />
+        </div>
         <p className="sc-card-body">
           Backed by <code>sessionStorage</code>, keyed to this route. Survives
           an in-session navigation away and back. Cleared when the browser tab

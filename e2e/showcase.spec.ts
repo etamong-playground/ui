@@ -97,3 +97,25 @@ test.describe("mobile tier", () => {
     await expect(page.locator(".etu-sidebar")).not.toBeVisible();
   });
 });
+
+// h. Versions view — renders ≥5 version groups and a v0.28.0 heading
+test("versions section renders version groups", async ({ page }) => {
+  await page.goto("/#/versions");
+
+  const versionLinks = page.locator(".sc-versions-version");
+  await expect(versionLinks.first()).toBeVisible();
+  expect(await versionLinks.count()).toBeGreaterThanOrEqual(5);
+
+  await expect(versionLinks.filter({ hasText: "v0.28.0" })).toBeVisible();
+});
+
+// i. FeatureTag since badge — visible on notifications section and links to version page
+test("feature tag since badge links to version page", async ({ page }) => {
+  await page.goto("/#/notifications");
+
+  const sinceChip = page.locator(".sc-feature-tag-chip").first();
+  await expect(sinceChip).toBeVisible();
+
+  const href = await sinceChip.getAttribute("href");
+  expect(href).toMatch(/npmjs\.com|releases\/tag/);
+});
