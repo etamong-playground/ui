@@ -19,6 +19,16 @@ interface PromptReq extends BaseReq {
 }
 type Req = ConfirmReq | PromptReq;
 
+// Default button labels follow the app locale (fleet rule: user-facing = KO+EN).
+// <html lang> is kept in sync by I18nProvider / setLocale / the no-flash snippet,
+// so this works without any provider or appKey plumbing.
+function defaultLabels(): { cancel: string; confirm: string } {
+  const ko =
+    typeof document !== "undefined" &&
+    document.documentElement.lang.toLowerCase().startsWith("ko");
+  return ko ? { cancel: "취소", confirm: "확인" } : { cancel: "Cancel", confirm: "OK" };
+}
+
 // Module-level: one pending dialog at a time, no provider needed.
 let current: Req | null = null;
 const listeners = new Set<(r: Req | null) => void>();
@@ -114,7 +124,7 @@ export function DialogHost() {
         ) : null}
         <div className="etu-dialog-actions">
           <button className="etu-dialog-btn" onClick={cancel}>
-            {req.cancelLabel ?? "Cancel"}
+            {req.cancelLabel ?? defaultLabels().cancel}
           </button>
           <button
             className={
@@ -123,7 +133,7 @@ export function DialogHost() {
             }
             onClick={confirm}
           >
-            {req.confirmLabel ?? "OK"}
+            {req.confirmLabel ?? defaultLabels().confirm}
           </button>
         </div>
       </div>
