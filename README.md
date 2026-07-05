@@ -293,9 +293,9 @@ pnpm showcase:build   # tsc + vite build → showcase/dist/
 The Vite config aliases `@etamong-playground/ui` to `../src/index.ts` so the showcase
 always reflects the working tree — no separate library build needed.
 
-**Auto-deploy:** `.github/workflows/showcase.yml` builds the showcase and publishes it as a
-static site on every push to `main`. The deploy step is guarded by the `PAGES_TOKEN` secret
-so the workflow stays green on forks or before the secret is configured.
+**Auto-deploy:** the hosting platform watches this repo's `main`, builds the showcase in a
+sandboxed job, and publishes the result automatically — no deploy tokens or CI secrets in
+this repo. CI still builds the showcase on every PR to catch compile breakage early.
 
 **E2E tests:** a Playwright suite in `e2e/` drives the showcase to verify component behaviour
 end-to-end (palette overlay dismiss, dialog locale defaults, toast, theme persistence, mobile
