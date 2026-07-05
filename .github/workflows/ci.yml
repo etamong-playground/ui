@@ -22,3 +22,17 @@ jobs:
       - run: pnpm test
       - run: pnpm build
       - run: pnpm showcase:build
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: corepack enable && corepack prepare pnpm@10 --activate
+      - run: pnpm install --frozen-lockfile
+      - run: npx playwright install --with-deps chromium
+      - run: pnpm e2e
+        env:
+          CI: true
