@@ -8,6 +8,7 @@ import {
   useT,
   type BaseMe,
 } from "@etamong-playground/ui";
+import { FeatureTag } from "../FeatureTag";
 
 const mockMe: BaseMe = {
   email: "demo@example.com",
@@ -41,7 +42,31 @@ export function ChromeSection({ navigate }: { navigate: (path: string) => void }
       </div>
 
       <div className="sc-card">
-        <div className="sc-card-header">UserMenu + Avatar</div>
+        <div className="sc-card-header">
+          <span>Navigation Shell (live demo)</span>
+          <span className="sc-feature-tag-group">
+            <FeatureTag id="sidebar" />
+            <FeatureTag id="navigation-bar" />
+            <FeatureTag id="mobile-tab-bar" />
+            <FeatureTag id="theme" />
+            <FeatureTag id="i18n" />
+          </span>
+        </div>
+        <p className="sc-card-body">
+          The <strong>Sidebar</strong>, <strong>NavigationBar</strong>, and{" "}
+          <strong>MobileTabBar</strong> you see surrounding this content are all
+          live library components — no demo buttons needed. The{" "}
+          <strong>theme</strong> and <strong>i18n</strong> toggles in the sidebar
+          footer (desktop) and navigation bar (mobile) demonstrate{" "}
+          <code>getTheme/setTheme</code> and <code>useLocale</code>.
+        </p>
+      </div>
+
+      <div className="sc-card">
+        <div className="sc-card-header">
+          <span>UserMenu + Avatar</span>
+          <FeatureTag id="user-menu" />
+        </div>
         <p className="sc-card-body">
           Avatar trigger + dropdown with display name, "내 정보" link, 로그아웃.
           Shows a "로그인" link when <code>me</code> is <code>null</code>.
@@ -83,7 +108,10 @@ export function ChromeSection({ navigate }: { navigate: (path: string) => void }
       </div>
 
       <div className="sc-card">
-        <div className="sc-card-header">BackButton + useInAppBack</div>
+        <div className="sc-card-header">
+          <span>BackButton + useInAppBack</span>
+          <FeatureTag id="back-button" />
+        </div>
         <p className="sc-card-body">
           Tracks an in-app history stack via <code>history.state</code>.{" "}
           <code>canGoBack</code> is true when a prior in-app entry exists;
@@ -120,7 +148,10 @@ back.replace("#/detail/2"); // replaces, doesn't grow
       </div>
 
       <div className="sc-card">
-        <div className="sc-card-header">EmptyState</div>
+        <div className="sc-card-header">
+          <span>EmptyState</span>
+          <FeatureTag id="empty-state" />
+        </div>
         <p className="sc-card-body">
           The canonical "nothing here" card. Every list/grid view uses this.
         </p>

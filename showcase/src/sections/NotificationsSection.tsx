@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { toast, uiConfirm, uiPrompt, useT } from "@etamong-playground/ui";
+import { FeatureTag } from "../FeatureTag";
 
 export function NotificationsSection() {
   const t = useT();
@@ -19,7 +20,10 @@ export function NotificationsSection() {
       </div>
 
       <div className="sc-card">
-        <div className="sc-card-header">toast()</div>
+        <div className="sc-card-header">
+          <span>toast()</span>
+          <FeatureTag id="toast" />
+        </div>
         <p className="sc-card-body">
           Transient bottom-center notification. Returns an id for early dismissal.
         </p>
@@ -62,7 +66,10 @@ toast("Custom duration", "ok", 5000);`}</pre>
       </div>
 
       <div className="sc-card">
-        <div className="sc-card-header">uiConfirm()</div>
+        <div className="sc-card-header">
+          <span>uiConfirm()</span>
+          <FeatureTag id="dialog" />
+        </div>
         <p className="sc-card-body">
           Modal confirm; resolves <code>boolean</code>. Danger variant styles
           the confirm button red. Drop-in replacement for{" "}
@@ -116,7 +123,10 @@ toast("Custom duration", "ok", 5000);`}</pre>
       </div>
 
       <div className="sc-card">
-        <div className="sc-card-header">uiPrompt()</div>
+        <div className="sc-card-header">
+          <span>uiPrompt()</span>
+          <FeatureTag id="dialog" />
+        </div>
         <p className="sc-card-body">
           Modal text prompt; resolves <code>string | null</code> (null on
           cancel). Drop-in replacement for <code>window.prompt</code>.

@@ -26,6 +26,7 @@ import { DataTimeSection } from "./sections/DataTimeSection";
 import { StateHooksSection } from "./sections/StateHooksSection";
 import { ErrorPageSection } from "./sections/ErrorPageSection";
 import { AppInfoSection } from "./sections/AppInfoSection";
+import { VersionsSection } from "./sections/VersionsSection";
 
 // Sections ordered — drives sidebar, mobile tab bar, and command palette
 const SECTION_IDS = [
@@ -37,6 +38,7 @@ const SECTION_IDS = [
   "state",
   "error",
   "appinfo",
+  "versions",
 ] as const;
 
 type SectionId = (typeof SECTION_IDS)[number];
@@ -130,6 +132,14 @@ function IconMore() {
     </svg>
   );
 }
+function IconVersions() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+      <line x1="7" y1="7" x2="7.01" y2="7" />
+    </svg>
+  );
+}
 
 function ThemeToggleButton() {
   const [theme, setThemeState] = useState<"light" | "dark">(() => getTheme("ui-showcase"));
@@ -186,6 +196,7 @@ export function App() {
       { key: "s", href: "#/state" },
       { key: "e", href: "#/error" },
       { key: "a", href: "#/appinfo" },
+      { key: "v", href: "#/versions" },
     ],
     [],
   );
@@ -243,6 +254,7 @@ export function App() {
     state: IconDatabase,
     error: IconAlert,
     appinfo: IconInfo,
+    versions: IconVersions,
   };
 
   const primary: SidebarItem[] = useMemo(
@@ -263,7 +275,7 @@ export function App() {
 
   const secondary: SidebarItem[] = useMemo(
     () =>
-      ["state", "error", "appinfo"].map((id) => {
+      ["state", "error", "appinfo", "versions"].map((id) => {
         const Icon = icons[id as SectionId];
         return {
           id,
@@ -294,7 +306,7 @@ export function App() {
       id: "more",
       label: t("nav.more"),
       icon: <IconMore />,
-      active: (["state", "error", "appinfo"] as readonly string[]).includes(section),
+      active: (["state", "error", "appinfo", "versions"] as readonly string[]).includes(section),
       onClick: () => go("state"),
     };
     return [...primaryMobile, moreItem];
@@ -357,6 +369,7 @@ export function App() {
             {section === "state" && <StateHooksSection />}
             {section === "error" && <ErrorPageSection />}
             {section === "appinfo" && <AppInfoSection />}
+            {section === "versions" && <VersionsSection navigate={navigate} />}
           </main>
         </div>
         <MobileTabBar items={mobileItems} ariaLabel={t("nav.more")} />

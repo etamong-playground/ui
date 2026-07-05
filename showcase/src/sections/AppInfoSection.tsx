@@ -3,6 +3,7 @@ import {
   DeployInfo,
   useT,
 } from "@etamong-playground/ui";
+import { FeatureTag } from "../FeatureTag";
 
 const BUILD_SHA = import.meta.env.VITE_BUILD_SHA;
 const BUILD_TIME = import.meta.env.VITE_BUILD_TIME;
@@ -22,7 +23,10 @@ export function AppInfoSection() {
       </div>
 
       <div className="sc-card">
-        <div className="sc-card-header">AppInfoSection</div>
+        <div className="sc-card-header">
+          <span>AppInfoSection</span>
+          <FeatureTag id="app-info-section" />
+        </div>
         <LibAppInfoSection
           name="@etamong-playground/ui"
           description="Shared React frontend scaffold for etamong-lab apps"
@@ -45,7 +49,10 @@ export function AppInfoSection() {
       </div>
 
       <div className="sc-card">
-        <div className="sc-card-header">DeployInfo (standalone)</div>
+        <div className="sc-card-header">
+          <span>DeployInfo (standalone)</span>
+          <FeatureTag id="deploy-info" />
+        </div>
         <p className="sc-card-body">
           Renders <code>deployed &lt;sha7&gt; · &lt;rel time&gt;</code>. Returns{" "}
           <code>null</code> when neither <code>version</code> nor{" "}

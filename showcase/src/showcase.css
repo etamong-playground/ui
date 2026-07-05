@@ -79,6 +79,11 @@ body {
 }
 
 .sc-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
   padding: 10px 16px;
   font-size: 0.78rem;
   font-weight: 600;
@@ -87,6 +92,52 @@ body {
   color: var(--etu-text-muted, var(--etu-text));
   border-bottom: 1px solid var(--etu-border);
   background: var(--etu-surface-raised, var(--etu-surface));
+}
+
+/* ── Feature Tag ──────────────────────────────────────── */
+
+.sc-feature-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* Group multiple FeatureTags in a card header without inheriting uppercase */
+.sc-feature-tag-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.sc-feature-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--etu-border);
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--etu-text-muted, var(--etu-text));
+  background: transparent;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  line-height: 1.4;
+  font-family: inherit;
+}
+
+.sc-feature-tag-chip:hover {
+  background: var(--etu-accent-soft, color-mix(in srgb, var(--etu-accent, #5b6af8) 12%, transparent));
+  color: var(--etu-accent, #5b6af8);
+}
+
+.sc-feature-tag-chip--mono {
+  font-family: ui-monospace, "Cascadia Code", "Fira Code", monospace;
 }
 
 .sc-card-body {
@@ -488,4 +539,74 @@ body {
 
 .sc-error-frame .etu-error-page {
   min-height: 280px;
+}
+
+/* ── Versions Section ─────────────────────────────────── */
+
+.sc-versions-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sc-versions-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sc-versions-version {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--etu-text);
+  text-decoration: none;
+}
+
+.sc-versions-version:hover {
+  color: var(--etu-accent, #5b6af8);
+  text-decoration: underline;
+}
+
+.sc-versions-feature {
+  padding: 10px 16px;
+}
+
+.sc-versions-feature--sep {
+  border-top: 1px solid var(--etu-border);
+}
+
+.sc-versions-feature-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sc-versions-feature-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--etu-text);
+}
+
+.sc-versions-feature-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sc-versions-exports {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.sc-versions-export {
+  font-size: 0.75rem;
+  font-family: ui-monospace, "Cascadia Code", "Fira Code", monospace;
+  color: var(--etu-text-muted, var(--etu-text));
+  background: var(--etu-surface-raised, color-mix(in srgb, var(--etu-surface) 80%, var(--etu-border)));
+  padding: 1px 5px;
+  border-radius: 3px;
 }

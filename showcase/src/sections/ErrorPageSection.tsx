@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ErrorPage, useT } from "@etamong-playground/ui";
+import { FeatureTag } from "../FeatureTag";
 
 export function ErrorPageSection() {
   const t = useT();
@@ -51,7 +52,10 @@ export function ErrorPageSection() {
       </div>
 
       <div className="sc-card sc-error-frame">
-        <div className="sc-card-header">Preview</div>
+        <div className="sc-card-header">
+          <span>Preview</span>
+          <FeatureTag id="error-page" />
+        </div>
         <ErrorPage
           title="문제가 발생했어요"
           description="잠시 후 다시 시도해 주세요. 같은 문제가 계속되면 아래 코드를 알려주세요."
