@@ -39,7 +39,9 @@
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "showcase:dev": "pnpm --filter @etamong-playground/ui-showcase dev",
+    "showcase:build": "pnpm --filter @etamong-playground/ui-showcase build"
   },
   "dependencies": {
     "cmdk": "^1.1.1"

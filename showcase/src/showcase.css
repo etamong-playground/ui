@@ -1,0 +1,491 @@
+/* Showcase-specific styles — built on --etu-* tokens */
+
+/* ── Shell layout ─────────────────────────────────────── */
+
+/* The lib stylesheet only paints its own components; the page is the app's job. */
+body {
+  margin: 0;
+  background: var(--etu-bg);
+  color: var(--etu-text);
+  font-family: var(--etu-font);
+}
+
+.sc-shell {
+  display: flex;
+  align-items: stretch;
+  min-height: 100dvh;
+}
+
+.sc-main-area {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sc-content {
+  flex: 1;
+  padding: 24px;
+  padding-bottom: 88px; /* clear mobile tab bar */
+  max-width: 900px;
+}
+
+/* ── Section ──────────────────────────────────────────── */
+
+.sc-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Prose ────────────────────────────────────────────── */
+
+.sc-prose h2 {
+  margin: 0 0 8px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--etu-text);
+}
+
+.sc-prose p,
+.sc-prose ul,
+.sc-prose li {
+  color: var(--etu-text);
+  line-height: 1.6;
+  margin: 0 0 8px;
+}
+
+.sc-prose ul {
+  padding-left: 20px;
+}
+
+.sc-prose kbd {
+  display: inline-block;
+  padding: 1px 6px;
+  border: 1px solid var(--etu-border);
+  border-radius: 4px;
+  font-size: 0.8em;
+  background: var(--etu-surface-raised, var(--etu-surface));
+  color: var(--etu-text);
+}
+
+/* ── Card ─────────────────────────────────────────────── */
+
+.sc-card {
+  border: 1px solid var(--etu-border);
+  border-radius: 8px;
+  background: var(--etu-surface);
+  overflow: hidden;
+}
+
+.sc-card-header {
+  padding: 10px 16px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--etu-text-muted, var(--etu-text));
+  border-bottom: 1px solid var(--etu-border);
+  background: var(--etu-surface-raised, var(--etu-surface));
+}
+
+.sc-card-body {
+  padding: 4px 16px;
+  color: var(--etu-text);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.sc-card ul {
+  padding: 0 16px 8px 32px;
+  margin: 0;
+}
+
+.sc-card li {
+  color: var(--etu-text);
+  line-height: 1.6;
+}
+
+/* ── Code block ───────────────────────────────────────── */
+
+.sc-code {
+  margin: 0;
+  padding: 12px 16px;
+  font-size: 0.8rem;
+  font-family: ui-monospace, "Cascadia Code", "Fira Code", monospace;
+  line-height: 1.5;
+  color: var(--etu-text);
+  background: var(--etu-surface-raised, color-mix(in srgb, var(--etu-surface) 80%, var(--etu-border)));
+  border-top: 1px solid var(--etu-border);
+  overflow-x: auto;
+  white-space: pre;
+}
+
+/* ── Demo row ─────────────────────────────────────────── */
+
+.sc-demo-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+}
+
+.sc-demo-row--wrap {
+  flex-wrap: wrap;
+}
+
+/* ── Buttons ──────────────────────────────────────────── */
+
+.sc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--etu-border);
+  background: var(--etu-surface);
+  color: var(--etu-text);
+  transition: background 0.12s;
+}
+
+.sc-btn:hover {
+  background: var(--etu-accent-soft, color-mix(in srgb, var(--etu-accent, #5b6af8) 12%, transparent));
+}
+
+.sc-btn--ok {
+  border-color: var(--etu-ok, #22c55e);
+  color: var(--etu-ok, #22c55e);
+}
+
+.sc-btn--err {
+  border-color: var(--etu-destructive, #ef4444);
+  color: var(--etu-destructive, #ef4444);
+}
+
+.sc-btn--info {
+  border-color: var(--etu-accent, #5b6af8);
+  color: var(--etu-accent, #5b6af8);
+}
+
+.sc-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid var(--etu-border);
+  background: transparent;
+  color: var(--etu-text);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.sc-icon-btn:hover {
+  background: var(--etu-accent-soft, color-mix(in srgb, var(--etu-accent, #5b6af8) 12%, transparent));
+}
+
+.sc-locale-btn {
+  font-size: 0.7rem;
+  font-weight: 700;
+  width: auto;
+  padding: 0 8px;
+}
+
+/* ── Sidebar footer ───────────────────────────────────── */
+
+.sc-sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+/* ── Nav bar trailing ─────────────────────────────────── */
+
+.sc-nav-trailing {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── Shortcut hint ────────────────────────────────────── */
+
+.sc-shortcut-hint {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--etu-surface);
+  border: 1px solid var(--etu-border);
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 0.85rem;
+  color: var(--etu-text-muted, var(--etu-text));
+  z-index: 100;
+  pointer-events: none;
+}
+
+/* ── Token grid ───────────────────────────────────────── */
+
+.sc-token-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  padding: 16px;
+}
+
+.sc-token-swatch {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sc-token-color,
+.sc-token-radius {
+  width: 100%;
+  height: 40px;
+  border-radius: 6px;
+  border: 1px solid var(--etu-border);
+}
+
+.sc-token-radius {
+  background: var(--etu-surface-2);
+}
+
+.sc-token-name {
+  font-size: 0.7rem;
+  color: var(--etu-text-muted, var(--etu-text));
+  word-break: break-all;
+}
+
+.sc-token-value {
+  font-size: 0.75rem;
+  color: var(--etu-text-subtle, var(--etu-text));
+  font-family: var(--etu-mono);
+}
+
+.sc-token-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+}
+
+.sc-token-swatch--text {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.sc-token-swatch--text .sc-token-name {
+  white-space: nowrap;
+}
+
+/* ── Nav grid (overview) ──────────────────────────────── */
+
+.sc-nav-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px;
+}
+
+.sc-nav-chip {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--etu-border);
+  background: var(--etu-surface-raised, var(--etu-surface));
+  color: var(--etu-text);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.sc-nav-chip:hover {
+  background: var(--etu-accent-soft, color-mix(in srgb, var(--etu-accent, #5b6af8) 12%, transparent));
+}
+
+/* ── Links ────────────────────────────────────────────── */
+
+.sc-links {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.sc-link-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--etu-border);
+  color: var(--etu-accent, #5b6af8);
+  font-size: 0.875rem;
+  text-decoration: none;
+  background: transparent;
+  transition: background 0.12s;
+}
+
+.sc-link-chip:hover {
+  background: var(--etu-accent-soft, color-mix(in srgb, var(--etu-accent, #5b6af8) 12%, transparent));
+}
+
+/* ── Shortcut table ───────────────────────────────────── */
+
+.sc-shortcut-table {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px 16px;
+  padding: 12px 16px;
+}
+
+.sc-shortcut-row {
+  display: contents;
+}
+
+.sc-kbd {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px solid var(--etu-border);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  background: var(--etu-surface-raised, var(--etu-surface));
+  color: var(--etu-text);
+  white-space: nowrap;
+  font-family: ui-monospace, monospace;
+}
+
+.sc-pending-hint {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 4px;
+  background: var(--etu-accent-soft, color-mix(in srgb, var(--etu-accent, #5b6af8) 20%, transparent));
+  color: var(--etu-accent, #5b6af8);
+  font-size: 0.85rem;
+  animation: sc-pulse 0.8s ease-in-out infinite;
+}
+
+@keyframes sc-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ── Time examples ────────────────────────────────────── */
+
+.sc-time-examples {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sc-time-row {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+
+.sc-time-cell {
+  min-width: 120px;
+  font-size: 0.875rem;
+  color: var(--etu-text);
+}
+
+/* ── Tabs ─────────────────────────────────────────────── */
+
+.sc-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 12px 16px 0;
+  border-bottom: 1px solid var(--etu-border);
+}
+
+.sc-tab {
+  padding: 6px 16px;
+  border-radius: 6px 6px 0 0;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--etu-text-muted, var(--etu-text));
+  font-size: 0.875rem;
+  cursor: pointer;
+  position: relative;
+  top: 1px;
+  border-bottom-color: transparent;
+  transition: color 0.12s;
+}
+
+.sc-tab:hover {
+  color: var(--etu-text);
+}
+
+.sc-tab--active {
+  border-color: var(--etu-border);
+  border-bottom-color: var(--etu-surface);
+  background: var(--etu-surface);
+  color: var(--etu-text);
+  font-weight: 500;
+}
+
+.sc-tab-content {
+  padding: 12px 16px;
+}
+
+/* ── Counter ──────────────────────────────────────────── */
+
+.sc-count {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--etu-text);
+  min-width: 40px;
+  text-align: center;
+}
+
+/* ── Result ───────────────────────────────────────────── */
+
+.sc-result {
+  padding: 4px 16px 8px;
+  font-size: 0.875rem;
+  color: var(--etu-text-muted, var(--etu-text));
+  margin: 0;
+}
+
+/* ── Label ────────────────────────────────────────────── */
+
+.sc-label {
+  font-size: 0.78rem;
+  color: var(--etu-text-muted, var(--etu-text));
+  margin: 0 0 4px;
+}
+
+.sc-muted {
+  color: var(--etu-text-muted, var(--etu-text));
+  opacity: 0.7;
+  font-size: 0.875rem;
+}
+
+/* ── Checkbox ─────────────────────────────────────────── */
+
+.sc-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  color: var(--etu-text);
+  cursor: pointer;
+}
+
+/* ── Error frame ──────────────────────────────────────── */
+
+.sc-error-frame {
+  overflow: hidden;
+}
+
+.sc-error-frame .etu-error-page {
+  min-height: 280px;
+}

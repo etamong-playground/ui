@@ -111,6 +111,19 @@ Import once at the app root:
 import "@etamong-playground/ui/styles.css";
 ```
 
+The stylesheet only paints the library's own components — **the page itself is the
+app's job**. Wire the shell once in your app CSS, or dark mode renders light text
+on the browser's default white body:
+
+```css
+body {
+  margin: 0;
+  background: var(--etu-bg);
+  color: var(--etu-text);
+  font-family: var(--etu-font);
+}
+```
+
 The command palette is styled from **namespaced `--etu-*` tokens** (light
 defaults on `:root`, dark under either `[data-theme="dark"]` or the `.dark`
 class) — deliberately prefixed so this file is safe to import into any app,
@@ -253,6 +266,36 @@ pnpm typecheck
 ```
 
 CI runs `pnpm typecheck` + `pnpm build` on every pull request.
+
+## Showcase
+
+A live component showcase is rebuilt and redeployed automatically on every push to `main`:
+
+**https://ui-showcase.custom-site.m.etamong.com/**
+
+The showcase dogfoods the library — the shell itself uses `Sidebar`, `MobileTabBar`,
+`NavigationBar`, `CommandPalette`, theme, and i18n from this package — so it doubles as a
+real integration test alongside the unit tests.
+
+**Run locally:**
+
+```sh
+pnpm install
+pnpm showcase:dev   # Vite dev server with HMR, aliased to library source
+```
+
+**Build the showcase:**
+
+```sh
+pnpm showcase:build   # tsc + vite build → showcase/dist/
+```
+
+The Vite config aliases `@etamong-playground/ui` to `../src/index.ts` so the showcase
+always reflects the working tree — no separate library build needed.
+
+**Auto-deploy:** `.github/workflows/showcase.yml` builds the showcase and publishes it as a
+static site on every push to `main`. The deploy step is guarded by the `PAGES_TOKEN` secret
+so the workflow stays green on forks or before the secret is configured.
 
 ## Notifications
 
