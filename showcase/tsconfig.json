@@ -11,7 +11,12 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "noEmit": true
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@etamong-playground/ui": ["../src/index.ts"],
+      "@etamong-playground/ui/helpers": ["../src/helpers.ts"]
+    }
   },
   "include": ["src"]
 }
