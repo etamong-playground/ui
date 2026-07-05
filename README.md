@@ -1256,14 +1256,16 @@ const secondarySections: SidebarSecondarySection[] = [
 When both `secondary` and `secondarySections` are passed,
 `secondarySections` wins (and a dev-only `console.warn` fires).
 
-### Rail inline collapse (v0.36.0)
+### Rail inline collapse (v0.37.0)
 
 `tabletMode="rail"` is an inline-collapsible sidebar: collapsed it is a 64px icon-only
 column, expanded it is the normal in-flow 240px sidebar pushing content — no overlay, no
 scrim (the v0.35.0 overlay expansion is replaced). A chevrons button under the app-icon
-header flips the state at **both** the tablet and desktop tiers. The default follows the
-tier — tablet starts collapsed, desktop starts expanded — and re-derives when the viewport
-crosses 1024px. Clicking nav items does not collapse the sidebar.
+header flips the state at **both** the tablet and desktop tiers, and so does the
+**⌘/Ctrl+B** keyboard shortcut (v0.38.0; VS Code / shadcn convention — IME-safe, ignored
+inside text inputs where ⌘B means bold). The default follows the tier — tablet starts
+collapsed, desktop starts expanded — and re-derives when the viewport crosses 1024px.
+Clicking nav items does not collapse the sidebar.
 
 ```tsx
 <Sidebar

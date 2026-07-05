@@ -50,6 +50,7 @@
  */
 
 import { useCallback, useEffect, useState, type ReactNode, type MouseEvent } from "react";
+import { isInputTarget, shortcutKey } from "./keywords";
 import { useViewport } from "./viewport";
 
 export interface SidebarItem {
@@ -266,6 +267,20 @@ export function Sidebar({
     return () => window.removeEventListener("keydown", onKey);
   }, [tabletMode, open, onOpenChange]);
 
+  // ⌘/Ctrl+B toggles the rail (VS Code / shadcn convention). IME-safe via
+  // shortcutKey; skipped in text-entry targets where ⌘B commonly means bold.
+  useEffect(() => {
+    if (tabletMode !== "rail" || viewport === "mobile") return;
+    function onKey(e: KeyboardEvent) {
+      if (!(e.metaKey || e.ctrlKey) || e.altKey || e.shiftKey || e.repeat) return;
+      if (shortcutKey(e) !== "b" || isInputTarget(e)) return;
+      e.preventDefault();
+      setExpanded(collapsed);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [tabletMode, viewport, collapsed]);
+
   const hasSections = secondarySections && secondarySections.length > 0;
   const hasFlatSecondary = secondary && secondary.length > 0;
 
@@ -324,6 +339,11 @@ export function Sidebar({
           className="etu-sidebar-rail-toggle"
           aria-label={collapsed ? railExpandLabel : railCollapseLabel}
           aria-expanded={!collapsed}
+          title={`${collapsed ? railExpandLabel : railCollapseLabel} (${
+            typeof navigator !== "undefined" && /Mac|iP/.test(navigator.platform)
+              ? "⌘B"
+              : "Ctrl+B"
+          })`}
           onClick={() => setExpanded(collapsed)}
         >
           <svg
