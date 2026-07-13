@@ -31,3 +31,9 @@ export {
   DESKTOP_MIN,
   type ViewportTier,
 } from "./viewportCore";
+export {
+  inAppBreakout,
+  isInAppBrowser,
+  INAPP_BROWSER_UA_SUBSTRINGS,
+  type InAppBreakoutResult,
+} from "./inAppBreakout";

@@ -15,6 +15,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useMe, type BaseMe, type UseMeOptions, type UseMeResult } from "./useMe";
+import { inAppBreakout } from "./inAppBreakout";
 
 const FLEET_LOGIN = "/auth/login";
 const FLEET_LOGOUT = "/auth/logout";
@@ -64,7 +65,15 @@ export function fleetLogoutUrl(rd?: string): string {
 }
 
 export function fleetSignIn(rd?: string): void {
-  if (typeof window !== "undefined") window.location.href = fleetLoginUrl(rd);
+  if (typeof window === "undefined") return;
+  const loginUrl = fleetLoginUrl(rd);
+  // Inside an embedded WebView the downstream Google OAuth is blocked (403
+  // disallowed_useragent). Try to reopen the login URL in the system browser
+  // first; if a scheme redirect fired, skip the normal navigation. In-app
+  // browsers with no scheme fall through — the service-edge `/auth/login`
+  // interstitial shows the open-in-browser guide. See ./inAppBreakout.
+  if (inAppBreakout(loginUrl) === "redirected") return;
+  window.location.href = loginUrl;
 }
 
 export function fleetSignOut(rd?: string): void {
