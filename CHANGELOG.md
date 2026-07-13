@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.39.0
+
+`inAppBreakout()` + `isInAppBrowser()` — get users out of embedded WebViews
+(KakaoTalk / Instagram / Facebook / LINE / Naver) before the shared Google
+login, which Google blocks with `403 disallowed_useragent`. `fleetSignIn()`
+(and therefore `<AuthGate>`, `<LoginButton>`, `useIdentity().signIn`) now tries
+to reopen the `/auth/login` URL in the system browser first — KakaoTalk/LINE
+via their external-browser scheme, Android via a Chrome `intent://` — before
+the normal navigation. In-app browsers with no scheme fall through so the
+service-edge `/auth/login` interstitial can show its open-in-browser guide.
+Whitelist of known-bad in-app UAs, never a catch-all `wv` (Chrome Custom Tabs /
+SFSafariViewController are valid OAuth surfaces). Also exported from
+`@etamong-playground/ui/helpers` for non-React callers. See planning concept
+`in-app-browser-breakout` (planning#925).
+
 ## 0.33.0
 
 `<LegalMenuItem appSlug>` + `<LegalPage appSlug>` + `useLegalAvailability(appSlug)` —

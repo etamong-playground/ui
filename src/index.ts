@@ -245,3 +245,9 @@ export {
   type SessionExpiredDialogProps,
   type UseIdentityResult,
 } from "./auth";
+export {
+  inAppBreakout,
+  isInAppBrowser,
+  INAPP_BROWSER_UA_SUBSTRINGS,
+  type InAppBreakoutResult,
+} from "./inAppBreakout";
