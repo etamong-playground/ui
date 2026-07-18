@@ -270,7 +270,7 @@ body.etu-no-safe-padding { padding: 0; }
 .etu-toaster {
   position: fixed;
   left: 50%;
-  bottom: 1.5rem;
+  bottom: calc(1.5rem + env(safe-area-inset-bottom));
   transform: translateX(-50%);
   z-index: 60;
   display: flex;
@@ -280,6 +280,13 @@ body.etu-no-safe-padding { padding: 0; }
   pointer-events: none;
   padding: 0 1rem;
   max-width: 100%;
+}
+
+/* When the same app also renders <MobileTabBar>, lift toasts above it so they
+ * don't paint over (and intercept taps meant for) the tab bar — mirrors the
+ * .etu-install-banner rule. Apps can override --etu-mobile-tab-bar-h. */
+body:has(.etu-mobile-tab-bar) .etu-toaster {
+  bottom: calc(1.5rem + var(--etu-mobile-tab-bar-h, 56px) + env(safe-area-inset-bottom));
 }
 
 .etu-toast {
@@ -2008,7 +2015,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   font-size: 14px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 719px) {
   .etu-docs-hub-body {
     grid-template-columns: 1fr;
   }

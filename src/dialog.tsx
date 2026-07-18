@@ -73,6 +73,27 @@ export function DialogHost() {
     }
   }, [req]);
 
+  // A confirm dialog never moves focus into the overlay, so a div-scoped
+  // onKeyDown never sees the keypress — Escape/Enter must be caught at the
+  // document level (same pattern as NotificationBell / Sidebar / UserMenu).
+  useEffect(() => {
+    if (!req) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        if (req.kind === "prompt") req.resolve(null);
+        else req.resolve(false);
+        setReq(null);
+      } else if (e.key === "Enter" && req.kind === "confirm") {
+        e.preventDefault();
+        req.resolve(true);
+        setReq(null);
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [req]);
+
   if (!req) return null;
 
   const cancel = () => {
@@ -86,23 +107,12 @@ export function DialogHost() {
     setReq(null);
   };
 
-  const onKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Escape") {
-      e.preventDefault();
-      cancel();
-    } else if (e.key === "Enter" && req.kind === "confirm") {
-      e.preventDefault();
-      confirm();
-    }
-  };
-
   return (
     <div
       className="etu-dialog-overlay"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) cancel();
       }}
-      onKeyDown={onKeyDown}
     >
       <div className="etu-dialog" role="dialog" aria-modal="true">
         {req.title ? <div className="etu-dialog-title">{req.title}</div> : null}
