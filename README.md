@@ -112,17 +112,28 @@ import "@etamong-playground/ui/styles.css";
 ```
 
 The stylesheet only paints the library's own components — **the page itself is the
-app's job**. Wire the shell once in your app CSS, or dark mode renders light text
-on the browser's default white body:
+app's job**. Forgetting to wire the shell renders dark-mode text invisible on the
+browser's default white body (ui#21). Opt in with `body.etu-page` instead of
+hand-rolling the same rule:
+
+```tsx
+<body className="etu-page">
+```
+
+That's the whole thing — it's equivalent to:
 
 ```css
-body {
+body.etu-page {
   margin: 0;
   background: var(--etu-bg);
   color: var(--etu-text);
   font-family: var(--etu-font);
 }
 ```
+
+It's a scoped `body.etu-page` class, never a bare `body {}` rule — the library stays
+safe to import into any app, including shadcn/Tailwind apps that already own their
+own `body` styling. Skip the class if your app paints its own page background.
 
 The command palette is styled from **namespaced `--etu-*` tokens** (light
 defaults on `:root`, dark under either `[data-theme="dark"]` or the `.dark`

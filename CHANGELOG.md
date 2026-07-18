@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.41.0
+
+`body.etu-page` — opt-in page-shell paint (`margin: 0; background: var(--etu-bg);
+color: var(--etu-text); font-family: var(--etu-font);`). `styles.css` deliberately
+paints only the library's own namespaced `--etu-*` components so it stays safe to
+import into any app, including shadcn/Tailwind apps that own their own `body` rule
+— that also means every app had to hand-wire the page shell itself, and forgetting
+it renders dark-mode text invisible on the browser's default white body (ui#21, a
+real incident). `body.etu-page` gives apps that same ~5 lines as a scoped opt-in
+class instead of a bare `body {}` rule, so the safe-to-import-anywhere contract is
+unchanged for consumers that don't opt in. See planning#835.
+
 ## 0.39.0
 
 `inAppBreakout()` + `isInAppBrowser()` — get users out of embedded WebViews
