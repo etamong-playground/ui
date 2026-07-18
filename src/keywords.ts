@@ -1,3 +1,5 @@
+import { canBeChoseong, getChoseong } from "es-hangul";
+
 /**
  * Concatenate one label across every locale dictionary so cmdk search matches
  * regardless of the active language — a Korean user typing an English term (or
@@ -17,6 +19,50 @@ export function crossLocaleKeywords<D>(
     .map(getter)
     .filter(Boolean)
     .join(" ");
+}
+
+/**
+ * Whether every non-space character of `query` is a Hangul choseong (initial)
+ * consonant — i.e. the user typed an initials-only query like "ㅍㄹㅈㅌ" rather
+ * than full syllables ("프로") or Latin ("pro"). Distinguishing the two is what
+ * keeps choseong matching from firing on committed words.
+ */
+function isChoseongQuery(query: string): boolean {
+  let sawJamo = false;
+  for (const ch of query) {
+    if (/\s/.test(ch)) continue;
+    if (!canBeChoseong(ch)) return false;
+    sawJamo = true;
+  }
+  return sawJamo;
+}
+
+/**
+ * Choseong-aware substring match for the ko-first command palette (and any
+ * other list filter). Two modes, chosen by the shape of `query`:
+ *
+ *   - Initials-only query ("ㅍㄹㅈㅌ") → matched against each content word's
+ *     choseong, so it finds "프로젝트". es-hangul v2 removed the built-in
+ *     choseongIncludes matcher, so this composes it on the getChoseong()
+ *     primitive.
+ *   - Anything else (full syllables, Latin, digits) → plain substring, so a
+ *     committed word like "알림" matches by text and never fuzzily collides with
+ *     an unrelated word that merely shares initials ("오류").
+ *
+ * Case-insensitive. Whitespace inside the extracted choseong is dropped because
+ * getChoseong keeps spaces ("커맨드 팔레트" → "ㅋㅁㄷ ㅍㄹㅌ") while a typed query
+ * usually has none. An empty query matches nothing.
+ */
+export function koreanMatch(query: string, content: string): boolean {
+  const q = query.trim().toLowerCase();
+  if (q === "") return false;
+  const c = content.toLowerCase();
+  if (isChoseongQuery(q)) {
+    const needle = q.replace(/\s+/g, "");
+    const haystack = getChoseong(c).replace(/\s+/g, "");
+    return haystack.includes(needle);
+  }
+  return c.includes(q);
 }
 
 /** True when the keyboard event originates from a text-entry control. */

@@ -1,6 +1,6 @@
 {
   "name": "@etamong-playground/ui",
-  "version": "0.39.0",
+  "version": "0.40.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/etamong-playground/ui.git"
@@ -45,7 +45,8 @@
     "e2e": "playwright test"
   },
   "dependencies": {
-    "cmdk": "^1.1.1"
+    "cmdk": "^1.1.1",
+    "es-hangul": "2.4.0"
   },
   "peerDependencies": {
     "@playwright/test": ">=1.40",

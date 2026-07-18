@@ -124,6 +124,24 @@ const keywords = crossLocaleKeywords(
 );
 // → "알림 notifications" (both locales, one string)`}</pre>
       </div>
+
+      <div className="sc-card">
+        <div className="sc-card-header">
+          <span>koreanMatch (초성 search)</span>
+          <FeatureTag id="korean-search" />
+        </div>
+        <p className="sc-card-body">
+          The palette also matches Korean initials (choseong): open it and type{" "}
+          <kbd>ㅂㅈ</kbd> to find &ldquo;버전&rdquo;, or <kbd>ㅋㅁㄷ</kbd> for
+          &ldquo;커맨드 팔레트&rdquo;. Full words and English keep matching by
+          text, so a committed word never fuzzily collides with an unrelated one
+          that merely shares initials.
+        </p>
+        <pre className="sc-code">{`import { koreanMatch } from "@etamong-playground/ui";
+
+koreanMatch("ㅍㄹㅈㅌ", "프로젝트 Project"); // → true
+koreanMatch("proj",     "프로젝트 Project"); // → true (Latin unchanged)`}</pre>
+      </div>
     </div>
   );
 }

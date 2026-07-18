@@ -24,6 +24,12 @@ export const registry: Record<string, FeatureEntry> = {
     since: "0.5.0",
     src: "src/keywords.ts",
   },
+  "korean-search": {
+    label: "Korean Choseong Palette Search",
+    exports: ["koreanMatch"],
+    since: "0.40.0",
+    src: "src/keywords.ts",
+  },
   "theme": {
     label: "Theme System",
     exports: ["getTheme", "setTheme"],
@@ -165,6 +171,7 @@ export const featureRoute: Record<string, string> = {
   "command-palette": "#/palette",
   "go-to-shortcuts": "#/palette",
   "cross-locale-keywords": "#/palette",
+  "korean-search": "#/palette",
   "theme": "#/chrome",
   "toast": "#/notifications",
   "dialog": "#/notifications",

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Command } from "cmdk";
+import { Command, defaultFilter } from "cmdk";
 import type {
   CommandItem,
   CommandPaletteLabels,
@@ -9,8 +9,28 @@ import type {
 import {
   COMMAND_PALETTE_OPEN_EVENT,
   isInputTarget,
+  koreanMatch,
   shortcutKey,
 } from "./keywords";
+
+/**
+ * Layer ko choseong matching on top of cmdk's own scorer. Keep cmdk's score —
+ * and therefore its ranking — for every value it already matches, and add only
+ * what it structurally cannot: Korean initial-consonant hits like "ㅍㄹㅈㅌ" →
+ * "프로젝트" (which cmdk misses because the jamo aren't literal substrings). The
+ * result set is a superset of cmdk's default; Latin and full-word ranking are
+ * left exactly as cmdk produced them.
+ */
+// Exported for unit testing only — not re-exported from the package barrel
+// (index.ts), so it stays out of the published API surface.
+export function paletteFilter(
+  value: string,
+  search: string,
+  keywords?: string[],
+): number {
+  const base = defaultFilter(value, search, keywords);
+  return base > 0 ? base : koreanMatch(search, value) ? 1 : 0;
+}
 
 export interface CommandPaletteProps {
   /** Ordered groups rendered top-to-bottom. */
@@ -43,7 +63,8 @@ const DEFAULT_LABELS: CommandPaletteLabels = {
  *
  * Opens on ⌘K / Ctrl+K, on "/" (unless typing), and on the
  * `command-palette:open` DOM event. Search filters on each item's `keywords`
- * (build them with `crossLocaleKeywords` for cross-language matching).
+ * (build them with `crossLocaleKeywords` for cross-language matching); Korean
+ * choseong queries match too, so typing "ㅍㄹㅈㅌ" finds "프로젝트".
  */
 export function CommandPalette({
   sections,
@@ -135,6 +156,7 @@ export function CommandPalette({
       overlayClassName="etu-cmdk-overlay"
       contentClassName="etu-cmdk-content"
       shouldFilter
+      filter={paletteFilter}
     >
       <Command.Input
         value={search}

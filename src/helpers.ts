@@ -2,12 +2,18 @@
 // runtime or an app's index.html-adjacent script.
 export {
   crossLocaleKeywords,
+  koreanMatch,
   isInputTarget,
   shortcutKey,
   CODE_TO_KEY,
   COMMAND_PALETTE_OPEN_EVENT,
   openCommandPalette,
 } from "./keywords";
+// Korean text helpers re-exported from es-hangul (MIT, zero-dep). `josa` picks
+// the batchim-correct particle so dynamic sentences ("{name}을/를") stop
+// hand-branching; the number-word helpers are available for stiff digit-only
+// copy. amountToHangul is deprecated upstream — intentionally not re-exported.
+export { josa, susa, seosusa, days, numberToHangul } from "es-hangul";
 export {
   noFlashThemeScript,
   getTheme,
