@@ -203,7 +203,14 @@ export async function assertViewportFit(
 export interface DefineViewportFitTestsOptions {
   urls: string[];
   profiles?: DeviceProfile[];
-  beforeEach?: (args: PlaywrightTestArgs) => Promise<void> | void;
+  /**
+   * Optional per-test hook, run before the viewport-fit assertion. Receives
+   * only `{ page }` — the helper's test callback destructures just the `page`
+   * fixture (Playwright ≥ 1.38 statically requires object-destructuring of the
+   * first arg to know which fixtures to inject). Seed identity/mocks via
+   * `page.addInitScript` here.
+   */
+  beforeEach?: (args: { page: Page }) => Promise<void> | void;
   /** Optional title prefix. Default: "viewport-fit". */
   titlePrefix?: string;
 }
@@ -221,9 +228,12 @@ export function defineViewportFitTests(
       : FLEET_VIEWPORT_PROFILES;
   const prefix = options.titlePrefix ?? "viewport-fit";
   for (const profile of profiles) {
-    test(`${prefix} — ${profile.name}`, async (args: PlaywrightTestArgs) => {
-      if (options.beforeEach) await options.beforeEach(args);
-      await assertViewportFit(args.page, options.urls, {
+    // Destructure `{ page }` (not `args`): Playwright ≥ 1.38 rejects a
+    // non-destructured first parameter ("First argument must use the object
+    // destructuring pattern"). The helper only needs `page`.
+    test(`${prefix} — ${profile.name}`, async ({ page }: PlaywrightTestArgs) => {
+      if (options.beforeEach) await options.beforeEach({ page });
+      await assertViewportFit(page, options.urls, {
         profiles: [profile],
       });
     });
