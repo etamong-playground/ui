@@ -50,6 +50,20 @@ input, select, textarea { font-size: max(16px, 1rem); }
 .etu-app-shell.etu-no-safe-padding,
 body.etu-no-safe-padding { padding: 0; }
 
+/* Opt-in page paint (v0.41.0). The stylesheet otherwise only styles the
+ * library's own `--etu-*` components — deliberately, so it stays safe to
+ * import into any app including shadcn/Tailwind apps that own their own
+ * `body` rule. A bare `body {}` rule here would paint every consumer's page,
+ * which breaks that contract. Apps that DO want the etamong page background
+ * opt in with `<body class="etu-page">`; forgetting this wiring is what left
+ * dark-mode text invisible on the browser's default white body (ui#21). */
+body.etu-page {
+  margin: 0;
+  background: var(--etu-bg);
+  color: var(--etu-text);
+  font-family: var(--etu-font);
+}
+
 :root {
   --etu-bg: #ffffff;
   --etu-surface: #ffffff;
