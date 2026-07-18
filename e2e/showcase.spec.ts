@@ -37,6 +37,18 @@ test("palette navigation", async ({ page }) => {
   await expect(page).toHaveURL(/#\/notifications/);
 });
 
+// c2. Palette choseong search — type Korean initials, match by choseong, navigate.
+// "ㅂㅈ" is the choseong of "버전" (Versions) and no other palette item.
+test("palette choseong search", async ({ page }) => {
+  await page.goto("/#/overview");
+  await page.keyboard.press("ControlOrMeta+k");
+  await expect(page.locator(".etu-cmdk-input")).toBeVisible();
+  await page.locator(".etu-cmdk-input").fill("ㅂㅈ");
+  await expect(page.locator(".etu-cmdk-item-label").first()).toHaveText("버전");
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/#\/versions/);
+});
+
 // d. Dialog defaults + overflow — cancel button is "취소" (Korean default), input in bounds
 test("dialog defaults and overflow", async ({ page }) => {
   await page.goto("/#/notifications");
