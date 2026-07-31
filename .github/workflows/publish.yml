@@ -59,6 +59,16 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # Tag must match package.json so the published artifact stays traceable
+      # to its source tag (planning#1095).
+      - name: Verify tag matches package.json version
+        run: |
+          REF="${{ github.event.inputs.tag || github.ref_name }}"
+          PKG="v$(node -p "require('./package.json').version")"
+          if [[ "$REF" != "$PKG" ]]; then
+            echo "::error::tag $REF != package.json $PKG"; exit 1
+          fi
+
       - run: pnpm build
 
       # ── Determine dist-tag (latest vs pre-release slug) ─────────────────
