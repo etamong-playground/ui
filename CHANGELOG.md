@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.42.1
+
+Fix (planning#976) — `@playwright/test` and `msw` are no longer `peerDependencies`
+(optional or otherwise). Declaring them, even as optional peers, made some consumers'
+production dependency-report tooling count them (and their transitive trees) as part
+of the shipped app, ballooning third-party-notices output. They stay as this repo's
+own `devDependencies`; the `./testing` export (which imports them at runtime) is
+unaffected — apps that use it already install `msw`/`@playwright/test` themselves for
+their own tests.
+
 ## 0.42.0
 
 Design-token overhaul (planning#1081) — the neutral ramp, focus ring, page-width
