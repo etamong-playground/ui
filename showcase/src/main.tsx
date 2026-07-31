@@ -1,5 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 import "@etamong-playground/ui/styles.css";
 import "./showcase.css";
 import { I18nProvider, ViewportProvider } from "@etamong-playground/ui";

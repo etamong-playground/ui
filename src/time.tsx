@@ -187,15 +187,16 @@ export function RelTime({
   if (!d) return null;
   const rel = formatRelTime(d, { locale, numeric });
   const abs = formatAbsTime(d, { withZoneSuffix: true, ...absoluteOptions });
+  const cls = "etu-tnum" + (className ? " " + className : "");
   if (as === "span") {
     return (
-      <span title={abs} className={className} data-tick={tick}>
+      <span title={abs} className={cls} data-tick={tick}>
         {rel}
       </span>
     );
   }
   return (
-    <time dateTime={d.toISOString()} title={abs} className={className} data-tick={tick}>
+    <time dateTime={d.toISOString()} title={abs} className={cls} data-tick={tick}>
       {rel}
     </time>
   );

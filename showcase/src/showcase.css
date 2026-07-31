@@ -610,3 +610,139 @@ body {
   padding: 1px 5px;
   border-radius: 3px;
 }
+
+/* ── Tokens section: type scale ───────────────────────── */
+
+.sc-typescale-list {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 16px 16px;
+}
+
+.sc-typescale-row {
+  display: grid;
+  grid-template-columns: 140px 70px 1fr;
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--etu-border);
+}
+
+.sc-typescale-row:first-child {
+  border-top: none;
+}
+
+.sc-typescale-token {
+  font-size: 0.78rem;
+  color: var(--etu-text-muted, var(--etu-text));
+  white-space: nowrap;
+}
+
+.sc-typescale-value {
+  font-size: 0.75rem;
+  font-family: var(--etu-mono, ui-monospace, monospace);
+  white-space: nowrap;
+}
+
+.sc-typescale-sample {
+  color: var(--etu-text);
+  min-width: 0;
+}
+
+/* ── Tokens section: spacing scale ────────────────────── */
+
+.sc-spacing-list {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 16px 16px;
+}
+
+.sc-spacing-row {
+  display: grid;
+  grid-template-columns: 120px 60px 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.sc-spacing-token {
+  font-size: 0.78rem;
+  color: var(--etu-text-muted, var(--etu-text));
+  white-space: nowrap;
+}
+
+.sc-spacing-value {
+  font-size: 0.75rem;
+  font-family: var(--etu-mono, ui-monospace, monospace);
+  white-space: nowrap;
+}
+
+.sc-spacing-bar-track {
+  height: 12px;
+}
+
+.sc-spacing-bar {
+  height: 100%;
+  max-width: 100%;
+  border-radius: var(--etu-r-sm, 4px);
+  background: var(--etu-accent-soft, color-mix(in srgb, var(--etu-accent, #5b6af8) 20%, transparent));
+  border: 1px solid var(--etu-accent, #5b6af8);
+}
+
+/* ── Tokens section: badges + tabular numerals ────────── */
+
+.sc-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: var(--etu-r-full, 999px);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.sc-badge--accent {
+  background: var(--etu-accent-soft);
+  color: var(--etu-accent-text, var(--etu-accent));
+}
+
+.sc-badge--ok {
+  background: var(--etu-ok-soft);
+  color: var(--etu-ok);
+}
+
+.sc-badge--warn {
+  background: var(--etu-warn-soft);
+  color: var(--etu-warn);
+}
+
+.sc-badge--err {
+  background: var(--etu-err-soft);
+  color: var(--etu-err);
+}
+
+.sc-tnum-demo {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--etu-text);
+}
+
+/* ── Tokens section: .etu-page-col widths ─────────────── */
+
+.sc-pagecol-track {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  overflow-x: auto;
+}
+
+.sc-pagecol-demo {
+  padding-block: 10px;
+  border: 1px dashed var(--etu-border-strong, var(--etu-border));
+  border-radius: var(--etu-r-sm, 4px);
+  background: var(--etu-surface-2, var(--etu-surface));
+  color: var(--etu-text-muted, var(--etu-text));
+  font-size: 0.8rem;
+  text-align: center;
+  white-space: nowrap;
+}

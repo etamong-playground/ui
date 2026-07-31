@@ -23,6 +23,7 @@ import { PaletteSection } from "./sections/PaletteSection";
 import { NotificationsSection } from "./sections/NotificationsSection";
 import { ChromeSection } from "./sections/ChromeSection";
 import { DataTimeSection } from "./sections/DataTimeSection";
+import { TokensSection } from "./sections/TokensSection";
 import { StateHooksSection } from "./sections/StateHooksSection";
 import { ErrorPageSection } from "./sections/ErrorPageSection";
 import { AppInfoSection } from "./sections/AppInfoSection";
@@ -35,6 +36,7 @@ const SECTION_IDS = [
   "notifications",
   "chrome",
   "data",
+  "tokens",
   "state",
   "error",
   "appinfo",
@@ -132,6 +134,14 @@ function IconMore() {
     </svg>
   );
 }
+function IconTokens() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" /><circle cx="17.5" cy="10.5" r=".5" fill="currentColor" /><circle cx="8.5" cy="7.5" r=".5" fill="currentColor" /><circle cx="6.5" cy="12.5" r=".5" fill="currentColor" />
+      <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C22 6.012 17.461 2 12 2z" />
+    </svg>
+  );
+}
 function IconVersions() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -193,6 +203,7 @@ export function App() {
       { key: "n", href: "#/notifications" },
       { key: "c", href: "#/chrome" },
       { key: "d", href: "#/data" },
+      { key: "t", href: "#/tokens" },
       { key: "s", href: "#/state" },
       { key: "e", href: "#/error" },
       { key: "a", href: "#/appinfo" },
@@ -251,6 +262,7 @@ export function App() {
     notifications: IconBell,
     chrome: IconLayers,
     data: IconTable,
+    tokens: IconTokens,
     state: IconDatabase,
     error: IconAlert,
     appinfo: IconInfo,
@@ -275,7 +287,7 @@ export function App() {
 
   const secondary: SidebarItem[] = useMemo(
     () =>
-      ["state", "error", "appinfo", "versions"].map((id) => {
+      ["tokens", "state", "error", "appinfo", "versions"].map((id) => {
         const Icon = icons[id as SectionId];
         return {
           id,
@@ -306,8 +318,8 @@ export function App() {
       id: "more",
       label: t("nav.more"),
       icon: <IconMore />,
-      active: (["state", "error", "appinfo", "versions"] as readonly string[]).includes(section),
-      onClick: () => go("state"),
+      active: (["tokens", "state", "error", "appinfo", "versions"] as readonly string[]).includes(section),
+      onClick: () => go("tokens"),
     };
     return [...primaryMobile, moreItem];
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -366,6 +378,7 @@ export function App() {
             {section === "notifications" && <NotificationsSection />}
             {section === "chrome" && <ChromeSection navigate={navigate} />}
             {section === "data" && <DataTimeSection />}
+            {section === "tokens" && <TokensSection />}
             {section === "state" && <StateHooksSection />}
             {section === "error" && <ErrorPageSection />}
             {section === "appinfo" && <AppInfoSection />}

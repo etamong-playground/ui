@@ -62,44 +62,199 @@ body.etu-page {
   background: var(--etu-bg);
   color: var(--etu-text);
   font-family: var(--etu-font);
+  line-height: var(--etu-lh);
+  font-synthesis-weight: none;
+  text-rendering: optimizeLegibility;
 }
 
+/* ----------------------------------------------------------------------------
+ * Design tokens (v0.42 overhaul — planning#1081).
+ *
+ * Structure:
+ *   - Semantic tokens (--etu-bg/-surface/-text/…) are what components consume
+ *     and what apps override to theme.
+ *   - Tint tokens (--etu-accent-soft, --etu-*-soft, --etu-ring) DEFAULT to
+ *     color-mix() over the semantic layer, so overriding one base token
+ *     (e.g. --etu-accent) cascades into every derived tint. Apps may still
+ *     pin them to solids.
+ *
+ * Neutral ramps follow the Radix scale steps (bg=1, surface=2, surface-2=3,
+ * surface-3=4/5 hover-raised, text-subtle=10, text-muted=11, text=12); dark
+ * values are Radix slateDark. Elevation is lightness-only — surfaces carry no
+ * chroma, and dark-mode borders are white-alpha so they self-adjust to
+ * whatever surface sits beneath (in-page cards get borders, not shadows;
+ * --etu-shadow is for true overlays: palette, dialogs, menus).
+ */
 :root {
-  --etu-bg: #ffffff;
+  /* neutrals */
+  --etu-bg: #f7f8fa;
   --etu-surface: #ffffff;
-  --etu-surface-2: #eef0f3;
-  --etu-border: #e3e6ea;
-  --etu-text: #1a1d21;
-  --etu-text-muted: #5c636e;
-  --etu-text-subtle: #8b929c;
-  --etu-accent: #5b8cff;
-  --etu-accent-soft: #eef1f6;
+  --etu-surface-2: #f2f4f6;
+  --etu-surface-3: #e9ecef;
+  --etu-border: #e5e8eb;
+  --etu-border-strong: #d3d8dd;
+  --etu-text: #191f28;
+  --etu-text-muted: #4e5968;
+  --etu-text-subtle: #8b95a1;
+
+  /* accent — apps override --etu-accent (+strong/text/on) and tints follow */
+  --etu-accent: #3182f6;
+  --etu-accent-strong: #2272eb;
+  --etu-accent-text: #1b64da;
   --etu-on-accent: #ffffff;
-  --etu-ok: #2faf6b;
+  --etu-accent-soft: color-mix(in oklab, var(--etu-accent) 10%, var(--etu-bg));
+
+  /* status */
+  --etu-ok: #1f9e5b;
+  --etu-warn: #d97706;
   --etu-err: #e5484d;
-  --etu-r: 12px;
+  --etu-danger: var(--etu-err);
+  --etu-ok-soft: color-mix(in oklab, var(--etu-ok) 12%, var(--etu-bg));
+  --etu-warn-soft: color-mix(in oklab, var(--etu-warn) 12%, var(--etu-bg));
+  --etu-err-soft: color-mix(in oklab, var(--etu-err) 12%, var(--etu-bg));
+
+  /* focus ring (focus-visible outline color) */
+  --etu-ring: color-mix(in oklab, var(--etu-accent) 55%, transparent);
+
+  /* radius */
   --etu-r-sm: 8px;
-  --etu-font: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", "Noto Sans KR", sans-serif;
+  --etu-r: 12px;
+  --etu-r-lg: 16px;
+  --etu-r-full: 999px;
+
+  /* typography — Pretendard Variable is NOT bundled here; Vite apps
+   * `import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css"`,
+   * Next apps use next/font localFont. See README "Typography". */
+  --etu-font: "Pretendard Variable", Pretendard, -apple-system,
+    BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI",
+    "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
   --etu-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-  --etu-shadow: 0 16px 40px rgba(16, 19, 26, 0.14);
+  --etu-fs-caption: 12px;
+  --etu-fs-sm: 13px;
+  --etu-fs-base: 14px;
+  --etu-fs-md: 16px;
+  --etu-fs-lg: 18px;
+  --etu-fs-xl: 20px;
+  --etu-fs-2xl: 24px;
+  --etu-fs-3xl: 28px;
+  --etu-lh-tight: 1.3;
+  --etu-lh: 1.55;
+  --etu-fw-medium: 500;
+  --etu-fw-semibold: 600;
+  --etu-fw-bold: 700;
+
+  /* spacing */
+  --etu-space-1: 4px;
+  --etu-space-2: 8px;
+  --etu-space-3: 12px;
+  --etu-space-4: 16px;
+  --etu-space-5: 24px;
+  --etu-space-6: 32px;
+  --etu-space-7: 48px;
+  --etu-space-8: 64px;
+
+  /* page-width contract (used by .etu-page-col) */
+  --etu-page-w-narrow: 520px;
+  --etu-page-w: 680px;
+  --etu-page-w-wide: 1080px;
+
+  /* motion */
+  --etu-t-fast: 120ms;
+  --etu-t: 160ms;
+  --etu-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* elevation (overlays only; in-page cards use borders) */
+  --etu-shadow-sm: 0 1px 2px rgba(16, 19, 26, 0.05), 0 4px 12px rgba(16, 19, 26, 0.08);
+  --etu-shadow: 0 1px 2px rgba(16, 19, 26, 0.06), 0 16px 40px rgba(16, 19, 26, 0.12);
 }
 
 :root[data-theme="dark"],
 .dark {
-  --etu-bg: #0f1115;
-  --etu-surface: #181b22;
-  --etu-surface-2: #1f232c;
-  --etu-border: #262b35;
-  --etu-text: #e6e8ec;
-  --etu-text-muted: #98a1ad;
-  --etu-text-subtle: #6b7480;
+  --etu-bg: #111113;
+  --etu-surface: #18191b;
+  --etu-surface-2: #212225;
+  --etu-surface-3: #2a2d31;
+  --etu-border: rgba(255, 255, 255, 0.09);
+  --etu-border-strong: rgba(255, 255, 255, 0.17);
+  --etu-text: #edeef0;
+  --etu-text-muted: #b0b4ba;
+  --etu-text-subtle: #7c8087;
+
   --etu-accent: #5b8cff;
-  --etu-accent-soft: #232838;
-  --etu-on-accent: #0b0e13;
+  --etu-accent-strong: #7aa2ff;
+  --etu-accent-text: #8fb3ff;
+  --etu-on-accent: #081120;
+  --etu-accent-soft: color-mix(in oklab, var(--etu-accent) 16%, var(--etu-bg));
+
   --etu-ok: #34d399;
+  --etu-warn: #f5b83d;
   --etu-err: #ff6b6b;
-  --etu-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  --etu-ok-soft: color-mix(in oklab, var(--etu-ok) 14%, var(--etu-bg));
+  --etu-warn-soft: color-mix(in oklab, var(--etu-warn) 14%, var(--etu-bg));
+  --etu-err-soft: color-mix(in oklab, var(--etu-err) 14%, var(--etu-bg));
+
+  --etu-shadow-sm: 0 0 0 1px rgba(255, 255, 255, 0.03), 0 4px 16px rgba(0, 0, 0, 0.4);
+  --etu-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04), 0 16px 48px rgba(0, 0, 0, 0.6);
+}
+
+/* ----------------------------------------------------------------------------
+ * Base typography + layout utilities (v0.42). Opt-in classes, so the
+ * "safe to import anywhere" contract holds.
+ * ------------------------------------------------------------------------- */
+
+/* Korean tracking correction: Hangul webfont spacing runs wide; scope the
+ * negative tracking to KO documents so Latin/numeral-heavy EN UIs stay at 0. */
+body.etu-page:lang(ko) {
+  letter-spacing: -0.011em;
+}
+
+.etu-h1,
+.etu-h2,
+.etu-h3 {
+  margin: 0;
+  line-height: var(--etu-lh-tight);
+  color: var(--etu-text);
+}
+.etu-h1 {
+  font-size: var(--etu-fs-2xl);
+  font-weight: var(--etu-fw-bold);
+  letter-spacing: -0.02em;
+}
+.etu-h2 {
+  font-size: var(--etu-fs-xl);
+  font-weight: var(--etu-fw-semibold);
+  letter-spacing: -0.015em;
+}
+.etu-h3 {
+  font-size: var(--etu-fs-md);
+  font-weight: var(--etu-fw-semibold);
+}
+.etu-caption {
+  font-size: var(--etu-fs-caption);
+  color: var(--etu-text-muted);
+}
+
+/* Data-bearing numerals (times, fares, counters, table cells): fixed-width
+ * digits so live updates don't jitter the layout. */
+.etu-tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Page-width contract: a centered content column with a sane reading width.
+ * Fixes the "content floats in a huge dark void" failure mode on wide
+ * viewports. Default 680px; narrow for focused forms, wide for tables. */
+.etu-page-col {
+  width: 100%;
+  max-width: var(--etu-page-w);
+  margin-inline: auto;
+  padding-inline: var(--etu-space-4);
+  box-sizing: border-box;
+}
+.etu-page-col--narrow {
+  max-width: var(--etu-page-w-narrow);
+}
+.etu-page-col--wide {
+  max-width: var(--etu-page-w-wide);
 }
 
 /* ----------------------------------------------------------------------------
@@ -137,14 +292,23 @@ body.etu-page {
 }
 
 .etu-cmdk-input {
+  display: flex;
+  align-items: center;
   width: 100%;
+  min-height: 48px;
+  box-sizing: border-box;
   border: none;
   border-bottom: 1px solid var(--etu-border);
   background: transparent;
-  padding: 0.85rem 1rem;
-  font-size: 0.9rem;
+  padding: 0 var(--etu-space-4);
+  font-size: var(--etu-fs-base);
   color: var(--etu-text);
   outline: none;
+}
+
+.etu-cmdk-input:focus-visible {
+  outline: 2px solid var(--etu-ring);
+  outline-offset: -2px;
 }
 
 .etu-cmdk-input::placeholder {
@@ -154,20 +318,20 @@ body.etu-page {
 .etu-cmdk-list {
   max-height: 18rem;
   overflow-y: auto;
-  padding: 0.5rem;
+  padding: var(--etu-space-2);
 }
 
 .etu-cmdk-empty {
   padding: 1.5rem 0;
   text-align: center;
-  font-size: 0.85rem;
+  font-size: var(--etu-fs-sm);
   color: var(--etu-text-muted);
 }
 
 .etu-cmdk [cmdk-group-heading] {
-  padding: 0.5rem 0.5rem 0.35rem;
-  font-size: 0.72rem;
-  font-weight: 600;
+  padding: var(--etu-space-2) var(--etu-space-2) 0.35rem;
+  font-size: var(--etu-fs-caption);
+  font-weight: var(--etu-fw-semibold);
   letter-spacing: 0.02em;
   color: var(--etu-text-subtle);
 }
@@ -177,8 +341,9 @@ body.etu-page {
   align-items: center;
   gap: 0.65rem;
   border-radius: var(--etu-r-sm);
-  padding: 0.5rem 0.5rem;
-  font-size: 0.875rem;
+  margin: 0 2px;
+  padding: var(--etu-space-2);
+  font-size: var(--etu-fs-base);
   color: var(--etu-text);
   cursor: pointer;
 }
@@ -212,16 +377,16 @@ body.etu-page {
 .etu-cmdk-item-sub {
   margin-left: auto;
   flex-shrink: 0;
-  font-size: 0.75rem;
+  font-size: var(--etu-fs-caption);
   color: var(--etu-text-subtle);
 }
 
 .etu-cmdk-footer {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--etu-space-3);
   border-top: 1px solid var(--etu-border);
-  padding: 0.45rem 1rem;
+  padding: var(--etu-space-2) var(--etu-space-4);
   color: var(--etu-text-subtle);
 }
 
@@ -241,21 +406,29 @@ body.etu-page {
 .etu-palette-trigger {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--etu-space-2);
   width: 100%;
+  min-height: 36px;
+  box-sizing: border-box;
   border-radius: var(--etu-r-sm);
   border: 1px solid var(--etu-border);
   background: var(--etu-surface-2);
   color: var(--etu-text-subtle);
   font-family: var(--etu-font);
-  font-size: 0.8rem;
-  padding: 0.4rem 0.6rem;
+  font-size: var(--etu-fs-sm);
+  padding: 0.4rem var(--etu-space-3);
   cursor: pointer;
-  transition: background 140ms ease;
+  transition: background var(--etu-t) var(--etu-ease), border-color var(--etu-t) var(--etu-ease);
 }
 
 .etu-palette-trigger:hover {
   background: var(--etu-accent-soft);
+  border-color: var(--etu-border-strong);
+}
+
+.etu-palette-trigger:focus-visible {
+  outline: 2px solid var(--etu-ring);
+  outline-offset: 2px;
 }
 
 .etu-palette-trigger-icon {
@@ -311,12 +484,17 @@ body:has(.etu-mobile-tab-bar) .etu-toaster {
   border: 1px solid var(--etu-border);
   border-left: 3px solid var(--etu-text-subtle);
   background: var(--etu-surface);
-  box-shadow: var(--etu-shadow);
+  box-shadow: var(--etu-shadow-sm);
   color: var(--etu-text);
   font-family: var(--etu-font);
-  font-size: 0.85rem;
-  padding: 0.6rem 0.9rem;
-  animation: etu-toast-in 160ms ease-out;
+  font-size: var(--etu-fs-sm);
+  padding: var(--etu-space-2) var(--etu-space-3);
+  animation: etu-toast-in var(--etu-t) var(--etu-ease);
+}
+
+.etu-toast:focus-visible {
+  outline: 2px solid var(--etu-ring);
+  outline-offset: 2px;
 }
 
 .etu-toast-ok {
@@ -358,61 +536,80 @@ body:has(.etu-mobile-tab-bar) .etu-toaster {
 .etu-dialog {
   width: 100%;
   max-width: 26rem;
-  border-radius: var(--etu-r);
+  border-radius: var(--etu-r-lg);
   border: 1px solid var(--etu-border);
   background: var(--etu-surface);
   box-shadow: var(--etu-shadow);
   color: var(--etu-text);
   font-family: var(--etu-font);
-  padding: 1.25rem;
+  padding: var(--etu-space-5);
+  box-sizing: border-box;
 }
 
 .etu-dialog-title {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
+  font-size: var(--etu-fs-lg);
+  font-weight: var(--etu-fw-semibold);
+  margin-bottom: var(--etu-space-2);
 }
 
 .etu-dialog-body {
-  font-size: 0.875rem;
+  font-size: var(--etu-fs-base);
   color: var(--etu-text-muted);
-  margin-bottom: 0.9rem;
+  margin-bottom: var(--etu-space-4);
   white-space: pre-wrap;
 }
 
 .etu-dialog-input {
   width: 100%;
+  min-height: 40px;
   box-sizing: border-box;
   border-radius: var(--etu-r-sm);
   border: 1px solid var(--etu-border);
-  background: var(--etu-bg);
+  background: var(--etu-surface-2);
   color: var(--etu-text);
-  padding: 0.55rem 0.7rem;
-  font-size: 0.875rem;
+  padding: 0.55rem var(--etu-space-3);
+  font-size: var(--etu-fs-base);
   font-family: var(--etu-font);
-  margin-bottom: 0.9rem;
+  margin-bottom: var(--etu-space-4);
   outline: none;
+  transition: border-color var(--etu-t-fast) var(--etu-ease);
 }
 
 .etu-dialog-input:focus {
   border-color: var(--etu-accent);
 }
 
+.etu-dialog-input:focus-visible {
+  outline: 2px solid var(--etu-ring);
+  outline-offset: 1px;
+}
+
 .etu-dialog-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 0.5rem;
+  gap: var(--etu-space-2);
 }
 
 .etu-dialog-btn {
+  min-height: 36px;
   border-radius: var(--etu-r-sm);
   border: 1px solid var(--etu-border);
   background: var(--etu-surface-2);
   color: var(--etu-text);
   font-family: var(--etu-font);
-  font-size: 0.85rem;
-  padding: 0.45rem 0.9rem;
+  font-size: var(--etu-fs-sm);
+  padding: 0.45rem var(--etu-space-4);
   cursor: pointer;
+  transition: background var(--etu-t-fast) var(--etu-ease), border-color var(--etu-t-fast) var(--etu-ease);
+}
+
+.etu-dialog-btn:hover {
+  background: var(--etu-surface-3);
+}
+
+.etu-dialog-btn:focus-visible {
+  outline: 2px solid var(--etu-ring);
+  outline-offset: 2px;
 }
 
 .etu-dialog-btn-primary {
@@ -421,10 +618,19 @@ body:has(.etu-mobile-tab-bar) .etu-toaster {
   color: var(--etu-on-accent);
 }
 
+.etu-dialog-btn-primary:hover {
+  background: var(--etu-accent-strong);
+  border-color: var(--etu-accent-strong);
+}
+
 .etu-dialog-btn-danger {
   background: var(--etu-err);
   border-color: var(--etu-err);
   color: #ffffff;
+}
+
+.etu-dialog-btn-danger:hover {
+  filter: brightness(1.08);
 }
 
 /* ----------------------------------------------------------------------------
@@ -436,7 +642,7 @@ body:has(.etu-mobile-tab-bar) .etu-toaster {
   align-items: center;
   gap: 0.35rem;
   font-family: var(--etu-font);
-  font-size: 0.72rem;
+  font-size: var(--etu-fs-caption);
   line-height: 1.2;
   color: var(--etu-text-subtle);
   white-space: nowrap;
@@ -449,7 +655,8 @@ body:has(.etu-mobile-tab-bar) .etu-toaster {
 
 .etu-deploy-info-ver {
   font-family: var(--etu-mono);
-  font-size: 0.72rem;
+  font-size: var(--etu-fs-caption);
+  font-variant-numeric: tabular-nums;
   color: var(--etu-text-muted);
   text-decoration: none;
 }
@@ -459,8 +666,14 @@ a.etu-deploy-info-ver:hover {
   text-decoration: underline;
 }
 
+a.etu-deploy-info-ver:focus-visible {
+  outline: 2px solid var(--etu-ring);
+  outline-offset: 2px;
+}
+
 .etu-deploy-info-time {
   color: var(--etu-text-subtle);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ----------------------------------------------------------------------------
@@ -477,13 +690,13 @@ a.etu-deploy-info-ver:hover {
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  padding: 0.65rem 0.75rem;
+  padding: var(--etu-space-3);
   border-radius: var(--etu-r);
   border: 1px solid var(--etu-border);
   background: var(--etu-surface);
-  box-shadow: var(--etu-shadow);
+  box-shadow: var(--etu-shadow-sm);
   font-family: var(--etu-font);
-  font-size: 0.85rem;
+  font-size: var(--etu-fs-sm);
   color: var(--etu-text);
 }
 
@@ -510,26 +723,34 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   flex: 1;
   min-width: 0;
   margin: 0;
-  font-size: 0.78rem;
+  font-size: var(--etu-fs-caption);
   color: var(--etu-text-muted);
   line-height: 1.3;
 }
 
 .etu-install-banner-cta {
   flex-shrink: 0;
+  min-height: 36px;
   border: none;
   border-radius: var(--etu-r-sm);
   background: var(--etu-accent);
   color: var(--etu-on-accent);
   font-family: var(--etu-font);
-  font-size: 0.78rem;
-  font-weight: 600;
-  padding: 0.4rem 0.75rem;
+  font-size: var(--etu-fs-caption);
+  font-weight: var(--etu-fw-semibold);
+  padding: 0.4rem var(--etu-space-3);
   cursor: pointer;
+  transition: background var(--etu-t-fast) var(--etu-ease);
 }
 
 .etu-install-banner-cta:hover {
-  filter: brightness(1.08);
+  background: var(--etu-accent-strong);
+}
+
+.etu-install-banner-cta:focus-visible,
+.etu-install-banner-close:focus-visible {
+  outline: 2px solid var(--etu-ring);
+  outline-offset: 2px;
 }
 
 .etu-install-banner-close {
@@ -572,11 +793,10 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 2rem 1.5rem;
-  border-radius: var(--etu-r);
+  padding: var(--etu-space-6) var(--etu-space-5);
+  border-radius: var(--etu-r-lg);
   border: 1px solid var(--etu-border);
   background: var(--etu-surface);
-  box-shadow: var(--etu-shadow);
 }
 
 .etu-error-page-icon {
@@ -586,61 +806,71 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 }
 
 .etu-error-page-title {
-  margin: 0 0 0.5rem;
-  font-size: 1.15rem;
-  font-weight: 600;
+  margin: 0 0 var(--etu-space-2);
+  font-size: var(--etu-fs-lg);
+  font-weight: var(--etu-fw-semibold);
   color: var(--etu-text);
 }
 
 .etu-error-page-body {
-  margin: 0 0 1.25rem;
-  font-size: 0.92rem;
+  margin: 0 0 var(--etu-space-4);
+  font-size: var(--etu-fs-base);
   line-height: 1.5;
   color: var(--etu-text-muted);
 }
 
 .etu-error-page-actions {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  gap: var(--etu-space-2);
+  margin-bottom: var(--etu-space-4);
   flex-wrap: wrap;
   justify-content: center;
 }
 
 .etu-error-page-cta {
+  min-height: 40px;
   border: none;
   border-radius: var(--etu-r-sm);
   background: var(--etu-accent);
   color: var(--etu-on-accent);
   font-family: var(--etu-font);
-  font-size: 0.88rem;
-  font-weight: 600;
-  padding: 0.5rem 1rem;
+  font-size: var(--etu-fs-base);
+  font-weight: var(--etu-fw-semibold);
+  padding: 0.5rem var(--etu-space-4);
   cursor: pointer;
+  transition: background var(--etu-t-fast) var(--etu-ease);
 }
 
 .etu-error-page-cta:hover {
-  filter: brightness(1.08);
+  background: var(--etu-accent-strong);
 }
 
 .etu-error-page-secondary {
+  min-height: 40px;
   border: 1px solid var(--etu-border);
   border-radius: var(--etu-r-sm);
   background: transparent;
   color: var(--etu-text);
   font-family: var(--etu-font);
-  font-size: 0.88rem;
-  padding: 0.5rem 1rem;
+  font-size: var(--etu-fs-base);
+  padding: 0.5rem var(--etu-space-4);
   cursor: pointer;
+  transition: background var(--etu-t-fast) var(--etu-ease);
 }
 
 .etu-error-page-secondary:hover {
   background: var(--etu-surface-2);
 }
 
+.etu-error-page-cta:focus-visible,
+.etu-error-page-secondary:focus-visible {
+  outline: 2px solid var(--etu-ring);
+  outline-offset: 2px;
+}
+
 .etu-error-page-ref {
   margin: 0;
-  font-size: 0.78rem;
+  font-size: var(--etu-fs-caption);
   color: var(--etu-text-subtle);
 }
 
@@ -651,7 +881,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 
 .etu-error-page-ref-code {
   font-family: var(--etu-mono);
-  font-size: 0.78rem;
+  font-size: var(--etu-fs-caption);
   color: var(--etu-text-muted);
   background: var(--etu-surface-2);
   border-radius: 0.25rem;
@@ -665,15 +895,17 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+  min-height: 36px;
+  box-sizing: border-box;
   padding: 0.3rem 0.55rem 0.3rem 0.4rem;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 0.5rem;
+  border-radius: var(--etu-r-sm);
   color: var(--etu-text-muted);
   font: inherit;
-  font-size: 0.85rem;
+  font-size: var(--etu-fs-sm);
   cursor: pointer;
-  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+  transition: background var(--etu-t-fast) var(--etu-ease), color var(--etu-t-fast) var(--etu-ease), border-color var(--etu-t-fast) var(--etu-ease);
 }
 
 .etu-back-button:hover {
@@ -683,7 +915,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 }
 
 .etu-back-button:focus-visible {
-  outline: 2px solid var(--etu-accent);
+  outline: 2px solid var(--etu-ring);
   outline-offset: 2px;
 }
 
@@ -703,18 +935,18 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.6rem;
-  padding: 3rem 1.5rem;
+  gap: var(--etu-space-2);
+  padding: var(--etu-space-7) var(--etu-space-5);
   text-align: center;
   color: var(--etu-text-muted);
   border: 1px dashed var(--etu-border);
-  border-radius: 0.75rem;
+  border-radius: var(--etu-r);
   background: var(--etu-surface);
 }
 
 .etu-empty-state--compact {
-  padding: 1.4rem 1rem;
-  gap: 0.4rem;
+  padding: 1.4rem var(--etu-space-4);
+  gap: var(--etu-space-1);
 }
 
 .etu-empty-state-icon {
@@ -723,25 +955,26 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 }
 
 .etu-empty-state-title {
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: var(--etu-fs-md);
+  font-weight: var(--etu-fw-semibold);
   color: var(--etu-text);
 }
 
 .etu-empty-state--compact .etu-empty-state-title {
-  font-size: 0.9rem;
+  font-size: var(--etu-fs-base);
 }
 
 .etu-empty-state-body {
-  font-size: 0.85rem;
+  font-size: var(--etu-fs-sm);
   max-width: 28rem;
   line-height: 1.45;
+  color: var(--etu-text-muted);
 }
 
 .etu-empty-state-actions {
-  margin-top: 0.6rem;
+  margin-top: var(--etu-space-2);
   display: flex;
-  gap: 0.5rem;
+  gap: var(--etu-space-2);
   flex-wrap: wrap;
   justify-content: center;
 }
@@ -751,15 +984,17 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  padding: 0.25rem 0.5rem;
+  min-height: 36px;
+  box-sizing: border-box;
+  padding: 0.25rem var(--etu-space-2);
   background: transparent;
   border: 1px solid var(--etu-border);
-  border-radius: 0.4rem;
+  border-radius: var(--etu-r-sm);
   color: var(--etu-text-muted);
   font: inherit;
-  font-size: 0.78rem;
+  font-size: var(--etu-fs-caption);
   cursor: pointer;
-  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+  transition: background var(--etu-t-fast) var(--etu-ease), color var(--etu-t-fast) var(--etu-ease), border-color var(--etu-t-fast) var(--etu-ease);
 }
 
 .etu-copy-button:hover {
@@ -768,7 +1003,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 }
 
 .etu-copy-button:focus-visible {
-  outline: 2px solid var(--etu-accent);
+  outline: 2px solid var(--etu-ring);
   outline-offset: 2px;
 }
 
@@ -778,6 +1013,8 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 }
 
 .etu-copy-button--icon-only {
+  width: 36px;
+  justify-content: center;
   padding: 0.25rem;
 }
 
@@ -795,13 +1032,15 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.4rem;
+  min-height: 36px;
+  box-sizing: border-box;
+  padding: 0.25rem var(--etu-space-2);
+  border-radius: var(--etu-r-sm);
   font: inherit;
-  font-size: 0.78rem;
+  font-size: var(--etu-fs-caption);
   text-decoration: none;
   cursor: pointer;
-  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+  transition: background var(--etu-t-fast) var(--etu-ease), color var(--etu-t-fast) var(--etu-ease), border-color var(--etu-t-fast) var(--etu-ease);
 }
 
 .etu-open-in-browser-button--ghost {
@@ -818,19 +1057,22 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 .etu-open-in-browser-button--primary {
   background: var(--etu-accent);
   border: 1px solid var(--etu-accent);
-  color: var(--etu-accent-on, #fff);
+  color: var(--etu-on-accent);
 }
 
 .etu-open-in-browser-button--primary:hover {
-  filter: brightness(1.05);
+  background: var(--etu-accent-strong);
+  border-color: var(--etu-accent-strong);
 }
 
 .etu-open-in-browser-button:focus-visible {
-  outline: 2px solid var(--etu-accent);
+  outline: 2px solid var(--etu-ring);
   outline-offset: 2px;
 }
 
 .etu-open-in-browser-button--icon-only {
+  width: 36px;
+  justify-content: center;
   padding: 0.25rem;
 }
 
@@ -849,13 +1091,13 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  padding: 0.15rem 0.45rem;
-  border: 1px solid var(--etu-border);
-  border-radius: 999px;
-  background: var(--etu-surface-2);
-  color: var(--etu-text-muted);
-  font-size: 0.7rem;
-  font-weight: 500;
+  padding: 0.15rem var(--etu-space-2);
+  border: none;
+  border-radius: var(--etu-r-full);
+  background: var(--etu-accent-soft);
+  color: var(--etu-accent-text);
+  font-size: var(--etu-fs-caption);
+  font-weight: var(--etu-fw-semibold);
   letter-spacing: 0.01em;
   vertical-align: middle;
   line-height: 1.2;
@@ -864,14 +1106,14 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 .etu-backoffice {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: var(--etu-space-5);
 }
 
 .etu-backoffice-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
+  gap: var(--etu-space-4);
   flex-wrap: wrap;
 }
 
@@ -881,45 +1123,45 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 }
 
 .etu-backoffice-title {
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: var(--etu-fs-xl);
+  font-weight: var(--etu-fw-bold);
   color: var(--etu-text);
   margin: 0;
   display: inline-flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: var(--etu-space-2);
   flex-wrap: wrap;
 }
 
 .etu-backoffice-description {
   margin: 0.35rem 0 0;
   color: var(--etu-text-muted);
-  font-size: 0.85rem;
+  font-size: var(--etu-fs-sm);
   line-height: 1.5;
 }
 
 .etu-backoffice-actions {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--etu-space-2);
   flex-wrap: wrap;
 }
 
 .etu-backoffice-body {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--etu-space-4);
 }
 
 /* AppInfoSection — canonical "앱 정보" card. */
 .etu-app-info {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--etu-space-3);
 }
 
 .etu-app-info-heading {
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: var(--etu-fs-md);
+  font-weight: var(--etu-fw-semibold);
   color: var(--etu-text);
   margin: 0;
 }
@@ -927,17 +1169,17 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 .etu-app-info-card {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  padding: 1.1rem 1.2rem;
+  gap: var(--etu-space-4);
+  padding: var(--etu-space-4) var(--etu-space-5);
   background: var(--etu-surface);
   border: 1px solid var(--etu-border);
-  border-radius: 0.75rem;
+  border-radius: var(--etu-r);
 }
 
 .etu-app-info-identity {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
+  gap: var(--etu-space-3);
 }
 
 .etu-app-info-icon {
@@ -947,7 +1189,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 0.5rem;
+  border-radius: var(--etu-r-sm);
   background: var(--etu-surface-2);
   color: var(--etu-text-muted);
   font-size: 1.4rem;
@@ -962,34 +1204,34 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 }
 
 .etu-app-info-name {
-  font-size: 1.02rem;
-  font-weight: 600;
+  font-size: var(--etu-fs-md);
+  font-weight: var(--etu-fw-semibold);
   color: var(--etu-text);
 }
 
 .etu-app-info-description {
   margin-top: 0.15rem;
-  font-size: 0.82rem;
+  font-size: var(--etu-fs-sm);
   color: var(--etu-text-muted);
 }
 
 .etu-app-info-meta {
   margin: 0;
   display: grid;
-  gap: 0.5rem;
+  gap: var(--etu-space-2);
 }
 
 .etu-app-info-row {
   display: grid;
   grid-template-columns: 5.5rem 1fr;
   align-items: center;
-  gap: 0.6rem;
-  font-size: 0.85rem;
+  gap: var(--etu-space-2);
+  font-size: var(--etu-fs-sm);
 }
 
 .etu-app-info-row dt {
   color: var(--etu-text-muted);
-  font-weight: 500;
+  font-weight: var(--etu-fw-medium);
   margin: 0;
 }
 
@@ -1001,11 +1243,11 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 
 .etu-app-info-links {
   display: flex;
-  gap: 0.85rem;
+  gap: var(--etu-space-3);
   flex-wrap: wrap;
   padding-top: 0.55rem;
   border-top: 1px solid var(--etu-border);
-  font-size: 0.82rem;
+  font-size: var(--etu-fs-sm);
 }
 
 .etu-app-info-link {
@@ -1018,12 +1260,17 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   text-decoration: underline;
 }
 
+.etu-app-info-link:focus-visible {
+  outline: 2px solid var(--etu-ring);
+  outline-offset: 2px;
+}
+
 /* Legal section primitives — `<LegalMenuItem>` row on `/more` + `<LegalPage>`
    list on `/more/legal`. Mirrors the legal/contact card shape from
    planning concepts/mobile-more-page. */
 .etu-legal-card {
   border: 1px solid var(--etu-border);
-  border-radius: 0.5rem;
+  border-radius: var(--etu-r-sm);
   background: var(--etu-surface);
   overflow: hidden;
 }
@@ -1031,12 +1278,13 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 .etu-legal-row {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 0.875rem;
+  gap: var(--etu-space-3);
+  padding: var(--etu-space-3) 0.875rem;
   min-height: 3rem;
   color: var(--etu-text);
-  font-size: 0.875rem;
+  font-size: var(--etu-fs-base);
   text-decoration: none;
+  transition: background var(--etu-t-fast) var(--etu-ease);
 }
 
 .etu-legal-row--divided {
@@ -1045,6 +1293,11 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 
 .etu-legal-row:hover {
   background: var(--etu-surface-2);
+}
+
+.etu-legal-row:focus-visible {
+  outline: 2px solid var(--etu-ring);
+  outline-offset: -2px;
 }
 
 .etu-legal-row-icon {
@@ -1065,11 +1318,11 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 }
 
 .etu-legal-empty {
-  padding: 0.75rem 0.875rem;
+  padding: var(--etu-space-3) 0.875rem;
   margin: 0;
   border-top: 1px solid var(--etu-border);
   color: var(--etu-text-muted);
-  font-size: 0.82rem;
+  font-size: var(--etu-fs-caption);
 }
 
 /* Avatar — round profile picture with an initial-letter fallback. */
@@ -1077,11 +1330,11 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
+  border-radius: var(--etu-r-full);
   background: var(--etu-surface-2);
   color: var(--etu-text-muted);
-  font-weight: 600;
-  font-size: 0.8rem;
+  font-weight: var(--etu-fw-semibold);
+  font-size: var(--etu-fs-sm);
   overflow: hidden;
   flex: none;
   vertical-align: middle;
@@ -1110,7 +1363,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   background: transparent;
   border: none;
   padding: 0;
-  border-radius: 999px;
+  border-radius: var(--etu-r-full);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -1118,12 +1371,12 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 }
 
 .etu-user-menu-trigger:focus-visible {
-  outline: 2px solid var(--etu-accent);
+  outline: 2px solid var(--etu-ring);
   outline-offset: 2px;
 }
 
 .etu-user-menu-sign-in {
-  font-size: 0.8rem;
+  font-size: var(--etu-fs-sm);
   color: var(--etu-text-muted);
   text-decoration: none;
 }
@@ -1132,16 +1385,21 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   color: var(--etu-text);
 }
 
+.etu-user-menu-sign-in:focus-visible {
+  outline: 2px solid var(--etu-ring);
+  outline-offset: 2px;
+}
+
 .etu-user-menu-dropdown {
   position: absolute;
   min-width: 14rem;
   max-width: 18rem;
   background: var(--etu-surface);
   border: 1px solid var(--etu-border);
-  border-radius: 0.6rem;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  border-radius: var(--etu-r);
+  box-shadow: var(--etu-shadow);
   z-index: 50;
-  padding: 0.6rem;
+  padding: var(--etu-space-3);
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
@@ -1165,8 +1423,8 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 }
 
 .etu-user-menu-name {
-  font-size: 0.88rem;
-  font-weight: 600;
+  font-size: var(--etu-fs-base);
+  font-weight: var(--etu-fw-semibold);
   color: var(--etu-text);
   display: flex;
   align-items: center;
@@ -1177,7 +1435,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 }
 
 .etu-user-menu-email {
-  font-size: 0.75rem;
+  font-size: var(--etu-fs-caption);
   color: var(--etu-text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1186,13 +1444,13 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 
 .etu-user-menu-admin {
   font-size: 0.62rem;
-  font-weight: 600;
+  font-weight: var(--etu-fw-semibold);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  background: var(--etu-surface-2);
-  color: var(--etu-text-muted);
+  background: var(--etu-accent-soft);
+  color: var(--etu-accent-text);
   padding: 0.05rem 0.35rem;
-  border-radius: 999px;
+  border-radius: var(--etu-r-full);
 }
 
 .etu-user-menu-divider {
@@ -1211,18 +1469,20 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.45rem 0.6rem;
+  min-height: 36px;
+  box-sizing: border-box;
+  padding: 0.45rem var(--etu-space-2);
   margin: 0;
   background: transparent;
   border: none;
-  border-radius: 0.4rem;
+  border-radius: var(--etu-r-sm);
   text-align: left;
   font: inherit;
-  font-size: 0.85rem;
+  font-size: var(--etu-fs-sm);
   color: var(--etu-text);
   cursor: pointer;
   text-decoration: none;
-  transition: background 0.1s ease;
+  transition: background var(--etu-t-fast) var(--etu-ease);
 }
 
 .etu-user-menu-item:hover {
@@ -1230,7 +1490,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 }
 
 .etu-user-menu-item:focus-visible {
-  outline: 2px solid var(--etu-accent);
+  outline: 2px solid var(--etu-ring);
   outline-offset: -2px;
 }
 
@@ -1255,14 +1515,17 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   position: relative;
   background: transparent;
   border: none;
+  min-width: 40px;
+  min-height: 40px;
   padding: 0.4rem;
-  border-radius: 999px;
+  border-radius: var(--etu-r-full);
   cursor: pointer;
   color: var(--etu-text);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   line-height: 0;
+  transition: background var(--etu-t-fast) var(--etu-ease);
 }
 
 .etu-notif-bell-trigger:hover {
@@ -1270,7 +1533,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 }
 
 .etu-notif-bell-trigger:focus-visible {
-  outline: 2px solid var(--etu-accent);
+  outline: 2px solid var(--etu-ring);
   outline-offset: 2px;
 }
 
@@ -1281,11 +1544,11 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   min-width: 16px;
   height: 16px;
   padding: 0 4px;
-  border-radius: 999px;
+  border-radius: var(--etu-r-full);
   background: var(--etu-danger, #dc2626);
   color: white;
   font-size: 10px;
-  font-weight: 600;
+  font-weight: var(--etu-fw-semibold);
   line-height: 16px;
   text-align: center;
   pointer-events: none;
@@ -1298,8 +1561,8 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   max-height: min(70vh, 520px);
   background: var(--etu-surface);
   border: 1px solid var(--etu-border);
-  border-radius: 0.6rem;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.16);
+  border-radius: var(--etu-r);
+  box-shadow: var(--etu-shadow);
   z-index: 60;
   display: flex;
   flex-direction: column;
@@ -1316,7 +1579,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   inset: 0;
   background: rgba(0, 0, 0, 0.4);
   z-index: 70;
-  animation: etu-notif-bell-fade 0.15s ease-out;
+  animation: etu-notif-bell-fade var(--etu-t) var(--etu-ease);
 }
 
 .etu-notif-bell-sheet {
@@ -1326,21 +1589,21 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   bottom: 0;
   z-index: 71;
   background: var(--etu-surface);
-  border-radius: 1rem 1rem 0 0;
-  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.18);
+  border-radius: var(--etu-r-lg) var(--etu-r-lg) 0 0;
+  box-shadow: var(--etu-shadow);
   max-height: 85vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   padding-bottom: env(safe-area-inset-bottom, 0);
-  animation: etu-notif-bell-slide-up 0.2s ease-out;
+  animation: etu-notif-bell-slide-up var(--etu-t) var(--etu-ease);
 }
 
 .etu-notif-bell-sheet-grabber {
   width: 36px;
   height: 4px;
   background: var(--etu-border);
-  border-radius: 999px;
+  border-radius: var(--etu-r-full);
   margin: 0.55rem auto 0.25rem;
   flex: 0 0 auto;
 }
@@ -1359,14 +1622,14 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.6rem 0.9rem;
+  padding: var(--etu-space-2) 0.9rem;
   border-bottom: 1px solid var(--etu-border);
   flex: 0 0 auto;
 }
 
 .etu-notif-bell-title {
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: var(--etu-fs-base);
+  font-weight: var(--etu-fw-semibold);
   color: var(--etu-text);
 }
 
@@ -1376,14 +1639,22 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   color: var(--etu-text-muted);
   font-size: 1.4rem;
   line-height: 1;
+  min-width: 36px;
+  min-height: 36px;
   padding: 0.1rem 0.4rem;
   cursor: pointer;
-  border-radius: 0.3rem;
+  border-radius: var(--etu-r-sm);
+  transition: background var(--etu-t-fast) var(--etu-ease);
 }
 
 .etu-notif-bell-close:hover {
   background: var(--etu-surface-2);
   color: var(--etu-text);
+}
+
+.etu-notif-bell-close:focus-visible {
+  outline: 2px solid var(--etu-ring);
+  outline-offset: 2px;
 }
 
 .etu-notif-bell-items {
@@ -1396,7 +1667,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 .etu-notif-bell-item {
   padding: 0.7rem 0.9rem;
   border-bottom: 1px solid var(--etu-border);
-  font-size: 0.85rem;
+  font-size: var(--etu-fs-sm);
   color: var(--etu-text);
 }
 
@@ -1408,14 +1679,14 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   padding: 2rem 1rem;
   text-align: center;
   color: var(--etu-text-muted);
-  font-size: 0.85rem;
+  font-size: var(--etu-fs-sm);
 }
 
 .etu-notif-bell-footer {
-  padding: 0.6rem 0.9rem;
+  padding: var(--etu-space-2) 0.9rem;
   border-top: 1px solid var(--etu-border);
   flex: 0 0 auto;
-  font-size: 0.82rem;
+  font-size: var(--etu-fs-caption);
 }
 
 /* ----------------------------------------------------------------------------
@@ -1455,7 +1726,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   border-top: 0;
   border-bottom: 1px solid color-mix(in srgb, var(--etu-text) 8%, transparent);
   opacity: 0.92;
-  transition: opacity 160ms ease, box-shadow 160ms ease;
+  transition: opacity var(--etu-t) var(--etu-ease), border-color var(--etu-t) var(--etu-ease), background var(--etu-t) var(--etu-ease);
 }
 
 .etu-navbar--sticky {
@@ -1477,17 +1748,19 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 
 .etu-navbar--scrolled {
   opacity: 1;
-  box-shadow: 0 1px 0 color-mix(in srgb, var(--etu-text) 6%, transparent),
-    0 8px 24px color-mix(in srgb, var(--etu-text) 8%, transparent);
+  border-bottom-color: var(--etu-border);
+  background: color-mix(in srgb, var(--etu-surface) 85%, transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
 }
 
 .etu-navbar-inner {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--etu-space-2);
   min-height: 48px;
-  padding: 0 0.5rem;
+  padding: 0 var(--etu-space-2);
 }
 
 .etu-navbar-leading,
@@ -1510,7 +1783,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
    * consumer that set html font-size < 16px; rem-based sizing inherited
    * the shrink. Fixed pixel keeps the title at HIG size in every host. */
   font-size: 17px;
-  font-weight: 600;
+  font-weight: var(--etu-fw-semibold);
   line-height: 1.2;
   color: var(--etu-text);
   text-align: center;
@@ -1535,9 +1808,9 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 }
 
 .etu-navbar-back:focus-visible {
-  outline: 2px solid var(--etu-accent);
+  outline: 2px solid var(--etu-ring);
   outline-offset: -2px;
-  border-radius: 0.4rem;
+  border-radius: var(--etu-r-sm);
 }
 
 .etu-navbar-chevron {
@@ -1548,7 +1821,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 }
 
 .etu-navbar-back-label {
-  font-size: 0.95rem;
+  font-size: var(--etu-fs-md);
 }
 
 /* ----------------------------------------------------------------------------
@@ -1566,7 +1839,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   justify-content: space-around;
   gap: 0.25rem;
   padding: 0.35rem;
-  border-radius: 28px;
+  border-radius: var(--etu-r-full);
   box-shadow: 0 12px 32px color-mix(in srgb, var(--etu-text) 14%, transparent);
 }
 
@@ -1587,22 +1860,22 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   padding: 0.3rem 0.25rem;
   background: transparent;
   border: 0;
-  border-radius: 22px;
+  border-radius: var(--etu-r-full);
   color: var(--etu-text-subtle);
   font: inherit;
   text-decoration: none;
   cursor: pointer;
-  transition: background 120ms ease, color 120ms ease;
+  transition: background var(--etu-t-fast) var(--etu-ease), color var(--etu-t-fast) var(--etu-ease);
 }
 
 .etu-mobile-tab-bar-item:focus-visible {
-  outline: 2px solid var(--etu-accent);
+  outline: 2px solid var(--etu-ring);
   outline-offset: -2px;
 }
 
 .etu-mobile-tab-bar-item--active {
-  color: var(--etu-on-accent);
-  background: var(--etu-accent);
+  color: var(--etu-accent-text);
+  background: var(--etu-accent-soft);
 }
 
 .etu-mobile-tab-bar-icon {
@@ -1636,8 +1909,8 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  padding: 0.75rem 0.5rem;
+  gap: var(--etu-space-3);
+  padding: var(--etu-space-3) var(--etu-space-2);
   background: var(--etu-surface);
   border-right: 1px solid var(--etu-border);
   box-sizing: border-box;
@@ -1676,14 +1949,14 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 }
 
 .etu-sidebar-header-name {
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: var(--etu-fs-md);
+  font-weight: var(--etu-fw-semibold);
   color: var(--etu-text);
   letter-spacing: -0.01em;
 }
 
 .etu-sidebar-header-extra {
-  font-size: 0.8rem;
+  font-size: var(--etu-fs-sm);
   color: var(--etu-text-muted);
 }
 
@@ -1706,8 +1979,8 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 }
 
 .etu-sidebar-caption {
-  font-size: 0.7rem;
-  font-weight: 600;
+  font-size: var(--etu-fs-caption);
+  font-weight: var(--etu-fw-semibold);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--etu-text-subtle);
@@ -1715,8 +1988,8 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 }
 
 .etu-sidebar-section-caption {
-  font-size: 0.7rem;
-  font-weight: 600;
+  font-size: var(--etu-fs-caption);
+  font-weight: var(--etu-fw-semibold);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--etu-text-subtle);
@@ -1726,19 +1999,21 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 .etu-sidebar-item {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: var(--etu-space-2);
+  min-height: 36px;
   padding: 0.5rem 0.6rem;
   background: transparent;
   border: 0;
   border-radius: var(--etu-r-sm);
   color: var(--etu-text-muted);
   font: inherit;
-  font-size: 0.9rem;
+  font-size: var(--etu-fs-base);
   text-align: left;
   text-decoration: none;
   cursor: pointer;
   width: 100%;
   box-sizing: border-box;
+  transition: background var(--etu-t-fast) var(--etu-ease), color var(--etu-t-fast) var(--etu-ease);
 }
 
 .etu-sidebar-item:hover {
@@ -1747,14 +2022,14 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 }
 
 .etu-sidebar-item:focus-visible {
-  outline: 2px solid var(--etu-accent);
+  outline: 2px solid var(--etu-ring);
   outline-offset: -2px;
 }
 
 .etu-sidebar-item--active {
   background: var(--etu-accent-soft);
   color: var(--etu-text);
-  font-weight: 600;
+  font-weight: var(--etu-fw-semibold);
 }
 
 .etu-sidebar-item-icon {
@@ -1781,9 +2056,9 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 
 .etu-sidebar-footer {
   margin-top: auto;
-  padding: 0.5rem;
+  padding: var(--etu-space-2);
   border-top: 1px solid var(--etu-border);
-  font-size: 0.85rem;
+  font-size: var(--etu-fs-sm);
   color: var(--etu-text-muted);
 }
 
@@ -1800,16 +2075,16 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  padding: 0.45rem 0.85rem;
+  padding: 0.45rem var(--etu-space-3);
   font-family: var(--etu-font);
-  font-size: 0.83rem;
+  font-size: var(--etu-fs-sm);
   line-height: 1.3;
   border-bottom: 1px solid color-mix(in srgb, currentColor 22%, transparent);
 }
 
 .etu-status-banner-label {
   flex-shrink: 0;
-  font-weight: 600;
+  font-weight: var(--etu-fw-semibold);
   letter-spacing: 0.01em;
 }
 
@@ -1840,11 +2115,16 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   opacity: 0.7;
 }
 .etu-status-banner-close:hover { opacity: 1; }
+.etu-status-banner-close:focus-visible {
+  outline: 2px solid var(--etu-ring);
+  outline-offset: 1px;
+  opacity: 1;
+}
 
 /* Degraded (warning): amber */
 .etu-status-banner-degraded {
-  background: color-mix(in srgb, #f5a524 20%, var(--etu-bg));
-  color: color-mix(in srgb, #f5a524 80%, var(--etu-text));
+  background: color-mix(in srgb, var(--etu-warn) 20%, var(--etu-bg));
+  color: color-mix(in srgb, var(--etu-warn) 80%, var(--etu-text));
 }
 /* Maintenance (planned): muted accent */
 .etu-status-banner-maintenance {
@@ -1874,12 +2154,12 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  padding: 0.45rem 0.85rem;
+  padding: 0.45rem var(--etu-space-3);
   font-family: var(--etu-font);
-  font-size: 0.83rem;
+  font-size: var(--etu-fs-sm);
   line-height: 1.3;
-  background: color-mix(in srgb, #f5a524 18%, var(--etu-bg));
-  color: color-mix(in srgb, #f5a524 82%, var(--etu-text));
+  background: color-mix(in srgb, var(--etu-warn) 18%, var(--etu-bg));
+  color: color-mix(in srgb, var(--etu-warn) 82%, var(--etu-text));
   border-bottom: 1px solid color-mix(in srgb, currentColor 22%, transparent);
 }
 
@@ -1887,7 +2167,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 .etu-policy-change-banner--adverse {
   background: color-mix(in srgb, var(--etu-err) 20%, var(--etu-bg));
   color: color-mix(in srgb, var(--etu-err) 82%, var(--etu-text));
-  font-weight: 500;
+  font-weight: var(--etu-fw-medium);
 }
 
 .etu-policy-change-banner-body {
@@ -1896,11 +2176,16 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 }
 
 .etu-policy-change-banner-body a {
-  font-weight: 600;
+  font-weight: var(--etu-fw-semibold);
   text-decoration: underline;
   text-underline-offset: 2px;
   color: inherit;
   white-space: nowrap;
+}
+
+.etu-policy-change-banner-body a:focus-visible {
+  outline: 2px solid var(--etu-ring);
+  outline-offset: 2px;
 }
 
 .etu-policy-change-banner-close {
@@ -1916,6 +2201,11 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   opacity: 0.7;
 }
 .etu-policy-change-banner-close:hover { opacity: 1; }
+.etu-policy-change-banner-close:focus-visible {
+  outline: 2px solid var(--etu-ring);
+  outline-offset: 1px;
+  opacity: 1;
+}
 
 /* ----------------------------------------------------------------------------
  * DocsHub — in-app docs surface with optional skill download (alpha).
@@ -1931,21 +2221,21 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
+  gap: var(--etu-space-4);
   flex-wrap: wrap;
 }
 
 .etu-docs-hub-head-text {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--etu-space-1);
   min-width: 0;
 }
 
 .etu-docs-hub-app-name {
   margin: 0;
-  font-size: 22px;
-  font-weight: 700;
+  font-size: var(--etu-fs-2xl);
+  font-weight: var(--etu-fw-bold);
   letter-spacing: -0.01em;
   color: var(--etu-text);
 }
@@ -1953,23 +2243,25 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 .etu-docs-hub-description {
   margin: 0;
   color: var(--etu-text-muted);
-  font-size: 14px;
+  font-size: var(--etu-fs-base);
 }
 
 .etu-docs-hub-skill-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  min-height: 36px;
+  box-sizing: border-box;
   padding: 8px 14px;
-  border-radius: var(--etu-r, 10px);
+  border-radius: var(--etu-r-sm);
   border: 1px solid var(--etu-border);
   background: var(--etu-surface);
   color: var(--etu-text);
   font: inherit;
-  font-weight: 600;
-  font-size: 13px;
+  font-weight: var(--etu-fw-semibold);
+  font-size: var(--etu-fs-sm);
   cursor: pointer;
-  transition: background 140ms, border-color 140ms;
+  transition: background var(--etu-t-fast) var(--etu-ease), border-color var(--etu-t-fast) var(--etu-ease);
 }
 
 .etu-docs-hub-skill-btn:hover {
@@ -1977,10 +2269,15 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   border-color: var(--etu-accent-soft);
 }
 
+.etu-docs-hub-skill-btn:focus-visible {
+  outline: 2px solid var(--etu-ring);
+  outline-offset: 2px;
+}
+
 .etu-docs-hub-body {
   display: grid;
   grid-template-columns: 200px 1fr;
-  gap: 24px;
+  gap: var(--etu-space-5);
   align-items: start;
 }
 
@@ -1995,17 +2292,19 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 .etu-docs-hub-nav-item {
   display: block;
   width: 100%;
-  padding: 8px 12px;
-  border-radius: var(--etu-r, 8px);
+  min-height: 36px;
+  box-sizing: border-box;
+  padding: 8px var(--etu-space-3);
+  border-radius: var(--etu-r-sm);
   border: none;
   background: transparent;
   color: var(--etu-text-muted);
   font: inherit;
-  font-weight: 500;
-  font-size: 13.5px;
+  font-weight: var(--etu-fw-medium);
+  font-size: var(--etu-fs-sm);
   text-align: left;
   cursor: pointer;
-  transition: background 140ms, color 140ms;
+  transition: background var(--etu-t-fast) var(--etu-ease), color var(--etu-t-fast) var(--etu-ease);
 }
 
 .etu-docs-hub-nav-item:hover {
@@ -2013,10 +2312,15 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   color: var(--etu-text);
 }
 
+.etu-docs-hub-nav-item:focus-visible {
+  outline: 2px solid var(--etu-ring);
+  outline-offset: -2px;
+}
+
 .etu-docs-hub-nav-item--active {
   background: var(--etu-accent-soft);
   color: var(--etu-text);
-  font-weight: 600;
+  font-weight: var(--etu-fw-semibold);
 }
 
 .etu-docs-hub-section {
@@ -2024,9 +2328,9 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 }
 
 .etu-docs-hub-section-summary {
-  margin: 0 0 16px;
+  margin: 0 0 var(--etu-space-4);
   color: var(--etu-text-muted);
-  font-size: 14px;
+  font-size: var(--etu-fs-base);
 }
 
 @media (max-width: 719px) {
@@ -2047,19 +2351,19 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 
 .etu-docs-hub-skill-usage h4 {
   margin: 18px 0 6px;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--etu-fs-sm);
+  font-weight: var(--etu-fw-semibold);
   color: var(--etu-text);
 }
 .etu-docs-hub-skill-usage p,
 .etu-docs-hub-skill-usage li {
-  font-size: 13.5px;
+  font-size: var(--etu-fs-base);
   line-height: 1.6;
   color: var(--etu-text);
 }
 .etu-docs-hub-skill-usage code {
   font-family: var(--etu-mono, ui-monospace, "SF Mono", monospace);
-  font-size: 12.5px;
+  font-size: var(--etu-fs-caption);
   padding: 1px 5px;
   border-radius: 4px;
   background: var(--etu-surface-2);
@@ -2067,32 +2371,32 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 }
 .etu-docs-hub-skill-usage ol {
   padding-left: 20px;
-  margin: 6px 0 12px;
+  margin: 6px 0 var(--etu-space-3);
 }
 .etu-docs-hub-skill-install {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  margin: 8px 0 12px;
+  gap: var(--etu-space-2);
+  padding: 10px var(--etu-space-3);
+  margin: var(--etu-space-2) 0 var(--etu-space-3);
   background: var(--etu-surface-2);
   border: 1px solid var(--etu-border);
-  border-radius: 6px;
+  border-radius: var(--etu-r-sm);
   overflow-x: auto;
 }
 .etu-docs-hub-skill-install-cmd {
   flex: 1 1 auto;
   font-family: var(--etu-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
-  font-size: 13px;
+  font-size: var(--etu-fs-sm);
   white-space: nowrap;
   color: var(--etu-text);
   background: transparent;
   padding: 0;
 }
 .etu-docs-hub-skill-install-note {
-  font-size: 12px;
+  font-size: var(--etu-fs-caption);
   color: var(--etu-text-muted);
-  margin: 0 0 12px;
+  margin: 0 0 var(--etu-space-3);
 }
 
 /* --- DataTable -------------------------------------------------------- */
@@ -2121,22 +2425,29 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 .etu-dt-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9rem;
+  font-size: var(--etu-fs-base);
 }
 .etu-dt-table thead th {
   text-align: left;
-  font-weight: 600;
-  font-size: 0.8rem;
-  color: var(--etu-dim, #999);
+  font-weight: var(--etu-fw-semibold);
+  font-size: var(--etu-fs-sm);
+  color: var(--etu-text-muted);
   text-transform: none;
-  padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid var(--etu-border, #333);
+  padding: var(--etu-space-2) var(--etu-space-3);
+  border-bottom: 1px solid var(--etu-border-strong);
   white-space: nowrap;
 }
+.etu-dt-table tbody tr {
+  transition: background var(--etu-t-fast) var(--etu-ease);
+}
+.etu-dt-table tbody tr:hover {
+  background: var(--etu-surface-2);
+}
 .etu-dt-table tbody td {
-  padding: 0.6rem 0.75rem;
-  border-bottom: 1px solid var(--etu-border-subtle, #222);
-  color: var(--etu-text, inherit);
+  padding: var(--etu-space-2) var(--etu-space-3);
+  border-bottom: 1px solid var(--etu-border);
+  color: var(--etu-text);
+  font-variant-numeric: tabular-nums;
 }
 .etu-dt-table tbody tr:last-child td { border-bottom: 0; }
 .etu-dt-actions { text-align: right; }
@@ -2148,19 +2459,19 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   padding: 0;
   margin: 0;
   display: grid;
-  gap: 0.6rem;
+  gap: var(--etu-space-2);
 }
 .etu-dt-card {
-  border: 1px solid var(--etu-border, #333);
-  border-radius: 8px;
-  padding: 0.75rem 0.9rem;
-  background: var(--etu-surface, transparent);
+  border: 1px solid var(--etu-border);
+  border-radius: var(--etu-r-sm);
+  padding: var(--etu-space-3) 0.9rem;
+  background: var(--etu-surface);
 }
 .etu-dt-card-header {
-  font-weight: 600;
-  font-size: 1rem;
+  font-weight: var(--etu-fw-semibold);
+  font-size: var(--etu-fs-md);
   margin-bottom: 0.4rem;
-  color: var(--etu-text, inherit);
+  color: var(--etu-text);
   word-break: break-word;
 }
 .etu-dt-card-fields {
@@ -2171,25 +2482,26 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 .etu-dt-card-field {
   display: grid;
   grid-template-columns: minmax(7rem, auto) 1fr;
-  gap: 0.75rem;
+  gap: var(--etu-space-3);
   align-items: baseline;
 }
 .etu-dt-card-label {
   margin: 0;
-  font-size: 0.8rem;
-  color: var(--etu-dim, #999);
+  font-size: var(--etu-fs-sm);
+  color: var(--etu-text-muted);
   white-space: nowrap;
 }
 .etu-dt-card-value {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: var(--etu-fs-base);
   text-align: right;
   word-break: break-word;
+  font-variant-numeric: tabular-nums;
 }
 .etu-dt-card-actions {
   margin-top: 0.6rem;
   padding-top: 0.6rem;
-  border-top: 1px solid var(--etu-border-subtle, #222);
+  border-top: 1px solid var(--etu-border);
   display: flex;
   gap: 0.4rem;
   flex-wrap: wrap;
@@ -2269,7 +2581,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
     width: 280px;
     max-width: 86vw;
     transform: translateX(-100%);
-    transition: transform 200ms ease;
+    transition: transform var(--etu-t) var(--etu-ease);
     box-shadow: 4px 0 24px color-mix(in srgb, var(--etu-text) 18%, transparent);
   }
   .etu-sidebar[data-tablet-mode="drawer"][data-open="true"] {
@@ -2322,16 +2634,16 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   padding: 0;
   background: transparent;
   border: 0;
-  border-radius: 10px;
+  border-radius: var(--etu-r-sm);
   color: var(--etu-text);
   cursor: pointer;
-  transition: background 120ms ease;
+  transition: background var(--etu-t-fast) var(--etu-ease);
 }
 .etu-sidebar-toggle:hover {
   background: color-mix(in srgb, var(--etu-text) 8%, transparent);
 }
 .etu-sidebar-toggle:focus-visible {
-  outline: 2px solid var(--etu-accent);
+  outline: 2px solid var(--etu-ring);
   outline-offset: 2px;
 }
 
@@ -2347,10 +2659,10 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   padding: 0;
   background: transparent;
   border: 0;
-  border-radius: 10px;
+  border-radius: var(--etu-r-sm);
   color: var(--etu-text-muted);
   cursor: pointer;
-  transition: background 120ms ease;
+  transition: background var(--etu-t-fast) var(--etu-ease);
 }
 @media (min-width: 720px) {
   .etu-sidebar-rail-toggle {
@@ -2361,7 +2673,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   background: color-mix(in srgb, var(--etu-text) 8%, transparent);
 }
 .etu-sidebar-rail-toggle:focus-visible {
-  outline: 2px solid var(--etu-accent);
+  outline: 2px solid var(--etu-ring);
   outline-offset: 2px;
 }
 .etu-sidebar[data-expanded="true"] .etu-sidebar-rail-toggle {
@@ -2375,7 +2687,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
  * covers the pre-hydration window via :not([data-expanded]). Unscoped by
  * media query — the sidebar is display:none below 720px anyway. */
 .etu-sidebar[data-tablet-mode="rail"] {
-  transition: width 160ms ease, flex-basis 160ms ease;
+  transition: width var(--etu-t) var(--etu-ease), flex-basis var(--etu-t) var(--etu-ease);
 }
 .etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] {
   width: 64px;
