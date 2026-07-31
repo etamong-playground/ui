@@ -102,19 +102,21 @@ body.etu-page {
   --etu-accent-strong: #2272eb;
   --etu-accent-text: #1b64da;
   --etu-on-accent: #ffffff;
-  --etu-accent-soft: color-mix(in oklab, var(--etu-accent) 10%, var(--etu-bg));
+  --etu-accent-soft: #eaf1fd;
 
   /* status */
   --etu-ok: #1f9e5b;
   --etu-warn: #d97706;
   --etu-err: #e5484d;
   --etu-danger: var(--etu-err);
-  --etu-ok-soft: color-mix(in oklab, var(--etu-ok) 12%, var(--etu-bg));
-  --etu-warn-soft: color-mix(in oklab, var(--etu-warn) 12%, var(--etu-bg));
-  --etu-err-soft: color-mix(in oklab, var(--etu-err) 12%, var(--etu-bg));
+  --etu-ok-soft: #e7f3ed;
+  --etu-warn-soft: #f9efe1;
+  --etu-err-soft: #fcebec;
 
-  /* focus ring (focus-visible outline color) */
-  --etu-ring: color-mix(in oklab, var(--etu-accent) 55%, transparent);
+  /* focus ring (focus-visible outline color). Deliberately SOLID: outlines
+   * need >=3:1 contrast (WCAG 1.4.11) and a plain var() stays valid on engines
+   * without color-mix(), so the ring can never silently vanish. */
+  --etu-ring: var(--etu-accent);
 
   /* radius */
   --etu-r-sm: 8px;
@@ -184,17 +186,43 @@ body.etu-page {
   --etu-accent-strong: #7aa2ff;
   --etu-accent-text: #8fb3ff;
   --etu-on-accent: #081120;
-  --etu-accent-soft: color-mix(in oklab, var(--etu-accent) 16%, var(--etu-bg));
+  --etu-accent-soft: #1c2436;
 
   --etu-ok: #34d399;
   --etu-warn: #f5b83d;
   --etu-err: #ff6b6b;
-  --etu-ok-soft: color-mix(in oklab, var(--etu-ok) 14%, var(--etu-bg));
-  --etu-warn-soft: color-mix(in oklab, var(--etu-warn) 14%, var(--etu-bg));
-  --etu-err-soft: color-mix(in oklab, var(--etu-err) 14%, var(--etu-bg));
+  --etu-ok-soft: #16261d;
+  --etu-warn-soft: #2b2318;
+  --etu-err-soft: #2b191b;
 
   --etu-shadow-sm: 0 0 0 1px rgba(255, 255, 255, 0.03), 0 4px 16px rgba(0, 0, 0, 0.4);
   --etu-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04), 0 16px 48px rgba(0, 0, 0, 0.6);
+}
+
+/* Derived tints, gated on color-mix() support. Inside the gate, overriding a
+ * base token (--etu-accent, --etu-ok, ...) cascades into every tint; the solid
+ * values above are the floor for engines without color-mix (old WebViews,
+ * kiosk Safari) -- there tints keep the default palette but never go
+ * invalid-and-transparent. Tints are bg-relative by design: a flat solid
+ * calibrated against --etu-bg, not a translucent overlay. */
+@supports (color: color-mix(in oklab, red 50%, transparent)) {
+  :root {
+    --etu-accent-strong: color-mix(in oklab, var(--etu-accent) 88%, black);
+    --etu-accent-text: color-mix(in oklab, var(--etu-accent) 80%, black);
+    --etu-accent-soft: color-mix(in oklab, var(--etu-accent) 10%, var(--etu-bg));
+    --etu-ok-soft: color-mix(in oklab, var(--etu-ok) 12%, var(--etu-bg));
+    --etu-warn-soft: color-mix(in oklab, var(--etu-warn) 12%, var(--etu-bg));
+    --etu-err-soft: color-mix(in oklab, var(--etu-err) 12%, var(--etu-bg));
+  }
+  :root[data-theme="dark"],
+  .dark {
+    --etu-accent-strong: color-mix(in oklab, var(--etu-accent) 84%, white);
+    --etu-accent-text: color-mix(in oklab, var(--etu-accent) 64%, white);
+    --etu-accent-soft: color-mix(in oklab, var(--etu-accent) 16%, var(--etu-bg));
+    --etu-ok-soft: color-mix(in oklab, var(--etu-ok) 14%, var(--etu-bg));
+    --etu-warn-soft: color-mix(in oklab, var(--etu-warn) 14%, var(--etu-bg));
+    --etu-err-soft: color-mix(in oklab, var(--etu-err) 14%, var(--etu-bg));
+  }
 }
 
 /* ----------------------------------------------------------------------------
@@ -204,7 +232,11 @@ body.etu-page {
 
 /* Korean tracking correction: Hangul webfont spacing runs wide; scope the
  * negative tracking to KO documents so Latin/numeral-heavy EN UIs stay at 0. */
-body.etu-page:lang(ko) {
+body.etu-page:lang(ko),
+:lang(ko) :is(.etu-cmdk, .etu-toast, .etu-dialog, .etu-install-banner,
+    .etu-error-page, .etu-navbar, .etu-sidebar, .etu-mobile-tab-bar,
+    .etu-backoffice, .etu-user-menu-dropdown, .etu-notif-bell-popover,
+    .etu-docs-hub) {
   letter-spacing: -0.011em;
 }
 
@@ -246,7 +278,12 @@ body.etu-page:lang(ko) {
 .etu-page-col {
   width: 100%;
   max-width: var(--etu-page-w);
+  /* physical first, logical after -- old engines drop unknown -inline props */
+  margin-left: auto;
+  margin-right: auto;
   margin-inline: auto;
+  padding-left: var(--etu-space-4);
+  padding-right: var(--etu-space-4);
   padding-inline: var(--etu-space-4);
   box-sizing: border-box;
 }
@@ -255,6 +292,36 @@ body.etu-page:lang(ko) {
 }
 .etu-page-col--wide {
   max-width: var(--etu-page-w-wide);
+}
+
+/* Soft-tint status/label pills. */
+.etu-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--etu-space-1);
+  padding: 2px 10px;
+  border-radius: var(--etu-r-full);
+  font-size: var(--etu-fs-caption);
+  font-weight: var(--etu-fw-semibold);
+  line-height: var(--etu-lh-tight);
+  background: var(--etu-surface-2);
+  color: var(--etu-text-muted);
+}
+.etu-badge--accent {
+  background: var(--etu-accent-soft);
+  color: var(--etu-accent-text);
+}
+.etu-badge--ok {
+  background: var(--etu-ok-soft);
+  color: var(--etu-ok);
+}
+.etu-badge--warn {
+  background: var(--etu-warn-soft);
+  color: var(--etu-warn);
+}
+.etu-badge--err {
+  background: var(--etu-err-soft);
+  color: var(--etu-err);
 }
 
 /* ----------------------------------------------------------------------------
@@ -591,7 +658,7 @@ body:has(.etu-mobile-tab-bar) .etu-toaster {
 }
 
 .etu-dialog-btn {
-  min-height: 36px;
+  min-height: 40px;
   border-radius: var(--etu-r-sm);
   border: 1px solid var(--etu-border);
   background: var(--etu-surface-2);
@@ -730,7 +797,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 
 .etu-install-banner-cta {
   flex-shrink: 0;
-  min-height: 36px;
+  min-height: 40px;
   border: none;
   border-radius: var(--etu-r-sm);
   background: var(--etu-accent);
@@ -787,7 +854,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 }
 
 .etu-error-page-card {
-  max-width: 32rem;
+  max-width: var(--etu-page-w-narrow);
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -1107,6 +1174,12 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   display: flex;
   flex-direction: column;
   gap: var(--etu-space-5);
+  width: 100%;
+  max-width: var(--etu-page-w-wide);
+  margin-left: auto;
+  margin-right: auto;
+  margin-inline: auto;
+  box-sizing: border-box;
 }
 
 .etu-backoffice-head {
@@ -1749,9 +1822,18 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 .etu-navbar--scrolled {
   opacity: 1;
   border-bottom-color: var(--etu-border);
-  background: color-mix(in srgb, var(--etu-surface) 85%, transparent);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  backdrop-filter: blur(20px) saturate(180%);
+  background: var(--etu-surface);
+}
+/* Frosted variant only where BOTH blur and color-mix parse -- otherwise the
+ * 85%-alpha background would apply without blur (or go invalid -> transparent)
+ * and scrolled content would bleed through the bar. */
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) and
+  (color: color-mix(in srgb, red 50%, transparent)) {
+  .etu-navbar--scrolled {
+    background: color-mix(in srgb, var(--etu-surface) 85%, transparent);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+  }
 }
 
 .etu-navbar-inner {
@@ -2266,7 +2348,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 
 .etu-docs-hub-skill-btn:hover {
   background: var(--etu-surface-2);
-  border-color: var(--etu-accent-soft);
+  border-color: var(--etu-border-strong);
 }
 
 .etu-docs-hub-skill-btn:focus-visible {
@@ -2386,7 +2468,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 }
 .etu-docs-hub-skill-install-cmd {
   flex: 1 1 auto;
-  font-family: var(--etu-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-family: var(--etu-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
   font-size: var(--etu-fs-sm);
   white-space: nowrap;
   color: var(--etu-text);

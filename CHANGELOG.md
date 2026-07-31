@@ -1,5 +1,88 @@
 # Changelog
 
+## 0.42.0
+
+Design-token overhaul (planning#1081) — the neutral ramp, focus ring, page-width
+contract, and a first batch of component polish all land in one release.
+
+### Token layer
+
+- Neutral ramp rebuilt to follow the [Radix Colors](https://www.radix-ui.com/colors)
+  scale steps (`bg`=1, `surface`=2, `surface-2`=3, `surface-3`=4/5), adding
+  `--etu-surface-3` and `--etu-border-strong`. Dark values are Radix `slateDark`;
+  dark-mode borders are white-alpha so they self-adjust to whatever surface sits
+  beneath (in-page cards use borders, not shadows — `--etu-shadow`/`-sm` are
+  reserved for true overlays: palette, dialogs, menus).
+- New `--etu-warn` status token (+ `--etu-warn-soft`), alongside existing `--etu-ok`
+  / `--etu-err`.
+- Derived tints (`--etu-accent-strong`, `--etu-accent-text`, `--etu-accent-soft`,
+  `--etu-ok/-warn/-err-soft`) each ship a **solid default**, then re-derive via
+  `color-mix(in oklab, …)` inside an `@supports (color: color-mix(...))` gate —
+  overriding a base token (e.g. `--etu-accent`) cascades into every tint on
+  capable engines, and old WebViews/kiosk Safari fall through to the solid
+  palette instead of going invalid-and-transparent.
+- New `--etu-ring` focus token, deliberately **solid** `var(--etu-accent)` —
+  excluded from the `color-mix()` gate on purpose so `focus-visible` outlines
+  never lose WCAG 1.4.11 contrast.
+
+### Type scale + font loading
+
+- `--etu-fs-caption` … `--etu-fs-3xl` type scale, `--etu-lh` / `--etu-lh-tight`,
+  `--etu-fw-medium` / `-semibold` / `-bold`.
+- `--etu-font` now leads with `"Pretendard Variable"`. The library still doesn't
+  bundle the font — README documents the Vite (`pretendard` package CSS import)
+  and Next.js (`next/font/local` + the package's `woff2`) loading recipes.
+  `pretendard` (`>=1.3.9`) is an **optional peer dependency**.
+- `:lang(ko)` tracking correction (`-0.011em`) scoped to Korean-tagged documents
+  so Latin/numeral-heavy EN UIs stay at `0`.
+
+### Spacing, motion, radius scales
+
+- `--etu-space-1` (4px) … `--etu-space-8` (64px).
+- `--etu-t-fast` (120ms), `--etu-t` (160ms), `--etu-ease`.
+- `--etu-r-sm` / `--etu-r` / `--etu-r-lg` / `--etu-r-full` (unchanged values,
+  now documented as the formal radius scale).
+
+### Page-width contract
+
+- `--etu-page-w-narrow` (520px) / `--etu-page-w` (680px) / `--etu-page-w-wide`
+  (1080px) back the new `.etu-page-col` (+ `--narrow` / `--wide` modifiers)
+  utility — a centered reading-width column, physical-margin fallback before
+  the logical `margin-inline`/`padding-inline` properties for older engines.
+  Fixes the "content floats in a huge dark void" failure mode on wide
+  viewports. `BackofficeLayout` and `ErrorPage` are now width-constrained via
+  this contract instead of stretching full-bleed.
+
+### New utilities
+
+`.etu-h1` / `.etu-h2` / `.etu-h3` (headings), `.etu-caption` (muted small text),
+`.etu-tnum` (tabular numerals), `.etu-badge` (+ `--accent` / `--ok` / `--warn` /
+`--err` modifiers — soft-tint status/label pills).
+
+### Component polish
+
+- `focus-visible` outlines (`--etu-ring`) added consistently across interactive
+  components that were missing them.
+- Interactive controls (buttons, inputs) standardized to a 40px height floor.
+- In-page elevation switched from shadows to `--etu-border` / `--etu-border-strong`
+  across cards/panels (dark-mode borders are white-alpha, see above).
+- `DeployInfo`, `RelTime` (`.etu-tnum`), and `DataTable` numeric cells now set
+  `font-variant-numeric: tabular-nums` so live-updating digits don't jitter
+  row/column width.
+
+### Bugfixes
+
+- `--etu-dim` / `--etu-border-subtle` — components referencing these
+  now-undefined tokens fall back correctly instead of resolving to `unset`.
+- `--etu-accent-on` typo (the token is `--etu-on-accent`) and `--etu-font-mono`
+  typo (the token is `--etu-mono`) fixed at both call sites.
+
+### Showcase
+
+- New `design-tokens` registry entry + `TokensSection` badge/page-width demos
+  now use the shipped `.etu-badge` classes instead of a showcase-private demo
+  class.
+
 ## 0.41.0
 
 `body.etu-page` — opt-in page-shell paint (`margin: 0; background: var(--etu-bg);

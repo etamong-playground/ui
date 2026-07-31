@@ -138,6 +138,12 @@ export const registry: Record<string, FeatureEntry> = {
     since: "0.28.0",
     src: "src/i18n.tsx",
   },
+  "design-tokens": {
+    label: "Design Tokens (v0.42 overhaul)",
+    exports: [],
+    since: "0.42.0",
+    src: "src/styles.css",
+  },
 };
 
 const GITHUB_BASE = "https://github.com/etamong-playground/ui";
@@ -190,4 +196,5 @@ export const featureRoute: Record<string, string> = {
   "navigation-bar": "#/chrome",
   "data-table": "#/data",
   "i18n": "#/chrome",
+  "design-tokens": "#/tokens",
 };
