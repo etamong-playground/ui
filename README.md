@@ -69,6 +69,15 @@ Helper-only entry (no React, safe for build-time / non-React runtimes):
 `crossLocaleKeywords`, `shortcutKey`, `noFlashThemeScript`, `getTheme`/`setTheme`,
 `openCommandPalette`, `COMMAND_PALETTE_OPEN_EVENT`, `CODE_TO_KEY`.
 
+Test-only entry: `import { … } from "@etamong-playground/ui/testing"` — viewport-fit
+assertions, MSW handlers for the fleet's standard `/me` + `/healthz` + httperr shapes,
+and a Playwright `fleetTest` fixture (ko-KR + Asia/Seoul + canonical viewport). `msw`
+and `@playwright/test` are **not** declared as peer dependencies — they're not needed
+to consume the main entry, and declaring them (even as optional peers) drags them into
+some tools' production dependency reports. Install whichever one you actually import
+as your own devDependency; this entry is tree-shaken per-import so an app that only
+uses the MSW helpers never needs Playwright installed, and vice versa.
+
 ## Where to mount the hosts (Next vs Vite)
 
 `<Toaster />`, `<DialogHost />`, and `<CommandPalette />` use React state and
