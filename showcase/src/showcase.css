@@ -689,36 +689,7 @@ body {
   border: 1px solid var(--etu-accent, #5b6af8);
 }
 
-/* ── Tokens section: badges + tabular numerals ────────── */
-
-.sc-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 10px;
-  border-radius: var(--etu-r-full, 999px);
-  font-size: 0.78rem;
-  font-weight: 500;
-}
-
-.sc-badge--accent {
-  background: var(--etu-accent-soft);
-  color: var(--etu-accent-text, var(--etu-accent));
-}
-
-.sc-badge--ok {
-  background: var(--etu-ok-soft);
-  color: var(--etu-ok);
-}
-
-.sc-badge--warn {
-  background: var(--etu-warn-soft);
-  color: var(--etu-warn);
-}
-
-.sc-badge--err {
-  background: var(--etu-err-soft);
-  color: var(--etu-err);
-}
+/* ── Tokens section: tabular numerals ─────────────────── */
 
 .sc-tnum-demo {
   font-size: 0.95rem;

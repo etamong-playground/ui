@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useT } from "@etamong-playground/ui";
+import { FeatureTag } from "../FeatureTag";
 
 interface TokenRow {
   name: string;
@@ -119,6 +120,7 @@ export function TokensSection() {
       <div className="sc-card">
         <div className="sc-card-header">
           <span>Neutrals</span>
+          <FeatureTag id="design-tokens" />
         </div>
         <PaletteRow tokens={NEUTRAL_TOKENS} values={values} />
       </div>
@@ -173,18 +175,18 @@ export function TokensSection() {
 
       <div className="sc-card">
         <div className="sc-card-header">
-          <span>Soft tints + <code>.etu-caption</code> / <code>.etu-tnum</code></span>
+          <span><code>.etu-badge</code> + <code>.etu-caption</code> / <code>.etu-tnum</code></span>
         </div>
         <p className="sc-card-body">
-          Status badges pair a <code>-soft</code> background with the matching solid
-          text color; the counter uses <code>.etu-tnum</code> (tabular-nums) so it
-          doesn't jitter the row width as digits change.
+          <code>.etu-badge--accent/ok/warn/err</code> pair a <code>-soft</code> background
+          with the matching solid text color; the counter uses <code>.etu-tnum</code>
+          (tabular-nums) so it doesn't jitter the row width as digits change.
         </p>
         <div className="sc-demo-row sc-demo-row--wrap">
-          <span className="sc-badge sc-badge--accent">accent-soft</span>
-          <span className="sc-badge sc-badge--ok">ok-soft</span>
-          <span className="sc-badge sc-badge--warn">warn-soft</span>
-          <span className="sc-badge sc-badge--err">err-soft</span>
+          <span className="etu-badge etu-badge--accent">accent-soft</span>
+          <span className="etu-badge etu-badge--ok">ok-soft</span>
+          <span className="etu-badge etu-badge--warn">warn-soft</span>
+          <span className="etu-badge etu-badge--err">err-soft</span>
           <span className="etu-caption">.etu-caption label text</span>
           <span className="etu-tnum sc-tnum-demo">01,234,567</span>
         </div>

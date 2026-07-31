@@ -158,9 +158,14 @@ Semantic tokens, grouped:
 | Motion | `--etu-t-fast` (120ms), `--etu-t` (160ms), `--etu-ease` |
 | Elevation | `--etu-shadow-sm`, `--etu-shadow` |
 
-**Color-mix cascade**: every `-soft` tint and `--etu-ring` default to
-`color-mix(in oklab, <base> X%, <etu-bg|transparent>)` over the semantic base.
-Override just the base — e.g. to theme to a shadcn app's palette:
+**Color-mix cascade**: `--etu-accent-strong`, `--etu-accent-text`,
+`--etu-accent-soft`, and the `--etu-ok/-warn/-err-soft` tints all ship a
+**solid default** (an explicit hex per theme). On engines that support
+`color-mix()`, an `@supports (color: color-mix(in oklab, red 50%,
+transparent))` block re-derives every one of those tokens as
+`color-mix(in oklab, <base> X%, <etu-bg|black|white>)` over the semantic
+base — so overriding just the base cascades into every derived tint on
+capable engines:
 
 ```css
 :root, .dark {
@@ -171,9 +176,16 @@ Override just the base — e.g. to theme to a shadcn app's palette:
 }
 ```
 
-— and every derived tint (`--etu-accent-soft`, `--etu-ring`, …) follows
-automatically. Pin a `-soft` variable directly instead if you want an exact
-tint rather than the mixed value.
+— and every derived tint (`--etu-accent-soft`, `--etu-accent-strong`, …)
+follows automatically wherever `color-mix()` is supported. On engines
+without it (old WebViews, kiosk Safari), the tints stay pinned at the solid
+default palette rather than going invalid-and-transparent. Pin a `-soft`
+variable directly instead if you want an exact tint regardless of engine.
+
+**`--etu-ring` is always solid** — `var(--etu-accent)`, never `color-mix()`.
+Focus outlines need reliable ≥3:1 contrast (WCAG 1.4.11), so the ring is
+deliberately excluded from the `@supports` gate and can never silently
+vanish on an engine without `color-mix()` support.
 
 **Elevation discipline**: in-page surfaces (cards, panels) use `--etu-border` /
 `--etu-border-strong`, never a shadow — dark-mode borders are white-alpha so
@@ -191,7 +203,23 @@ named token.
 Utility classes built on the scale: `.etu-h1` / `.etu-h2` / `.etu-h3`
 (headings), `.etu-caption` (muted small text), `.etu-tnum` (tabular numerals —
 see "Typography" below), `.etu-page-col` (+ `--narrow` / `--wide` modifiers, a
-centered reading-width column).
+centered reading-width column), `.etu-badge` (soft-tint status/label pill).
+
+**`.etu-badge`**: a pill for inline status/label text — pairs a `-soft`
+background with the matching solid text color.
+
+```tsx
+<span className="etu-badge">default</span>
+<span className="etu-badge etu-badge--accent">accent</span>
+<span className="etu-badge etu-badge--ok">ok</span>
+<span className="etu-badge etu-badge--warn">warn</span>
+<span className="etu-badge etu-badge--err">err</span>
+```
+
+Bare `.etu-badge` (no modifier) uses `--etu-surface-2` / `--etu-text-muted` —
+a neutral pill for non-status labels. The four modifiers
+(`--accent` / `--ok` / `--warn` / `--err`) each pair the matching `-soft`
+background token with its solid text token.
 
 For apps using the `[data-theme]` dark-mode convention, set the theme before
 first paint to avoid a flash:
@@ -203,6 +231,23 @@ import { noFlashThemeScript } from "@etamong-playground/ui/helpers";
 ```
 
 `getTheme("myapp")` / `setTheme("myapp", "dark")` read and toggle it.
+
+### Behavioral notes for 0.42
+
+Visible changes an app might notice after bumping to 0.42, without any code
+change on the app's side:
+
+- **`body.etu-page` now sets `line-height: 1.55`** (`--etu-lh`), not the
+  browser default (~1.2). Apps opted into `.etu-page` get slightly taller
+  line boxes throughout.
+- **Status / policy banner ambers moved to the `--etu-warn` token.** Any
+  component that previously hardcoded an amber/orange now reads
+  `--etu-warn` / `--etu-warn-soft`, so overriding `--etu-warn` re-themes
+  them consistently.
+- **Focus rings are solid.** `--etu-ring` is new in 0.42 and pins to
+  `var(--etu-accent)` unconditionally, never a `color-mix()` tint (see
+  "Color-mix cascade" above) — outlines stay at reliable ≥3:1 contrast and
+  never disappear on engines without `color-mix()`.
 
 ## Typography
 
@@ -231,7 +276,7 @@ the `pretendard` npm package, and wire its CSS variable into `--etu-font`:
 import localFont from "next/font/local";
 
 export const pretendard = localFont({
-  src: "../node_modules/pretendard/dist/public/variable/PretendardVariable.woff2",
+  src: "../node_modules/pretendard/dist/web/variable/woff2/PretendardVariable.woff2",
   variable: "--font-pretendard",
   display: "swap",
 });
