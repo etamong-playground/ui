@@ -12,7 +12,7 @@ safe go-to shortcuts, **toast + dialog** notification primitives, and the
 `app-notifications`, `build-version-info`).
 
 Published to GitHub Packages; consumed by all app
-frontends. **Current: v0.32.** Releasing + consuming are documented at the bottom.
+frontends. **Current: v0.42.** Releasing + consuming are documented at the bottom.
 
 Works in both house stacks — Next.js (React 19) and Vite + apiserver (React 18).
 React/ReactDOM are peer deps.
@@ -135,21 +135,63 @@ It's a scoped `body.etu-page` class, never a bare `body {}` rule — the library
 safe to import into any app, including shadcn/Tailwind apps that already own their
 own `body` styling. Skip the class if your app paints its own page background.
 
-The command palette is styled from **namespaced `--etu-*` tokens** (light
-defaults on `:root`, dark under either `[data-theme="dark"]` or the `.dark`
-class) — deliberately prefixed so this file is safe to import into any app,
-including shadcn/Tailwind apps that already own `--accent`/`--border`/`--ring`.
-To theme the palette to your app, map a few `--etu-*` vars onto your own tokens:
+Every component is styled from **namespaced `--etu-*` tokens** (light defaults
+on `:root`, dark under either `[data-theme="dark"]` (Vite convention) or the
+`.dark` class (Next/shadcn convention)) — deliberately prefixed so this file is
+safe to import into any app, including shadcn/Tailwind apps that already own
+`--accent`/`--border`/`--ring`.
+
+### The token system (v0.42 overhaul — planning#1081)
+
+Semantic tokens, grouped:
+
+| Group | Tokens |
+|---|---|
+| Neutrals | `--etu-bg`, `--etu-surface`, `--etu-surface-2`, `--etu-surface-3`, `--etu-border`, `--etu-border-strong`, `--etu-text`, `--etu-text-muted`, `--etu-text-subtle` |
+| Accent | `--etu-accent`, `--etu-accent-strong`, `--etu-accent-text`, `--etu-on-accent`, `--etu-accent-soft` |
+| Status | `--etu-ok`, `--etu-warn`, `--etu-err` (+ `--etu-danger` alias), each with a `-soft` tint |
+| Focus | `--etu-ring` — the `focus-visible` outline color |
+| Radius | `--etu-r-sm` (8px), `--etu-r` (12px), `--etu-r-lg` (16px), `--etu-r-full` (999px) |
+| Type scale | `--etu-fs-caption` … `--etu-fs-3xl`, `--etu-lh` / `--etu-lh-tight`, `--etu-fw-medium` / `-semibold` / `-bold` |
+| Spacing | `--etu-space-1` (4px) … `--etu-space-8` (64px) |
+| Page-width | `--etu-page-w-narrow` (520px), `--etu-page-w` (680px), `--etu-page-w-wide` (1080px) — backs `.etu-page-col` |
+| Motion | `--etu-t-fast` (120ms), `--etu-t` (160ms), `--etu-ease` |
+| Elevation | `--etu-shadow-sm`, `--etu-shadow` |
+
+**Color-mix cascade**: every `-soft` tint and `--etu-ring` default to
+`color-mix(in oklab, <base> X%, <etu-bg|transparent>)` over the semantic base.
+Override just the base — e.g. to theme to a shadcn app's palette:
 
 ```css
-/* shadcn app: */
 :root, .dark {
+  --etu-accent: var(--primary);
   --etu-surface: var(--popover);
   --etu-border: var(--border);
   --etu-text: var(--popover-foreground);
-  --etu-accent-soft: var(--accent);
 }
 ```
+
+— and every derived tint (`--etu-accent-soft`, `--etu-ring`, …) follows
+automatically. Pin a `-soft` variable directly instead if you want an exact
+tint rather than the mixed value.
+
+**Elevation discipline**: in-page surfaces (cards, panels) use `--etu-border` /
+`--etu-border-strong`, never a shadow — dark-mode borders are white-alpha so
+they read correctly on whatever surface sits beneath. `--etu-shadow-sm` /
+`--etu-shadow` are reserved for true overlays: the command palette, dialogs,
+menus.
+
+**Radix-steps mapping**: the neutral ramp follows the
+[Radix Colors](https://www.radix-ui.com/colors) scale steps — `bg`=step 1,
+`surface`=step 2, `surface-2`=step 3, `surface-3`=steps 4/5 (hover/raised),
+`text-subtle`=step 10, `text-muted`=step 11, `text`=step 12. Dark values are
+Radix `slateDark`. Useful when picking an in-between shade that isn't already a
+named token.
+
+Utility classes built on the scale: `.etu-h1` / `.etu-h2` / `.etu-h3`
+(headings), `.etu-caption` (muted small text), `.etu-tnum` (tabular numerals —
+see "Typography" below), `.etu-page-col` (+ `--narrow` / `--wide` modifiers, a
+centered reading-width column).
 
 For apps using the `[data-theme]` dark-mode convention, set the theme before
 first paint to avoid a flash:
@@ -161,6 +203,59 @@ import { noFlashThemeScript } from "@etamong-playground/ui/helpers";
 ```
 
 `getTheme("myapp")` / `setTheme("myapp", "dark")` read and toggle it.
+
+## Typography
+
+`--etu-font` leads with `"Pretendard Variable"` but does **not bundle it** — the
+library stays safe to import into any app without forcing a webfont download on
+apps that already ship their own. Apps that want the etamong look load
+Pretendard themselves, **before** the ui styles import so it wins the cascade:
+
+**Vite apps:**
+
+```sh
+pnpm add pretendard
+```
+
+```ts
+// main.tsx — BEFORE the ui styles import
+import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
+import "@etamong-playground/ui/styles.css";
+```
+
+**Next.js apps** — use `next/font/local` with the variable woff2 shipped inside
+the `pretendard` npm package, and wire its CSS variable into `--etu-font`:
+
+```ts
+// fonts.ts
+import localFont from "next/font/local";
+
+export const pretendard = localFont({
+  src: "../node_modules/pretendard/dist/public/variable/PretendardVariable.woff2",
+  variable: "--font-pretendard",
+  display: "swap",
+});
+```
+
+```css
+:root {
+  --etu-font: var(--font-pretendard), "Pretendard Variable", -apple-system, …;
+}
+```
+
+`pretendard` is an **optional peer dependency** (`>=1.3.9`) — declaring it in
+your app keeps the resolved version aligned with what the library was built
+against, but nothing breaks if you skip it; you just fall through to system
+fonts.
+
+**Korean tracking correction**: Hangul webfont spacing runs wide at default
+tracking; `body.etu-page:lang(ko)` applies `-0.011em` letter-spacing, scoped to
+`:lang(ko)` so Latin/numeral-heavy EN UIs stay at `0`. Set `<html lang="ko">`
+(or a per-element `lang="ko"`) for the correction to apply.
+
+**Data numerals**: use `.etu-tnum` (`font-variant-numeric: tabular-nums`) on any
+data-bearing numeral — timers, fares, counters, table cells — so live updates
+don't shift the surrounding layout width.
 
 ## Command palette
 
