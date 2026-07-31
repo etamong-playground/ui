@@ -206,6 +206,9 @@ body.etu-page {
  * invalid-and-transparent. Tints are bg-relative by design: a flat solid
  * calibrated against --etu-bg, not a translucent overlay. */
 @supports (color: color-mix(in oklab, red 50%, transparent)) {
+  /* ORDER MATTERS: for .dark-only apps every selector here ties at (0,1,0),
+   * so dark must stay AFTER light within this gate or .dark apps regress to
+   * light-derived tints. */
   :root {
     --etu-accent-strong: color-mix(in oklab, var(--etu-accent) 88%, black);
     --etu-accent-text: color-mix(in oklab, var(--etu-accent) 80%, black);
@@ -1154,20 +1157,12 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 }
 
 /* Backoffice scaffold — gate + badge + page-head layout. */
+/* Composes .etu-badge .etu-badge--accent (set in the component); only the
+ * admin-specific tweaks live here. */
 .etu-admin-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.15rem var(--etu-space-2);
   border: none;
-  border-radius: var(--etu-r-full);
-  background: var(--etu-accent-soft);
-  color: var(--etu-accent-text);
-  font-size: var(--etu-fs-caption);
-  font-weight: var(--etu-fw-semibold);
   letter-spacing: 0.01em;
   vertical-align: middle;
-  line-height: 1.2;
 }
 
 .etu-backoffice {
@@ -1772,9 +1767,11 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
  * ------------------------------------------------------------------------- */
 
 .etu-glass {
+  background: var(--etu-surface);
   background: color-mix(in srgb, var(--etu-surface) 65%, transparent);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   backdrop-filter: blur(24px) saturate(180%);
+  border: 0.5px solid var(--etu-border);
   border: 0.5px solid color-mix(in srgb, var(--etu-text) 10%, transparent);
 }
 
@@ -1797,6 +1794,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   border-left: 0;
   border-right: 0;
   border-top: 0;
+  border-bottom: 1px solid var(--etu-border);
   border-bottom: 1px solid color-mix(in srgb, var(--etu-text) 8%, transparent);
   opacity: 0.92;
   transition: opacity var(--etu-t) var(--etu-ease), border-color var(--etu-t) var(--etu-ease), background var(--etu-t) var(--etu-ease);
@@ -2161,6 +2159,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   font-family: var(--etu-font);
   font-size: var(--etu-fs-sm);
   line-height: 1.3;
+  border-bottom: 1px solid var(--etu-border);
   border-bottom: 1px solid color-mix(in srgb, currentColor 22%, transparent);
 }
 
@@ -2205,18 +2204,18 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 
 /* Degraded (warning): amber */
 .etu-status-banner-degraded {
-  background: color-mix(in srgb, var(--etu-warn) 20%, var(--etu-bg));
-  color: color-mix(in srgb, var(--etu-warn) 80%, var(--etu-text));
+  background: var(--etu-warn-soft);
+  color: var(--etu-warn);
 }
 /* Maintenance (planned): muted accent */
 .etu-status-banner-maintenance {
-  background: color-mix(in srgb, var(--etu-accent) 18%, var(--etu-bg));
-  color: color-mix(in srgb, var(--etu-accent) 75%, var(--etu-text));
+  background: var(--etu-accent-soft);
+  color: var(--etu-accent-text);
 }
 /* Outage shouldn't reach here, but if a caller forces it, render danger-coloured */
 .etu-status-banner-outage {
-  background: color-mix(in srgb, var(--etu-err) 22%, var(--etu-bg));
-  color: color-mix(in srgb, var(--etu-err) 80%, var(--etu-text));
+  background: var(--etu-err-soft);
+  color: var(--etu-err);
 }
 
 @media (max-width: 480px) {
@@ -2240,15 +2239,15 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   font-family: var(--etu-font);
   font-size: var(--etu-fs-sm);
   line-height: 1.3;
-  background: color-mix(in srgb, var(--etu-warn) 18%, var(--etu-bg));
-  color: color-mix(in srgb, var(--etu-warn) 82%, var(--etu-text));
-  border-bottom: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  background: var(--etu-warn-soft);
+  color: var(--etu-warn);
+  border-bottom: 1px solid var(--etu-border);
 }
 
 /* Adverse (불리/중대): danger-coloured for stronger emphasis. */
 .etu-policy-change-banner--adverse {
-  background: color-mix(in srgb, var(--etu-err) 20%, var(--etu-bg));
-  color: color-mix(in srgb, var(--etu-err) 82%, var(--etu-text));
+  background: var(--etu-err-soft);
+  color: var(--etu-err);
   font-weight: var(--etu-fw-medium);
 }
 
@@ -2673,6 +2672,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
     position: fixed;
     inset: 0;
     z-index: 49;
+    background: rgba(0, 0, 0, 0.4);
     background: color-mix(in srgb, var(--etu-text) 32%, transparent);
     backdrop-filter: blur(2px);
   }
@@ -2722,6 +2722,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   transition: background var(--etu-t-fast) var(--etu-ease);
 }
 .etu-sidebar-toggle:hover {
+  background: var(--etu-surface-3);
   background: color-mix(in srgb, var(--etu-text) 8%, transparent);
 }
 .etu-sidebar-toggle:focus-visible {
@@ -2752,6 +2753,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   }
 }
 .etu-sidebar-rail-toggle:hover {
+  background: var(--etu-surface-3);
   background: color-mix(in srgb, var(--etu-text) 8%, transparent);
 }
 .etu-sidebar-rail-toggle:focus-visible {

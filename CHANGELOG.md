@@ -83,6 +83,26 @@ contract, and a first batch of component polish all land in one release.
   now use the shipped `.etu-badge` classes instead of a showcase-private demo
   class.
 
+### Round-2 review fixes
+
+- `.etu-navbar--scrolled` frosted background (`color-mix()` + `backdrop-filter`
+  blur) is now gated behind a combined `@supports` check (backdrop-filter OR
+  its `-webkit-` prefix, AND `color-mix()`); elsewhere it falls back to a
+  solid `var(--etu-surface)` background instead of risking a translucent
+  background with no blur.
+- Radius bumped on overlay/card surfaces: dialog + `ErrorPage` card
+  `--etu-r-lg` 12px → 16px; `UserMenu` dropdown + `NotificationBell` popover
+  `--etu-r` 9.6px → 12px.
+- `StatusBanner` and the install/policy banner family now read the shared
+  `--etu-warn-soft` / `--etu-accent-soft` / `--etu-err-soft` tokens (solid
+  text colors) instead of a private inline `color-mix()`, so overriding the
+  base warn/accent/err tokens re-themes them too.
+- `AdminBadge` now composes `etu-badge etu-badge--accent etu-admin-badge`
+  instead of a private style block.
+- Solid-first double declarations added for the remaining ungated
+  `color-mix()` surfaces, so engines without `color-mix()` support fall
+  through to a solid color instead of resolving invalid-and-transparent.
+
 ## 0.41.0
 
 `body.etu-page` — opt-in page-shell paint (`margin: 0; background: var(--etu-bg);

@@ -72,7 +72,7 @@ export interface AdminBadgeProps {
 export function AdminBadge({ label = "관리자 전용", className }: AdminBadgeProps) {
   return (
     <span
-      className={"etu-admin-badge" + (className ? " " + className : "")}
+      className={"etu-badge etu-badge--accent etu-admin-badge" + (className ? " " + className : "")}
       title={label}
     >
       <DefaultLockIcon />
