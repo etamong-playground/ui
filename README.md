@@ -158,6 +158,10 @@ Semantic tokens, grouped:
 | Motion | `--etu-t-fast` (120ms), `--etu-t` (160ms), `--etu-ease` |
 | Elevation | `--etu-shadow-sm`, `--etu-shadow` |
 
+The top rungs of the type and spacing scales (`--etu-fs-3xl`, `--etu-space-8`)
+round out the scale for app-facing use (page titles, section gutters) — no
+library component consumes them directly.
+
 **Color-mix cascade**: `--etu-accent-strong`, `--etu-accent-text`,
 `--etu-accent-soft`, and the `--etu-ok/-warn/-err-soft` tints all ship a
 **solid default** (an explicit hex per theme). On engines that support
@@ -248,6 +252,24 @@ change on the app's side:
   `var(--etu-accent)` unconditionally, never a `color-mix()` tint (see
   "Color-mix cascade" above) — outlines stay at reliable ≥3:1 contrast and
   never disappear on engines without `color-mix()`.
+- **Radius bumped on a few overlay/card surfaces.** The dialog and
+  `ErrorPage` card move `--etu-r-lg` from 12px → 16px; the `UserMenu`
+  dropdown and `NotificationBell` popover move `--etu-r` from 9.6px → 12px.
+  Purely visual — no markup/class changes.
+- **Navbar frosted/scrolled state is now `@supports`-gated.** The
+  translucent `background: color-mix(...)` + `backdrop-filter` blur on
+  `.etu-navbar--scrolled` only apply when the engine supports **both**
+  `backdrop-filter` (or its `-webkit-` prefix) **and** `color-mix()`.
+  Elsewhere it falls back to a solid `var(--etu-surface)` background —
+  previously a partial-support engine could apply the translucent
+  background without the blur and let scrolled content bleed through.
+- **Status/policy banners now consume the shared soft tints.** `StatusBanner`
+  (degraded/maintenance/outage) and the install/policy banner family read
+  `--etu-warn-soft` / `--etu-accent-soft` / `--etu-err-soft` instead of a
+  private inline `color-mix()`. The percentages differ slightly from the old
+  ad hoc mixes (10–16% depending on token/theme, see "Color-mix cascade"
+  above) but track the same base tokens, so an app overriding
+  `--etu-warn`/`--etu-accent`/`--etu-err` now re-themes the banners too.
 
 ## Typography
 
@@ -293,10 +315,27 @@ your app keeps the resolved version aligned with what the library was built
 against, but nothing breaks if you skip it; you just fall through to system
 fonts.
 
+**Fonts**: the showcase (this is a public repo) bundles a Pretendard
+Variable subset woff2 via the `pretendard` npm package. Pretendard is
+licensed under the SIL Open Font License 1.1; the full license text ships at
+`showcase/public/PRETENDARD-OFL.txt` (and is served at `/PRETENDARD-OFL.txt`
+in the deployed showcase).
+
 **Korean tracking correction**: Hangul webfont spacing runs wide at default
-tracking; `body.etu-page:lang(ko)` applies `-0.011em` letter-spacing, scoped to
-`:lang(ko)` so Latin/numeral-heavy EN UIs stay at `0`. Set `<html lang="ko">`
-(or a per-element `lang="ko"`) for the correction to apply.
+tracking, so the stylesheet applies `-0.011em` letter-spacing, scoped to
+`:lang(ko)` so Latin/numeral-heavy EN UIs stay at `0`. It applies in **two
+independent ways**, both driven off the document's `lang`, not each other:
+
+1. **Opt-in on the page shell** — `body.etu-page:lang(ko)`. Only fires for
+   apps that opted into `body.etu-page` (see "Design tokens" above).
+2. **Always-on for library components** — `:lang(ko)` scoped to the command
+   palette, toast, dialog, install banner, error page, navbar, sidebar,
+   mobile tab bar, backoffice, `UserMenu` dropdown, `NotificationBell`
+   popover, and `DocsHub`. These get the correction whenever the document is
+   `:lang(ko)`, whether or not the app uses `body.etu-page`.
+
+Set `<html lang="ko">` (or a per-element `lang="ko"`) for either path to
+apply.
 
 **Data numerals**: use `.etu-tnum` (`font-variant-numeric: tabular-nums`) on any
 data-bearing numeral — timers, fares, counters, table cells — so live updates
@@ -1150,6 +1189,10 @@ if (isAdminLike({ me, emails: ADMIN_EMAILS })) router.push("/admin");
 `<BackofficeLayout>` renders the `<AdminBadge>` next to the title by
 default. Pass `badge={null}` to hide it, or `badge={<CustomBadge />}` to
 override.
+
+`<AdminBadge>` composes the shared badge classes — `etu-badge
+etu-badge--accent etu-admin-badge` — rather than a private style block, so it
+picks up any app-level `.etu-badge` overrides automatically.
 
 ## AppInfoSection (canonical "앱 정보" card)
 

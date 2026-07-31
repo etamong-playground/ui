@@ -112,8 +112,12 @@ export function TokensSection() {
         <p>
           The v0.42 token system, read live off <code>getComputedStyle</code> — toggle
           theme (sidebar footer / nav bar) to see every value below update. Override{" "}
-          <code>--etu-accent</code> on your app root and every <code>-soft</code> tint and{" "}
-          <code>--etu-ring</code> cascade with it via <code>color-mix()</code>.
+          <code>--etu-accent</code> on your app root and every <code>-soft</code> /{" "}
+          <code>-strong</code> / <code>-text</code> tint cascades with it via{" "}
+          <code>color-mix()</code> where supported.{" "}
+          <code>--etu-ring</code> is a solid <code>var(--etu-accent)</code> passthrough
+          (for WCAG focus-ring contrast), so it follows accent overrides 1:1 but is never
+          itself mixed.
         </p>
       </div>
 
