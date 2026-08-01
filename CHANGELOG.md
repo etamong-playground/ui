@@ -2,6 +2,11 @@
 
 ## 0.45.0
 
+- New `.etu-input` class recipe (+ `.etu-input--sm` modifier): the generic
+  standalone text field, promoted from meloetta's local `.input` recipe
+  (planning#1116 follow-up). Border/background/focus-ring only — layout stays
+  with the caller, matching the `.etu-badge` recipe philosophy.
+
 Two rail/mobile reachability bugs found adopting v0.44 across the fleet
 (planning#1150, planning#1151) — both the same story: the bell and the
 account menu must actually be reachable in the collapsed rail and on

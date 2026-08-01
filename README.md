@@ -218,7 +218,17 @@ named token.
 Utility classes built on the scale: `.etu-h1` / `.etu-h2` / `.etu-h3`
 (headings), `.etu-caption` (muted small text), `.etu-tnum` (tabular numerals —
 see "Typography" below), `.etu-page-col` (+ `--narrow` / `--wide` modifiers, a
-centered reading-width column), `.etu-badge` (soft-tint status/label pill).
+centered reading-width column), `.etu-badge` (soft-tint status/label pill),
+`.etu-input` (+ `--sm`, standalone text field).
+
+**`.etu-input`**: the standalone text field (promoted from meloetta). Carries
+border/background/focus-ring styling only — width and layout (flex, max-width)
+stay with the caller. `--sm` is the compact modifier for dense toolbars.
+
+```tsx
+<input className="etu-input" placeholder="Setlist name" />
+<input className="etu-input etu-input--sm" />
+```
 
 **`.etu-badge`**: a pill for inline status/label text — pairs a `-soft`
 background with the matching solid text color.
