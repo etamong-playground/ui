@@ -239,7 +239,7 @@ body.etu-page:lang(ko),
 :lang(ko) :is(.etu-cmdk, .etu-toast, .etu-dialog, .etu-install-banner,
     .etu-error-page, .etu-navbar, .etu-sidebar, .etu-mobile-tab-bar,
     .etu-backoffice, .etu-user-menu-dropdown, .etu-notif-bell-popover,
-    .etu-docs-hub) {
+    .etu-docs-hub, .etu-push-row) {
   letter-spacing: -0.011em;
 }
 
@@ -837,6 +837,107 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 .etu-install-banner-close:hover {
   background: var(--etu-surface-2);
   color: var(--etu-text);
+}
+
+/* ----------------------------------------------------------------------------
+ * PushEnableRow (<PushEnableRow />, planning#1140)
+ * One presentational row, used both inside <NotificationBell>'s popover
+ * (via its `push` prop) and standalone on a settings page. Never a banner —
+ * see the "NO banner" rule in the design doc; this is an inline row sized
+ * to sit where the user already showed intent.
+ * ------------------------------------------------------------------------- */
+
+.etu-push-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: var(--etu-space-3);
+  font-family: var(--etu-font);
+}
+
+.etu-push-row--enable,
+.etu-push-row--install,
+.etu-push-row--denied {
+  border-bottom: 1px solid var(--etu-border);
+  background: var(--etu-surface-2);
+}
+
+.etu-push-row--granted {
+  align-items: center;
+  color: var(--etu-text-muted);
+}
+
+.etu-push-row-icon {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  color: var(--etu-accent);
+  display: inline-flex;
+}
+
+.etu-push-row--granted .etu-push-row-icon {
+  margin-top: 0;
+}
+
+.etu-push-row--denied .etu-push-row-icon {
+  color: var(--etu-text-subtle);
+}
+
+.etu-push-row-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.etu-push-row-title {
+  margin: 0;
+  font-size: var(--etu-fs-sm);
+  font-weight: var(--etu-fw-semibold);
+  color: var(--etu-text);
+}
+
+.etu-push-row-body {
+  margin: 0.15rem 0 0;
+  font-size: var(--etu-fs-caption);
+  color: var(--etu-text-muted);
+  line-height: 1.35;
+}
+
+.etu-push-row--granted .etu-push-row-body {
+  margin: 0;
+  font-size: var(--etu-fs-sm);
+}
+
+.etu-push-row-cta {
+  flex-shrink: 0;
+  align-self: center;
+  min-height: 36px;
+  border: none;
+  border-radius: var(--etu-r-sm);
+  background: var(--etu-accent);
+  color: var(--etu-on-accent);
+  font-family: var(--etu-font);
+  font-size: var(--etu-fs-caption);
+  font-weight: var(--etu-fw-semibold);
+  padding: 0.4rem var(--etu-space-3);
+  cursor: pointer;
+  transition: background var(--etu-t-fast) var(--etu-ease);
+}
+
+.etu-push-row-cta:hover:not([aria-disabled="true"]) {
+  background: var(--etu-accent-strong);
+}
+
+/* `aria-disabled`, not native `disabled` — the button stays focusable
+ * during the async permission request (native `disabled` forces a blur the
+ * instant it applies, dropping keyboard focus into nowhere mid-request).
+ * Re-entrancy is guarded in the click handler instead. */
+.etu-push-row-cta[aria-disabled="true"] {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.etu-push-row-cta:focus-visible {
+  outline: 2px solid var(--etu-ring);
+  outline-offset: 2px;
 }
 
 /* ----------------------------------------------------------------------------
@@ -1704,6 +1805,29 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   box-shadow: 0 0 0 2px var(--etu-surface);
 }
 
+/* Quiet push-setup nudge (planning#1140) — a hollow accent ring, not the
+ * filled danger badge above. Only rendered when `NotificationBell`'s `push`
+ * prop is set and permission is still "default"; disappears the moment the
+ * user decides either way, so it never becomes a recurring nag. */
+.etu-notif-bell-setup-dot {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 9px;
+  height: 9px;
+  /* Every sibling badge/dot in this file avoids `border` (only `box-shadow`,
+   * which doesn't affect box size) specifically to dodge this: without
+   * `border-box`, the 1.5px border adds to the specified width/height,
+   * rendering ~33% larger than intended and off-center from the `top`/
+   * `right` offsets above. */
+  box-sizing: border-box;
+  border-radius: var(--etu-r-full);
+  background: transparent;
+  border: 1.5px solid var(--etu-accent);
+  box-shadow: 0 0 0 2px var(--etu-surface);
+  pointer-events: none;
+}
+
 .etu-notif-bell-popover {
   position: absolute;
   width: min(360px, calc(100vw - 1rem));
@@ -2266,6 +2390,25 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   border-radius: var(--etu-r-full);
   background: var(--etu-danger, #dc2626);
   box-shadow: 0 0 0 2px var(--etu-surface);
+}
+
+/* Quiet push-setup nudge (planning#1140) — same position/collapse behavior
+ * as `.etu-sidebar-item-badge`/`-badge-dot` above (these modifiers ride the
+ * base class, so the existing rail-collapse `display` rules apply for
+ * free), just a hollow ring instead of the filled danger dot/pill.
+ * `box-sizing: border-box` matters here — see `.etu-notif-bell-setup-dot`'s
+ * comment above for why an added `border` needs it. */
+.etu-sidebar-item-badge--setup,
+.etu-sidebar-item-badge-dot--setup {
+  box-sizing: border-box;
+  background: transparent;
+  border: 1.5px solid var(--etu-accent);
+}
+.etu-sidebar-item-badge--setup {
+  min-width: 0.55rem;
+  width: 0.55rem;
+  height: 0.55rem;
+  padding: 0;
 }
 
 .etu-sidebar-footer {

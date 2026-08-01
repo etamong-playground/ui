@@ -1,5 +1,15 @@
 import { useState } from "react";
-import { NotificationBell, toast, uiConfirm, uiPrompt, useT } from "@etamong-playground/ui";
+import {
+  NotificationBell,
+  PushEnableRow,
+  toast,
+  uiConfirm,
+  uiPrompt,
+  useT,
+  usePushPermission,
+  type PushPermissionState,
+  type UsePushPermissionResult,
+} from "@etamong-playground/ui";
 import { FeatureTag } from "../FeatureTag";
 
 const demoBellItems = [
@@ -8,10 +18,35 @@ const demoBellItems = [
   { id: "3", content: <div><strong>새 댓글</strong><div className="sc-muted">어제</div></div> },
 ];
 
+// Illustrative-only — a real app never fabricates a permission result. This
+// mock lets the gallery show every PushEnableRow state side by side, since
+// the live browser can only ever be in one of them at a time.
+function mockPermission(state: PushPermissionState): UsePushPermissionResult {
+  return {
+    state,
+    supported: state !== "unsupported",
+    canPrompt: state === "default",
+    isBlocked: state === "denied",
+    needsInstall: state === "needs-install",
+    prompt: async () => state,
+  };
+}
+
+const STATE_GALLERY: { state: PushPermissionState; label: string }[] = [
+  { state: "default", label: "default — enable affordance" },
+  { state: "needs-install", label: "needs-install — iOS, not yet added to Home Screen" },
+  { state: "denied", label: "denied — re-enable explanation, no button" },
+  { state: "granted", label: "granted (showGrantedConfirmation) — quiet confirmation" },
+  { state: "unsupported", label: "unsupported — renders nothing" },
+];
+
 export function NotificationsSection() {
   const t = useT();
   const [confirmResult, setConfirmResult] = useState<boolean | null>(null);
   const [promptResult, setPromptResult] = useState<string | null | undefined>(undefined);
+  // The real hook — reflects this browser's actual Notification.permission /
+  // iOS-standalone status, same as any consuming app would get.
+  const push = usePushPermission();
 
   return (
     <div className="sc-section">
@@ -42,8 +77,23 @@ export function NotificationsSection() {
           for a plain header/toolbar mount.
         </p>
         <div className="sc-demo-row">
-          <NotificationBell items={demoBellItems} title="알림" placement="bottom-left" />
+          <NotificationBell
+            items={demoBellItems}
+            title="알림"
+            placement="bottom-left"
+            push={{
+              permission: push,
+              onEnabled: () => toast("구독을 등록했어요 (데모)", "ok"),
+            }}
+          />
         </div>
+        <p className="sc-card-body">
+          Click the bell — this browser's real <code>usePushPermission()</code>{" "}
+          state is currently <code>{push.state}</code>. When it's{" "}
+          <code>"default"</code> the popover leads with{" "}
+          <code>{"<PushEnableRow>"}</code> and the trigger carries a hollow
+          setup dot (see below for what every other state looks like).
+        </p>
         <pre className="sc-code">{`// Header/toolbar — standalone trigger (default)
 <NotificationBell items={items} />
 
@@ -53,7 +103,58 @@ export function NotificationsSection() {
 ) }
 
 // Mobile — NavigationBar's trailing edge (sidebar is hidden < 720px)
-<NavigationBar trailing={<NotificationBell items={items} />} />`}</pre>
+<NavigationBar trailing={<NotificationBell items={items} />} />
+
+// Opt-in push-permission affordance (v0.44, planning#1140) — omit \`push\`
+// and NotificationBell is unchanged.
+const push = usePushPermission();
+<NotificationBell
+  items={items}
+  push={{ permission: push, onEnabled: () => subscribeAppSide() }}
+/>`}</pre>
+      </div>
+
+      <div className="sc-card">
+        <div className="sc-card-header">
+          <span>usePushPermission / PushEnableRow</span>
+          <FeatureTag id="push-permission" />
+        </div>
+        <p className="sc-card-body">
+          The same <code>{"<PushEnableRow>"}</code> the bell popover uses
+          above, standalone — this is the settings-page placement. One
+          component, five states, driven entirely by{" "}
+          <code>usePushPermission()</code>'s <code>state</code>. No banner:
+          it's an inline row, meant to sit where intent already exists.
+        </p>
+        <div className="sc-card" style={{ background: "var(--etu-bg)" }}>
+          <div className="sc-card-header">
+            <span>Live — this browser's real state ({push.state})</span>
+          </div>
+          <PushEnableRow permission={push} showGrantedConfirmation />
+        </div>
+        <p className="sc-card-body" style={{ marginTop: "1rem" }}>
+          State gallery (mocked, for illustration — a real app never
+          fabricates a permission result):
+        </p>
+        {STATE_GALLERY.map(({ state, label }) => (
+          <div key={state} className="sc-card" style={{ background: "var(--etu-bg)", marginBottom: "0.6rem" }}>
+            <div className="sc-card-header">
+              <span>{label}</span>
+            </div>
+            <PushEnableRow permission={mockPermission(state)} showGrantedConfirmation />
+            {state === "unsupported" && (
+              <p className="sc-card-body">(renders null — nothing above this line)</p>
+            )}
+          </div>
+        ))}
+        <pre className="sc-code">{`const push = usePushPermission();
+// { state, supported, canPrompt, isBlocked, needsInstall, prompt }
+
+<PushEnableRow
+  permission={push}
+  onEnabled={() => subscribeAppSide()}   // registration.pushManager.subscribe(...) + your own POST
+  showGrantedConfirmation                 // optional quiet "알림이 켜져 있어요"
+/>`}</pre>
       </div>
 
       <div className="sc-card">

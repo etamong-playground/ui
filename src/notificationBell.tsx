@@ -17,16 +17,36 @@
  * `<NavigationBar trailing>` on mobile (the sidebar is hidden below 720px).
  * Never the sidebar footer — that's identity-only now — and never paired
  * with the theme toggle (which lives inside `<UserMenu themeToggle>`).
+ *
+ * **Push-permission affordance (v0.44, planning#1140):** pass the optional
+ * `push` prop to opt into a `<PushEnableRow>` at the top of the popover/sheet
+ * when `push.permission.state === "default"` — the user just opened the
+ * bell, so intent is already demonstrated, no cold interruption. The same
+ * state also drives a quiet hollow-dot indicator on the trigger, distinct
+ * from the filled unread badge (one nudge, not a recurring nag — it
+ * disappears the moment the user decides, either way). Omitting `push`
+ * leaves the component exactly as before.
  */
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { POPOVER_MEASURING_STYLE, usePopoverPosition } from "./popoverPosition";
+import { DEFAULT_SETUP_HINT_LABEL, PushEnableRow, type PushEnableRowLabels } from "./pushEnableRow";
+import type { UsePushPermissionResult } from "./pushPermission";
 import { useViewport } from "./viewport";
 
 export interface NotificationBellItem {
   id: string;
   /** Rendered as a single row in the panel. */
   content: ReactNode;
+}
+
+export interface NotificationBellPushProps {
+  /** Pass through `usePushPermission()`'s result verbatim. */
+  permission: UsePushPermissionResult;
+  /** Fires once permission is newly granted via the row's button — subscribe app-side from here. */
+  onEnabled?: () => void;
+  /** Override the row's copy for any state. */
+  labels?: PushEnableRowLabels;
 }
 
 export interface NotificationBellProps {
@@ -79,9 +99,16 @@ export interface NotificationBellProps {
   variant?: "trigger" | "row";
   /** Row-variant label. Ignored in `"trigger"` variant. Default: `"알림"`. */
   label?: ReactNode;
+  /**
+   * Opt-in push-permission affordance (v0.44, planning#1140). See the
+   * component doc comment above. Undefined (the default) leaves
+   * `NotificationBell` unchanged.
+   */
+  push?: NotificationBellPushProps;
 }
 
-function BellIcon() {
+/** Exported so `PushEnableRow`'s default icon matches the bell it lives under. */
+export function BellIcon() {
   return (
     <svg
       width="20"
@@ -113,6 +140,7 @@ export function NotificationBell({
   placement = "bottom-right",
   variant = "trigger",
   label = "알림",
+  push,
 }: NotificationBellProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -124,6 +152,11 @@ export function NotificationBell({
   const badge = count ?? items.length;
   const badgeText = badge > 99 ? "99+" : String(badge);
   const isRow = variant === "row";
+  // Only "default" — not "needs-install"/"denied" — earns the nudge. Those
+  // two states already required the user to act (install) or were declined
+  // (denied); re-showing a dot there would be exactly the "recurring nag"
+  // the design doc rules out.
+  const showSetupDot = push?.permission.state === "default";
 
   useEffect(() => {
     if (!open) return;
@@ -186,6 +219,12 @@ export function NotificationBell({
   const close = () => setOpen(false);
 
   const rowLabelText = typeof label === "string" ? label : ariaLabel;
+  // Mirrors the `badge > 0` treatment below — without this, the setup dot
+  // is a purely visual nudge (see the `aria-hidden` spans it renders) that
+  // sighted users get and screen-reader users structurally can't, since
+  // they'd only ever encounter the enable row by opening the panel for an
+  // unrelated reason.
+  const setupHint = showSetupDot ? ` ${DEFAULT_SETUP_HINT_LABEL}` : "";
   const trigger = isRow ? (
     <button
       ref={triggerRef}
@@ -194,19 +233,25 @@ export function NotificationBell({
       aria-haspopup="dialog"
       aria-expanded={open}
       aria-controls={panelId}
-      aria-label={badge > 0 ? `${rowLabelText} (${badgeText})` : rowLabelText}
+      aria-label={(badge > 0 ? `${rowLabelText} (${badgeText})` : rowLabelText) + setupHint}
       title={rowLabelText}
       onClick={() => setOpen((o) => !o)}
     >
       <span className="etu-sidebar-item-icon" aria-hidden>
         {icon ?? <BellIcon />}
-        {badge > 0 ? <span className="etu-sidebar-item-badge-dot" aria-hidden /> : null}
+        {badge > 0 ? (
+          <span className="etu-sidebar-item-badge-dot" aria-hidden />
+        ) : showSetupDot ? (
+          <span className="etu-sidebar-item-badge-dot etu-sidebar-item-badge-dot--setup" aria-hidden />
+        ) : null}
       </span>
       <span className="etu-sidebar-item-label">{label}</span>
       {badge > 0 ? (
         <span className="etu-sidebar-item-badge" aria-hidden>
           {badgeText}
         </span>
+      ) : showSetupDot ? (
+        <span className="etu-sidebar-item-badge etu-sidebar-item-badge--setup" aria-hidden />
       ) : null}
     </button>
   ) : (
@@ -217,15 +262,17 @@ export function NotificationBell({
       aria-haspopup="dialog"
       aria-expanded={open}
       aria-controls={panelId}
-      aria-label={badge > 0 ? `${ariaLabel} (${badge})` : ariaLabel}
+      aria-label={(badge > 0 ? `${ariaLabel} (${badge})` : ariaLabel) + setupHint}
       onClick={() => setOpen((o) => !o)}
     >
       {icon ?? <BellIcon />}
-      {badge > 0 && (
+      {badge > 0 ? (
         <span className="etu-notif-bell-badge" aria-hidden="true">
           {badgeText}
         </span>
-      )}
+      ) : showSetupDot ? (
+        <span className="etu-notif-bell-setup-dot" aria-hidden="true" />
+      ) : null}
     </button>
   );
 
@@ -252,6 +299,7 @@ export function NotificationBell({
             emptyMessage={emptyMessage}
             footer={footer}
             onClose={close}
+            push={push}
           />
         </div>
       </>
@@ -270,6 +318,7 @@ export function NotificationBell({
           emptyMessage={emptyMessage}
           footer={footer}
           onClose={close}
+          push={push}
         />
       </div>
     ) : null;
@@ -295,12 +344,14 @@ function NotifPanelBody({
   emptyMessage,
   footer,
   onClose,
+  push,
 }: {
   title: ReactNode;
   items: NotificationBellItem[];
   emptyMessage: ReactNode;
   footer?: ReactNode;
   onClose: () => void;
+  push?: NotificationBellPushProps;
 }) {
   return (
     <>
@@ -315,6 +366,13 @@ function NotifPanelBody({
           ×
         </button>
       </div>
+      {push ? (
+        <PushEnableRow
+          permission={push.permission}
+          onEnabled={push.onEnabled}
+          labels={push.labels}
+        />
+      ) : null}
       <div className="etu-notif-bell-items">
         {items.length === 0 ? (
           <div className="etu-notif-bell-empty">{emptyMessage}</div>

@@ -150,6 +150,12 @@ export const registry: Record<string, FeatureEntry> = {
     since: "0.42.0",
     src: "src/styles.css",
   },
+  "push-permission": {
+    label: "Push Permission",
+    exports: ["usePushPermission", "PushEnableRow"],
+    since: "0.44.0",
+    src: "src/pushPermission.ts",
+  },
 };
 
 const GITHUB_BASE = "https://github.com/etamong-playground/ui";
@@ -204,4 +210,5 @@ export const featureRoute: Record<string, string> = {
   "data-table": "#/data",
   "i18n": "#/chrome",
   "design-tokens": "#/tokens",
+  "push-permission": "#/notifications",
 };

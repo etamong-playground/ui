@@ -100,6 +100,14 @@ function isIOS(): boolean {
   }
 }
 
+// Exported so `usePushPermission` (pushPermission.ts) can call the raw
+// detectors directly instead of trusting `useInstallPrompt()`'s derived
+// `isIOS`/`isStandalone` state — that state only settles after this hook's
+// own `useEffect` commits, which lags one render behind on first mount and
+// would otherwise let an iOS/non-standalone user's permission state read
+// "default" for one paint before self-correcting to "needs-install".
+export { isIOS as detectIOS, isStandalone as detectStandalone };
+
 /**
  * Lower-level hook for apps that want to render their own UI.
  *
