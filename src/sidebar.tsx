@@ -60,6 +60,16 @@
  * icon-only column, the app name/icon hide and the toggle becomes the sole
  * visible header control, i.e. the top item of the rail, so re-expanding
  * stays discoverable without hovering (v0.43).
+ *
+ * Collapsed rail, footer (v0.45, planning#1150): the canonical
+ * `<UserMenu variant="full">` footer degrades to an avatar-only control —
+ * same ~40px target as the other rail items — rather than disappearing.
+ * Hiding it outright (pre-v0.45 behavior) left no way to reach identity,
+ * sign-out, or the theme toggle once collapsed, since v0.43 moved the theme
+ * toggle *into* the `UserMenu` popover. Name/email still hide, matching how
+ * nav rows degrade to icons. An arbitrary custom `footer` node (not
+ * `<UserMenu variant="full">`) can't be safely rewritten at 64px without
+ * knowing its markup, so it still collapses to nothing — same as before.
  */
 
 import { useCallback, useEffect, useState, type ReactNode, type MouseEvent } from "react";

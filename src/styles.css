@@ -2912,8 +2912,34 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-header-name,
   .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-header-extra,
   .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-item-label,
-  .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-item-badge,
+  .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-item-badge {
+    display: none;
+  }
+  /* Footer degrades to an avatar-only rail entry instead of vanishing
+   * (planning#1150) — v0.43 moved the theme toggle into the `UserMenu`
+   * popover, so a fully-hidden footer left collapsed users with no way to
+   * reach identity, sign-out, or the theme toggle. Only the canonical
+   * `<UserMenu variant="full">` trigger is recognized and degraded here
+   * (name/email hidden, avatar survives, same ~40px target as other rail
+   * items) — an arbitrary custom `footer` node can't be safely rewritten
+   * at 64px without knowing its markup, so it still collapses to nothing. */
   .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-footer {
+    display: flex;
+    justify-content: center;
+    padding: 0.5rem 0;
+  }
+  .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-footer:not(:has(.etu-user-menu-trigger--full)) {
+    display: none;
+  }
+  .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-footer .etu-user-menu--full {
+    width: auto;
+  }
+  .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-footer .etu-user-menu-trigger--full {
+    width: auto;
+    padding: 0.25rem;
+    gap: 0;
+  }
+  .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-footer .etu-user-menu-trigger-text {
     display: none;
   }
   /* Captions collapse to nothing by default — the group name is already
@@ -3094,8 +3120,32 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 .etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-header-name,
 .etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-header-extra,
 .etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-item-label,
-.etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-item-badge,
+.etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-item-badge {
+  display: none;
+}
+/* Footer degrades to an avatar-only rail entry — mirrors the pre-hydration
+ * media-query block above; see its comment for the full rationale
+ * (planning#1150). Kept in sync deliberately rather than deduplicated: this
+ * block covers the post-hydration `[data-expanded]` state machine, the one
+ * above covers the pre-hydration `:not([data-expanded])` window, and they
+ * must produce the same rendered result during the handoff. */
 .etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-footer {
+  display: flex;
+  justify-content: center;
+  padding: 0.5rem 0;
+}
+.etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-footer:not(:has(.etu-user-menu-trigger--full)) {
+  display: none;
+}
+.etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-footer .etu-user-menu--full {
+  width: auto;
+}
+.etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-footer .etu-user-menu-trigger--full {
+  width: auto;
+  padding: 0.25rem;
+  gap: 0;
+}
+.etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-footer .etu-user-menu-trigger-text {
   display: none;
 }
 /* Captions collapse to nothing by default; a second-or-later
