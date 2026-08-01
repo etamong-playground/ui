@@ -1,6 +1,6 @@
 {
   "name": "@etamong-playground/ui",
-  "version": "0.46.0",
+  "version": "0.47.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/etamong-playground/ui.git"
@@ -29,6 +29,11 @@
       "import": "./dist/testing.js",
       "require": "./dist/testing.cjs"
     },
+    "./rum": {
+      "types": "./dist/rum.d.ts",
+      "import": "./dist/rum.js",
+      "require": "./dist/rum.cjs"
+    },
     "./styles.css": "./dist/styles.css"
   },
   "files": [
@@ -51,14 +56,19 @@
   "peerDependencies": {
     "pretendard": ">=1.3.9",
     "react": ">=18",
-    "react-dom": ">=18"
+    "react-dom": ">=18",
+    "@grafana/faro-web-sdk": ">=2.9.0"
   },
   "peerDependenciesMeta": {
     "pretendard": {
       "optional": true
+    },
+    "@grafana/faro-web-sdk": {
+      "optional": true
     }
   },
   "devDependencies": {
+    "@grafana/faro-web-sdk": "^2.9.0",
     "@playwright/test": "^1.60.0",
     "@testing-library/react": "^16.0.0",
     "@types/react": "^18.3.12",

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.47.0
+
+- New `./rum` subpath entry: fleet real-user-monitoring init (`initRum`) plus
+  `pushApiError` (Grafana Faro under the hood) — the client half of the fleet
+  RUM pipeline (planning#1179, ADR `concepts/fleet-rum`). Web vitals, unhandled
+  errors, session tracking, and page-lifecycle breadcrumbs, correlated with the
+  server error log via the shared 8-hex `ref` code. `@grafana/faro-web-sdk` is a
+  declared optional peer — non-adopters install nothing. No-PII by construction:
+  console capture off, no `setUser`, query strings stripped from reported URLs.
+
 ## 0.46.0
 
 - New `.etu-input` class recipe (+ `.etu-input--sm` modifier): the generic
