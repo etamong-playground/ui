@@ -18,6 +18,14 @@
  * Never the sidebar footer — that's identity-only now — and never paired
  * with the theme toggle (which lives inside `<UserMenu themeToggle>`).
  *
+ * **Mobile sheet is portaled (v0.45, planning#1151):** the default
+ * `variant="trigger"`'s mobile sheet + backdrop render through a portal to
+ * `document.body`, same as the row variant's popover. `<NavigationBar>`
+ * always applies `backdrop-filter` (`.etu-glass`), which — like `transform`/
+ * `filter` — makes it a containing block for `position: fixed` descendants;
+ * without the portal, a bell mounted in `<NavigationBar trailing>` had its
+ * sheet anchored to the header instead of the viewport.
+ *
  * **Push-permission affordance (v0.44, planning#1140):** pass the optional
  * `push` prop to opt into a `<PushEnableRow>` at the top of the popover/sheet
  * when `push.permission.state === "default"` — the user just opened the
@@ -185,6 +193,17 @@ export function NotificationBell({
     };
   }, [open]);
 
+  // The mobile sheet/backdrop (below) are `position: fixed`, and a fixed
+  // descendant's containing block is the viewport UNLESS some ancestor
+  // establishes one — `backdrop-filter` does that, same as `transform`/
+  // `filter`/`perspective` (planning#1151). `<NavigationBar>` always applies
+  // `.etu-glass` (backdrop-filter), so a non-portaled trigger mounted in its
+  // `trailing` slot had its sheet anchored to the header instead of the
+  // viewport. The desktop popover doesn't need this: it's `position:
+  // absolute` against `.etu-notif-bell` (`position: relative`, closer in the
+  // tree than any `.etu-glass` ancestor), which already wins the
+  // containing-block search regardless of backdrop-filter further out.
+  const shouldPortal = isRow || isMobile;
   const { computedPlacement, portalStyle } = usePopoverPosition({
     open,
     enabled: !isMobile,
@@ -333,7 +352,7 @@ export function NotificationBell({
       }
     >
       {trigger}
-      {isRow && typeof document !== "undefined" ? createPortal(panel, document.body) : panel}
+      {shouldPortal && typeof document !== "undefined" ? createPortal(panel, document.body) : panel}
     </div>
   );
 }

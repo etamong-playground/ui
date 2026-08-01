@@ -1,5 +1,64 @@
 # Changelog
 
+## 0.45.0
+
+Two rail/mobile reachability bugs found adopting v0.44 across the fleet
+(planning#1150, planning#1151) — both the same story: the bell and the
+account menu must actually be reachable in the collapsed rail and on
+mobile, not just present in the DOM.
+
+### Collapsed rail — identity footer no longer disappears (planning#1150)
+
+- `<Sidebar footer>` used to hide entirely (`display: none`) once the rail
+  collapsed to 64px. That was defensible while the footer held only an
+  identity row, but stopped being defensible the moment v0.43 moved the
+  theme toggle *into* the `UserMenu` popover — the footer became the only
+  entry point to identity, sign-out, **and** the theme toggle, and hiding it
+  cut off all three.
+- Fix: the canonical `<UserMenu variant="full">` footer now degrades to an
+  **avatar-only** control when the rail collapses — same ~40px target as
+  every other rail item, opening the same portaled `UserMenu` popover.
+  Name, email, and any badges still hide; only the avatar survives,
+  mirroring how nav rows degrade to icons.
+- An arbitrary custom `footer` node (not `<UserMenu variant="full">`) still
+  collapses to nothing — the package can't safely rewrite unknown markup to
+  fit a 64px column. If your footer needs to survive the rail collapse,
+  build it on `<UserMenu variant="full">`.
+
+### Mobile bell sheet — portaled out of `NavigationBar`'s glass (planning#1151)
+
+- `<NotificationBell>`'s default `variant="trigger"` mobile sheet (+
+  backdrop) wasn't portaled to `document.body` — only `variant="row"` was.
+  `<NavigationBar>` always applies `backdrop-filter` (`.etu-glass`), which
+  — like `transform`/`filter`/`perspective` — makes it a containing block
+  for `position: fixed` descendants. A bell mounted in
+  `<NavigationBar trailing>` (the documented mobile placement since v0.43)
+  had its sheet anchored to the header instead of the viewport bottom.
+- Fix: the mobile sheet + backdrop now portal to `document.body`, reusing
+  the same `createPortal` call the row variant already used. The desktop
+  popover (`position: absolute` against the bell's own `position: relative`
+  wrapper) was checked and is unaffected — its containing block is already
+  the wrapper, closer in the tree than any `.etu-glass` ancestor — so it's
+  untouched.
+- Checked `<MobileTabBar>` (the other `.etu-glass` consumer) for the same
+  trap: it renders no `position: fixed` descendants of its own, so nothing
+  to fix there. `<UserMenu>`'s dropdown and the cmdk `<CommandPalette>`
+  dialog were already unconditionally portaled before this change.
+
+### Behavioral notes for 0.45
+
+- Collapsed-rail `<Sidebar footer>` renders visibly (avatar-only) where it
+  previously rendered nothing, for any app using the canonical
+  `<UserMenu variant="full">` footer — the fix in this release. A custom
+  non-`UserMenu` footer is unaffected (still hides collapsed, as before).
+- `<NotificationBell variant="trigger">`'s mobile sheet position changes
+  for any app that mounts it inside `<NavigationBar trailing>` (or any
+  other `backdrop-filter`/`transform`/`filter` ancestor) — it now
+  bottom-anchors to the viewport as documented, instead of the broken
+  header-anchored position. Apps that worked around the bug (e.g. reverting
+  to no mobile bell surface, as `pages` did) can restore the mobile
+  placement.
+
 ## 0.44.0
 
 Standard push-permission affordance (planning#1140). The package shipped zero

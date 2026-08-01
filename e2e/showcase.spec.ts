@@ -121,6 +121,36 @@ test.describe("mobile tier", () => {
     await navBell.click();
     await expect(page.locator(".etu-notif-bell-sheet")).toBeVisible();
   });
+
+  // g2b. Regression guard (planning#1151): the bell is mounted inside
+  // `<NavigationBar trailing>`, which always applies `backdrop-filter`
+  // (`.etu-glass`) — a containing block for `position: fixed` descendants,
+  // same as `transform`/`filter`. Pre-fix the non-portaled sheet resolved
+  // "fixed" against the header instead of the viewport, landing near the
+  // top of the screen (measured around y:-93) instead of sliding up from
+  // the bottom. Assert the actual bounding box, not just visibility —
+  // `toBeVisible()` alone passed even when the sheet was mispositioned.
+  test("mobile bell sheet is anchored to the viewport bottom, not the header", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/#/overview");
+    const navBell = page.locator(".etu-navbar .etu-notif-bell-trigger");
+    await navBell.click();
+
+    const sheet = page.locator(".etu-notif-bell-sheet");
+    await expect(sheet).toBeVisible();
+    const sheetBox = await sheet.boundingBox();
+    // Bottom-anchored: the sheet's bottom edge hugs the viewport bottom.
+    expect(sheetBox!.y + sheetBox!.height).toBeGreaterThan(800);
+    // Nowhere near the header — the pre-fix failure mode landed here.
+    expect(sheetBox!.y).toBeGreaterThan(400);
+    expect(sheetBox!.x).toBeGreaterThanOrEqual(0);
+
+    // The backdrop is also `position: fixed` and needs the same portal —
+    // it should cover the full viewport, not just the header's box.
+    const backdropBox = await page.locator(".etu-notif-bell-backdrop").boundingBox();
+    expect(backdropBox!.width).toBeGreaterThanOrEqual(390 - 1);
+    expect(backdropBox!.height).toBeGreaterThanOrEqual(844 - 1);
+  });
 });
 
 // g3. Rail collapse — the toggle now lives in the header row; collapsing it
@@ -142,6 +172,37 @@ test("rail collapse — bell badge dot and portaled popover", async ({ page }) =
   await bellRow.click();
   const popover = page.locator(".etu-notif-bell-popover");
   await expect(popover).toBeVisible();
+  const box = await popover.boundingBox();
+  expect(box!.x).toBeGreaterThanOrEqual(0);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(1280 + 1);
+});
+
+// g3b. Regression guard (planning#1150): two adoption agents disagreed about
+// whether the collapsed-rail footer disappears entirely or degrades to an
+// avatar — this test settles it. The canonical `<UserMenu variant="full">`
+// footer must stay reachable (avatar-only) so identity/sign-out/theme are
+// never unreachable once the rail collapses.
+test("rail collapse — footer avatar trigger stays reachable and opens its popover", async ({ page }) => {
+  await page.goto("/#/overview");
+  const sidebar = page.locator(".etu-sidebar");
+  await expect(sidebar).toBeVisible();
+
+  await sidebar.locator(".etu-sidebar-rail-toggle").click();
+  await expect(sidebar).toHaveAttribute("data-expanded", "false");
+
+  const footer = sidebar.locator(".etu-sidebar-footer");
+  await expect(footer).toBeVisible();
+  const trigger = footer.locator(".etu-user-menu-trigger--full");
+  await expect(trigger).toBeVisible();
+  // Name/email hide collapsed — only the avatar survives, mirroring how nav
+  // rows degrade to icons.
+  await expect(trigger.locator(".etu-user-menu-trigger-text")).toBeHidden();
+
+  await trigger.click();
+  const popover = page.locator(".etu-user-menu-dropdown");
+  await expect(popover).toBeVisible();
+  // Portaled + viewport-clamped (v0.43 groundwork) — stays fully on-screen
+  // even anchored to a trigger at the 64px rail width.
   const box = await popover.boundingBox();
   expect(box!.x).toBeGreaterThanOrEqual(0);
   expect(box!.x + box!.width).toBeLessThanOrEqual(1280 + 1);
