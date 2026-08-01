@@ -1382,6 +1382,13 @@ canonical `<Sidebar footer>` control:
   by `getTheme`/`setTheme` (same `appKey` as `noFlashThemeScript`). This is
   the theme toggle's canonical home now — see "Bell and theme placement"
   under Sidebar below for why it moved out of the footer as a loose icon.
+  **Adopting it means removing any pre-existing theme toggle the app already
+  has** — two controls racing the same `localStorage` key fight each other.
+  Concrete hazard: `porygon/webui` has its own `useTheme()` on the same
+  `"<appKey>-theme"` key whose React state initializes once on mount
+  (`useState(() => localStorage.getItem(...))`) with no `storage` event
+  listener — it won't notice `setTheme()` being called from this popover, so
+  the two toggles show contradictory state until the next full reload.
 - **`badges`** — role/permission pills (`{ label, tone? }`, tone matches
   `.etu-badge--*`) rendered under the name, independent of the built-in
   `admin` pill (`showAdminBadge`).
@@ -1407,7 +1414,8 @@ const primary: SidebarItem[] = [
   { id: "members",  label: "구성원", icon: <Users size={18} />,    active: view === "members",  onClick: () => go("members") },
   // Owns its own trigger + anchored popover, so it opts out of the plain
   // onClick/active row shape via `render` — see "Bell and theme placement" below.
-  { id: "notifications", label: "알림", render: () => (
+  // `render` ignores every field but `id` — no `label` here, it'd mislead.
+  { id: "notifications", render: () => (
       <NotificationBell variant="row" label="알림" items={notifItems} />
   ) },
 ];

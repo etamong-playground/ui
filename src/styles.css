@@ -2773,20 +2773,35 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-footer {
     display: none;
   }
-  /* Captions collapse to a subtle divider rather than vanishing outright —
-   * without it, a second+ secondarySections group (no border-top of its
-   * own) loses all visual separation from the group above once collapsed. */
+  /* Captions collapse to nothing by default — the group name is already
+   * exposed via the enclosing <nav aria-label> (or the `.etu-sidebar-caption`
+   * text is aria-hidden with nowhere else to go, see below). */
   .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-caption,
   .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-section-caption {
-    height: 1px;
-    width: 20px;
-    margin: 0.6rem auto 0.3rem;
+    height: 0;
+    margin: 0;
     padding: 0;
-    background: var(--etu-border);
+    background: transparent;
     color: transparent;
     font-size: 0;
     line-height: 0;
     overflow: hidden;
+  }
+  /* ...except a second-or-later `secondarySections` group: its own
+   * `.etu-sidebar-section--secondary` border-top is reset to 0 (see the
+   * sibling-combinator rule above), so without a stand-in it loses all
+   * visual separation from the group above once collapsed. The first group
+   * (and the single flat-`secondary` caption, which is always "first") keep
+   * their section's own border-top — giving them a divider here too would
+   * draw two parallel lines. */
+  .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded])
+    .etu-sidebar-section--secondary
+    + .etu-sidebar-section--secondary
+    .etu-sidebar-section-caption {
+    height: 1px;
+    width: 20px;
+    margin: 0.6rem auto 0.3rem;
+    background: var(--etu-border);
   }
   .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-item-badge-dot {
     display: block;
@@ -2895,8 +2910,8 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   justify-content: center;
   flex-shrink: 0;
   margin-left: auto;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   padding: 0;
   background: transparent;
   border: 0;
@@ -2940,19 +2955,28 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 .etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-footer {
   display: none;
 }
-/* Captions collapse to a subtle divider rather than vanishing outright —
- * see the matching pre-hydration block above for why. */
+/* Captions collapse to nothing by default; a second-or-later
+ * `secondarySections` group gets a stand-in divider instead — see the
+ * matching pre-hydration block above for why. */
 .etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-caption,
 .etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-section-caption {
-  height: 1px;
-  width: 20px;
-  margin: 0.6rem auto 0.3rem;
+  height: 0;
+  margin: 0;
   padding: 0;
-  background: var(--etu-border);
+  background: transparent;
   color: transparent;
   font-size: 0;
   line-height: 0;
   overflow: hidden;
+}
+.etu-sidebar[data-tablet-mode="rail"][data-expanded="false"]
+  .etu-sidebar-section--secondary
+  + .etu-sidebar-section--secondary
+  .etu-sidebar-section-caption {
+  height: 1px;
+  width: 20px;
+  margin: 0.6rem auto 0.3rem;
+  background: var(--etu-border);
 }
 .etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-item-badge-dot {
   display: block;

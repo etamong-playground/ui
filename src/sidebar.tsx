@@ -69,8 +69,11 @@ import { useViewport } from "./viewport";
 export interface SidebarItem {
   /** Stable key used for React reconciliation. */
   id: string;
-  /** Display label. */
-  label: ReactNode;
+  /**
+   * Display label. Optional only because `render` (below) ignores it along
+   * with every other field — a plain nav row still needs one.
+   */
+  label?: ReactNode;
   /** Icon node — typically a lucide-react icon. */
   icon?: ReactNode;
   /** Whether this item is the current route. Caller computes from its router. */
@@ -199,6 +202,12 @@ export interface SidebarProps {
   railCollapseLabel?: string;
 }
 
+function isDevBuild(): boolean {
+  const proc = (globalThis as { process?: { env?: { NODE_ENV?: string } } })
+    .process;
+  return !proc || !proc.env || proc.env.NODE_ENV !== "production";
+}
+
 function Item({
   item,
   collapsed,
@@ -206,13 +215,38 @@ function Item({
   item: SidebarItem;
   collapsed?: boolean;
 }) {
-  if (item.render) return <>{item.render()}</>;
+  if (item.render) {
+    if (
+      (item.href || item.onClick || item.active || item.badge != null) &&
+      isDevBuild()
+    ) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `[@etamong-playground/ui] <Sidebar> item "${item.id}": \`render\` is ` +
+          "set, so `href`/`onClick`/`active`/`badge` are ignored. Drop them " +
+          "to silence this warning.",
+      );
+    }
+    return <>{item.render()}</>;
+  }
 
   const cls =
     "etu-sidebar-item" + (item.active ? " etu-sidebar-item--active" : "");
   const strLabel = typeof item.label === "string" ? item.label : undefined;
   const showTitle = collapsed === true && strLabel != null;
   const hasBadge = item.badge != null;
+  // `aria-label` overrides ALL descendant text per the accessible-name
+  // algorithm, including the visible badge pill below — fold the badge into
+  // the label so it's still announced (expanded or collapsed, where the
+  // dot-only rail relies on this to convey the count at all). Only when it
+  // stringifies meaningfully: an arbitrary `ReactNode` badge falls back to
+  // the plain label rather than rendering "[object Object]".
+  const badgeText =
+    hasBadge && (typeof item.badge === "string" || typeof item.badge === "number")
+      ? String(item.badge)
+      : undefined;
+  const ariaLabelText =
+    strLabel != null ? (badgeText != null ? `${strLabel} (${badgeText})` : strLabel) : undefined;
   const inner = (
     <>
       {item.icon ? (
@@ -225,7 +259,12 @@ function Item({
       ) : null}
       <span className="etu-sidebar-item-label">{item.label}</span>
       {hasBadge ? (
-        <span className="etu-sidebar-item-badge">{item.badge}</span>
+        <span
+          className="etu-sidebar-item-badge"
+          aria-hidden={ariaLabelText != null ? true : undefined}
+        >
+          {item.badge}
+        </span>
       ) : null}
     </>
   );
@@ -235,7 +274,7 @@ function Item({
         className={cls}
         href={item.href}
         aria-current={item.active ? "page" : undefined}
-        aria-label={strLabel}
+        aria-label={ariaLabelText}
         title={showTitle ? strLabel : undefined}
         onClick={(e: MouseEvent<HTMLAnchorElement>) => {
           if (item.onClick) {
@@ -253,7 +292,7 @@ function Item({
       type="button"
       className={cls}
       aria-current={item.active ? "page" : undefined}
-      aria-label={strLabel}
+      aria-label={ariaLabelText}
       title={showTitle ? strLabel : undefined}
       onClick={item.onClick}
     >
@@ -328,9 +367,7 @@ export function Sidebar({
   const hasFlatSecondary = secondary && secondary.length > 0;
 
   if (hasSections && hasFlatSecondary) {
-    const proc = (globalThis as { process?: { env?: { NODE_ENV?: string } } })
-      .process;
-    if (!proc || !proc.env || proc.env.NODE_ENV !== "production") {
+    if (isDevBuild()) {
       // eslint-disable-next-line no-console
       console.warn(
         "[@etamong-playground/ui] <Sidebar>: both `secondary` and `secondarySections` " +
@@ -432,7 +469,10 @@ export function Sidebar({
               }
             >
               {section.caption ? (
-                <div className="etu-sidebar-section-caption">
+                <div
+                  className="etu-sidebar-section-caption"
+                  aria-hidden={typeof section.caption === "string" ? true : undefined}
+                >
                   {section.caption}
                 </div>
               ) : null}
@@ -449,7 +489,12 @@ export function Sidebar({
             }
           >
             {secondaryCaption ? (
-              <div className="etu-sidebar-caption">{secondaryCaption}</div>
+              <div
+                className="etu-sidebar-caption"
+                aria-hidden={typeof secondaryCaption === "string" ? true : undefined}
+              >
+                {secondaryCaption}
+              </div>
             ) : null}
             {secondary!.map((it) => (
               <Item key={it.id} item={it} {...itemProps} />
