@@ -80,6 +80,19 @@ some tools' production dependency reports. Install whichever one you actually im
 as your own devDependency; this entry is tree-shaken per-import so an app that only
 uses the MSW helpers never needs Playwright installed, and vice versa.
 
+RUM entry: `import { initRum, pushApiError } from "@etamong-playground/ui/rum"` —
+the fleet real-user-monitoring init (Grafana Faro under the hood): web vitals, unhandled
+errors, session tracking, page-lifecycle breadcrumbs, and `ref`-code correlation with the
+server error log (wire `pushApiError` as `createFetch`'s `onError`). `@grafana/faro-web-sdk`
+is a **declared optional peer dependency** — deliberately, unlike the `testing` entry's
+`msw`/`@playwright/test` (dropped from peers in planning#976 because dev-only test deps
+counted as production deps in some consumers' license reports): faro-web-sdk is a genuine
+production runtime dependency for RUM adopters, so keeping it a declared optional peer gives
+adopters pnpm's "you forgot to install it" warning while non-adopters install nothing. The
+entry no-ops outside a browser and never throws out of app boot. Call
+`initRum({ app, version, apiKey })` once at app entry; the `apiKey` arrives at build time
+(see the fleet RUM docs for provisioning).
+
 ## Where to mount the hosts (Next vs Vite)
 
 `<Toaster />`, `<DialogHost />`, and `<CommandPalette />` use React state and
