@@ -1,0 +1,36 @@
+# Merging a version-bump PR IS the release: when a push to main changes
+# package.json to a version with no existing v<version> tag, dispatch the
+# Publish workflow (which cuts the tag and dual-publishes in one run —
+# see publish.yml). GITHUB_TOKEN-created workflow_dispatch events are
+# exempt from the no-retrigger rule, so this chain is allowed.
+#
+# A main push whose package.json version is already tagged (docs-only edit,
+# revert, re-land) is a no-op — the guard makes this safe to fire on every
+# package.json touch.
+
+name: Auto release
+
+on:
+  push:
+    branches: [main]
+    paths: ["package.json"]
+
+permissions:
+  contents: read
+  actions: write # dispatch publish.yml
+
+jobs:
+  cut:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dispatch Publish when the version is untagged
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v$(node -p "require('./package.json').version")"
+          if [[ -n "$(git ls-remote --tags origin "refs/tags/$TAG" | cut -f1)" ]]; then
+            echo "$TAG already exists — nothing to release"; exit 0
+          fi
+          echo "cutting $TAG via the Publish workflow"
+          gh workflow run publish.yml --ref main
