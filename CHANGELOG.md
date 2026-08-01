@@ -78,17 +78,60 @@ change on the app's side:
 - **Section captions are lighter.** `--etu-fw-semibold` → `--etu-fw-medium`
   on `.etu-sidebar-caption` / `.etu-sidebar-section-caption`, with more space
   above. Purely visual.
-- **The rail toggle moved and shrank.** From a standalone 40×40 button
-  centered in its own row below the header, to a 32×32 button inside the
-  header row, pinned to the trailing edge. Apps that pass `appIcon` and/or
-  `appName` alongside `tabletMode="rail"` will see this shift automatically
-  — no prop change needed.
+- **The rail toggle moved.** From a standalone 40×40 button centered in its
+  own row below the header, to the same 40×40 button inside the header row,
+  pinned to the trailing edge. Apps that pass `appIcon` and/or `appName`
+  alongside `tabletMode="rail"` will see this shift automatically — no prop
+  change needed.
 - **The app icon/name hide on collapsed rail** (previously the icon stayed
   visible, centered). The toggle is now the sole top-of-rail control while
   collapsed.
 - **`.etu-sidebar-header-name` truncates with an ellipsis** instead of
   wrapping/overflowing when the app name is long enough to compete with the
   now-inline toggle button.
+- **Section captions collapse to nothing on a collapsed rail**, except a
+  second-or-later `secondarySections` group, which gets a subtle 1px divider
+  stand-in — its own section border is reset to 0 (see "Rail parity" above),
+  so without the stand-in it loses all separation from the group before it.
+  The first group and the single flat-`secondary` caption keep relying on
+  their section's own border-top instead, so they don't grow a second,
+  redundant line next to it.
+
+### Review round fixes
+
+- `SidebarItem.badge` is now folded into the row's `aria-label` (e.g.
+  `"알림 (3)"`) instead of being silently dropped — `aria-label` overrides all
+  descendant text per the accessible-name algorithm, so the visible badge
+  pill was never announced, collapsed or expanded. The pill itself is now
+  `aria-hidden` in that case to avoid double-counting.
+- `<UserMenu>`'s dropdown now renders through a portal to `<body>` with
+  viewport-fixed coordinates, same as `<NotificationBell variant="row">`'s
+  popover — it was clipped by `<Sidebar>`'s `overflow-y: auto` when mounted
+  as the `variant="full"` footer control.
+- Popover positioning (`<NotificationBell>` + `<UserMenu>`) is now a single
+  `useLayoutEffect` pass, shared via an internal `usePopoverPosition` hook —
+  side-flip and portal offset used to be two effects, the second reading a
+  stale placement from its own closure and painting the panel at the wrong
+  spot for one frame. Both axes are now clamped to the viewport (not just the
+  anchor edge), against the panel's real measured size (not a hardcoded
+  constant that had drifted from the CSS), and recompute on scroll too, not
+  just resize.
+- `<NotificationBell variant="row">` no longer opens a full-screen mobile
+  sheet if it was left open when the viewport crosses below 720px —
+  `<Sidebar>` is CSS-hidden there, not unmounted, so the row instance used to
+  survive and strand an orphaned sheet, complete with a body-scroll lock the
+  user never asked for.
+- `<NotificationBell variant="row">` now always has an accessible name,
+  including at 0 unread — it previously fell back to `undefined` instead of
+  the plain label, unlike the standalone trigger variant. It also carries the
+  same `title` tooltip the default `Item()` row markup does.
+- Collapsed-rail section captions are now `aria-hidden` — `font-size: 0` /
+  `color: transparent` alone isn't reliable removal from the accessibility
+  tree. Safe because the group name is already exposed via the enclosing
+  `<nav aria-label>`.
+- Dev-only `console.warn` when `SidebarItem.render` is combined with
+  `href`/`onClick`/`active`/`badge` — those fields are silently ignored;
+  mirrors the existing `secondary` + `secondarySections` warning.
 
 ## 0.42.1
 

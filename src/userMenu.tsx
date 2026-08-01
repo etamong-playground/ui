@@ -5,7 +5,9 @@
  *
  * Desktop: avatar in the header, click to open a dropdown with the display
  * name + email + "내 정보" link + "로그아웃" button. Click outside or press
- * Escape to close.
+ * Escape to close. The dropdown renders through a portal to `<body>` with
+ * viewport-fixed coordinates (v0.43) so it isn't clipped by an `overflow`
+ * ancestor — the `<Sidebar footer>` mount below is `overflow-y: auto`.
  *
  * Mobile: same component; the dropdown menu still works, but apps that
  * want a different mobile UI can render `<Avatar>` directly and route to
@@ -24,6 +26,8 @@
  */
 
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
+import { POPOVER_MEASURING_STYLE, usePopoverPosition } from "./popoverPosition";
 import { signInUrl, signOut, type BaseMe } from "./useMe";
 import { getTheme, setTheme, type Theme } from "./theme";
 
@@ -188,6 +192,11 @@ function MoonIcon() {
   );
 }
 
+// Module-level so it's a stable reference across renders — an inline object
+// literal at the `usePopoverPosition` call site would get a new identity
+// every render.
+const DROPDOWN_FALLBACK_SIZE = { width: 288, height: 260 };
+
 export function UserMenu<T extends BaseMe = BaseMe>({
   me,
   avatarSize = 32,
@@ -206,15 +215,22 @@ export function UserMenu<T extends BaseMe = BaseMe>({
 }: UserMenuProps<T>) {
   const [open, setOpen] = useState(false);
   const [theme, setThemeState] = useState<Theme | null>(null);
-  const [computedPlacement, setComputedPlacement] = useState(placement);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
 
   useEffect(() => {
     if (!open) return;
     const onDocClick = (e: MouseEvent) => {
-      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+      const t = e.target as Node;
+      // The dropdown is portaled to <body> (it must escape any `overflow`
+      // ancestor, e.g. `<Sidebar>` as the footer control), so it's no longer
+      // a descendant of `rootRef` — check it separately or every click
+      // inside the open menu would be treated as an outside click.
+      if (rootRef.current?.contains(t)) return;
+      if (panelRef.current?.contains(t)) return;
+      setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
@@ -227,44 +243,19 @@ export function UserMenu<T extends BaseMe = BaseMe>({
     };
   }, [open]);
 
-  // Auto-flip the requested placement when it would push the dropdown off the
-  // viewport. Match the CSS contract in styles.css:
-  //   - "right" horizontal: dropdown's right edge aligns with the trigger's
-  //     right edge → it extends LEFTWARD; needs trigger.right px of space.
-  //   - "left"  horizontal: dropdown's left  edge aligns with the trigger's
-  //     left  edge → it extends RIGHTWARD; needs (viewport - trigger.left) px.
-  //   - "top"    vertical: opens upward;   needs trigger.top px above.
-  //   - "bottom" vertical: opens downward; needs (viewport - trigger.bottom) px.
-  // Menu size is estimated from the CSS (min-width 14rem, typical height
-  // ~220px) — good enough for "is there room?".
-  useEffect(() => {
-    if (!open) {
-      setComputedPlacement(placement);
-      return;
-    }
-    const trigger = triggerRef.current;
-    if (!trigger || typeof window === "undefined") return;
-    const rect = trigger.getBoundingClientRect();
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const menuW = 240;
-    const menuH = 220;
-    const [vReq, hReq] = placement.split("-") as ["top" | "bottom", "left" | "right"];
-    let v: "top" | "bottom" = vReq;
-    let h: "left" | "right" = hReq;
-
-    const spaceAbove = rect.top;
-    const spaceBelow = vh - rect.bottom;
-    if (v === "top" && spaceAbove < menuH && spaceBelow > spaceAbove) v = "bottom";
-    else if (v === "bottom" && spaceBelow < menuH && spaceAbove > spaceBelow) v = "top";
-
-    const spaceForRight = rect.right;
-    const spaceForLeft = vw - rect.left;
-    if (h === "right" && spaceForRight < menuW && spaceForLeft > spaceForRight) h = "left";
-    else if (h === "left" && spaceForLeft < menuW && spaceForRight > spaceForLeft) h = "right";
-
-    setComputedPlacement(`${v}-${h}` as typeof placement);
-  }, [open, placement]);
+  // Side-flip decision + portaled viewport-fixed coordinates, shared with
+  // `<NotificationBell>`'s row variant (planning#1133 review — same clipping
+  // bug: `<Sidebar>` is `overflow-y: auto`, so an `absolute`-positioned
+  // dropdown anchored to the `variant="full"` footer trigger got clipped).
+  const { computedPlacement, portalStyle } = usePopoverPosition({
+    open,
+    enabled: true,
+    placement,
+    triggerRef,
+    panelRef,
+    portal: true,
+    fallbackSize: DROPDOWN_FALLBACK_SIZE,
+  });
 
   // Re-read the theme on every open — it may have changed elsewhere (another
   // toggle, another tab) while the popover was closed.
@@ -286,6 +277,96 @@ export function UserMenu<T extends BaseMe = BaseMe>({
 
   const displayName = me.name ?? me.preferred_username ?? me.email;
   const handleSignOut = onSignOut ?? (() => signOut("/"));
+
+  // Portaled to <body> (see the `usePopoverPosition` call above) so the
+  // dropdown escapes any `overflow` ancestor — the whole reason for the
+  // fix — instead of rendering as a DOM sibling of the trigger.
+  const dropdown = open ? (
+    <div
+      ref={panelRef}
+      id={menuId}
+      className={`etu-user-menu-dropdown etu-user-menu-dropdown--${computedPlacement}`}
+      role="menu"
+      aria-label={displayName}
+      style={portalStyle ?? POPOVER_MEASURING_STYLE}
+    >
+      <div className="etu-user-menu-header">
+        <Avatar
+          src={me.picture}
+          fallback={me.preferred_username || me.email}
+          size={40}
+        />
+        <div className="etu-user-menu-header-text">
+          <div className="etu-user-menu-name">
+            {displayName}
+            {showAdminBadge && me.is_admin && (
+              <span className="etu-user-menu-admin">admin</span>
+            )}
+          </div>
+          {displayName !== me.email && (
+            <div className="etu-user-menu-email">{me.email}</div>
+          )}
+          {badges && badges.length > 0 && (
+            <div className="etu-user-menu-badges">
+              {badges.map((b, i) => (
+                <span
+                  key={i}
+                  className={
+                    "etu-badge" +
+                    (b.tone && b.tone !== "neutral" ? ` etu-badge--${b.tone}` : "")
+                  }
+                >
+                  {b.label}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="etu-user-menu-divider" />
+      <div className="etu-user-menu-items">
+        {extraItems?.map((it, i) => (
+          <MenuItem key={i} item={it} close={() => setOpen(false)} />
+        ))}
+        {myInfoHref && (
+          <MenuItem
+            item={{ label: myInfoLabel, href: myInfoHref }}
+            close={() => setOpen(false)}
+          />
+        )}
+        {themeToggle && theme && (
+          <button
+            type="button"
+            role="menuitem"
+            className="etu-user-menu-item"
+            onClick={() => {
+              const next: Theme = theme === "dark" ? "light" : "dark";
+              setTheme(themeToggle.appKey, next);
+              setThemeState(next);
+            }}
+          >
+            <span className="etu-user-menu-item-icon" aria-hidden>
+              {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+            </span>
+            {theme === "dark"
+              ? (themeToggle.lightLabel ?? "라이트 모드")
+              : (themeToggle.darkLabel ?? "다크 모드")}
+          </button>
+        )}
+        <button
+          type="button"
+          role="menuitem"
+          className="etu-user-menu-item etu-user-menu-item--danger"
+          onClick={() => {
+            setOpen(false);
+            handleSignOut();
+          }}
+        >
+          {signOutLabel}
+        </button>
+      </div>
+    </div>
+  ) : null;
 
   return (
     <div
@@ -323,90 +404,7 @@ export function UserMenu<T extends BaseMe = BaseMe>({
           </span>
         )}
       </button>
-      {open && (
-        <div
-          id={menuId}
-          className={`etu-user-menu-dropdown etu-user-menu-dropdown--${computedPlacement}`}
-          role="menu"
-          aria-label={displayName}
-        >
-          <div className="etu-user-menu-header">
-            <Avatar
-              src={me.picture}
-              fallback={me.preferred_username || me.email}
-              size={40}
-            />
-            <div className="etu-user-menu-header-text">
-              <div className="etu-user-menu-name">
-                {displayName}
-                {showAdminBadge && me.is_admin && (
-                  <span className="etu-user-menu-admin">admin</span>
-                )}
-              </div>
-              {displayName !== me.email && (
-                <div className="etu-user-menu-email">{me.email}</div>
-              )}
-              {badges && badges.length > 0 && (
-                <div className="etu-user-menu-badges">
-                  {badges.map((b, i) => (
-                    <span
-                      key={i}
-                      className={
-                        "etu-badge" +
-                        (b.tone && b.tone !== "neutral" ? ` etu-badge--${b.tone}` : "")
-                      }
-                    >
-                      {b.label}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="etu-user-menu-divider" />
-          <div className="etu-user-menu-items">
-            {extraItems?.map((it, i) => (
-              <MenuItem key={i} item={it} close={() => setOpen(false)} />
-            ))}
-            {myInfoHref && (
-              <MenuItem
-                item={{ label: myInfoLabel, href: myInfoHref }}
-                close={() => setOpen(false)}
-              />
-            )}
-            {themeToggle && theme && (
-              <button
-                type="button"
-                role="menuitem"
-                className="etu-user-menu-item"
-                onClick={() => {
-                  const next: Theme = theme === "dark" ? "light" : "dark";
-                  setTheme(themeToggle.appKey, next);
-                  setThemeState(next);
-                }}
-              >
-                <span className="etu-user-menu-item-icon" aria-hidden>
-                  {theme === "dark" ? <SunIcon /> : <MoonIcon />}
-                </span>
-                {theme === "dark"
-                  ? (themeToggle.lightLabel ?? "라이트 모드")
-                  : (themeToggle.darkLabel ?? "다크 모드")}
-              </button>
-            )}
-            <button
-              type="button"
-              role="menuitem"
-              className="etu-user-menu-item etu-user-menu-item--danger"
-              onClick={() => {
-                setOpen(false);
-                handleSignOut();
-              }}
-            >
-              {signOutLabel}
-            </button>
-          </div>
-        </div>
-      )}
+      {typeof document !== "undefined" ? createPortal(dropdown, document.body) : dropdown}
     </div>
   );
 }

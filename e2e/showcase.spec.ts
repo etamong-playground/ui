@@ -147,6 +147,28 @@ test("rail collapse — bell badge dot and portaled popover", async ({ page }) =
   expect(box!.x + box!.width).toBeLessThanOrEqual(1280 + 1);
 });
 
+// g4. Crossing into the mobile tier with the row bell open must not strand
+// an orphaned full-screen sheet — the sidebar is CSS-hidden (not unmounted)
+// below 720px, so the row bell instance stays alive and, pre-fix, fell into
+// the mobile-sheet branch the moment `isMobile` flipped true.
+test("row bell auto-closes when the viewport crosses into the mobile tier", async ({ page }) => {
+  await page.goto("/#/overview");
+  const sidebar = page.locator(".etu-sidebar");
+  await expect(sidebar).toBeVisible();
+
+  const bellRow = sidebar.getByRole("button", { name: /알림함/ });
+  await bellRow.click();
+  await expect(page.locator(".etu-notif-bell-popover")).toBeVisible();
+
+  await page.setViewportSize({ width: 390, height: 844 });
+
+  await expect(page.locator(".etu-notif-bell-sheet")).not.toBeVisible();
+  await expect(page.locator(".etu-notif-bell-backdrop")).toHaveCount(0);
+  await expect(page.locator(".etu-notif-bell-popover")).not.toBeVisible();
+  const overflow = await page.evaluate(() => document.body.style.overflow);
+  expect(overflow).not.toBe("hidden");
+});
+
 // h. Versions view — renders ≥5 version groups and a v0.28.0 heading
 test("versions section renders version groups", async ({ page }) => {
   await page.goto("/#/versions");

@@ -20,6 +20,7 @@
  */
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { POPOVER_MEASURING_STYLE, usePopoverPosition } from "./popoverPosition";
 import { useViewport } from "./viewport";
 
 export interface NotificationBellItem {
@@ -114,17 +115,6 @@ export function NotificationBell({
   label = "알림",
 }: NotificationBellProps) {
   const [open, setOpen] = useState(false);
-  const [computedPlacement, setComputedPlacement] = useState(placement);
-  // Fixed-position coordinates for the row variant's portaled popover — it
-  // renders on <body>, outside the sidebar's own `overflow: auto`, so it
-  // can't rely on `position: absolute` relative to an ancestor like the
-  // trigger variant does.
-  const [portalRect, setPortalRect] = useState<{
-    top?: number;
-    bottom?: number;
-    left?: number;
-    right?: number;
-  } | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -162,72 +152,40 @@ export function NotificationBell({
     };
   }, [open]);
 
-  useEffect(() => {
-    if (!open || isMobile) {
-      setComputedPlacement(placement);
-      return;
-    }
-    const trigger = triggerRef.current;
-    if (!trigger || typeof window === "undefined") return;
-    const rect = trigger.getBoundingClientRect();
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const menuW = 360;
-    const menuH = 420;
-    const [vReq, hReq] = placement.split("-") as ["top" | "bottom", "left" | "right"];
-    let v: "top" | "bottom" = vReq;
-    let h: "left" | "right" = hReq;
-    const spaceAbove = rect.top;
-    const spaceBelow = vh - rect.bottom;
-    if (v === "top" && spaceAbove < menuH && spaceBelow > spaceAbove) v = "bottom";
-    else if (v === "bottom" && spaceBelow < menuH && spaceAbove > spaceBelow) v = "top";
-    const spaceForRight = rect.right;
-    const spaceForLeft = vw - rect.left;
-    if (h === "right" && spaceForRight < menuW && spaceForLeft > spaceForRight) h = "left";
-    else if (h === "left" && spaceForLeft < menuW && spaceForRight > spaceForLeft) h = "right";
-    setComputedPlacement(`${v}-${h}` as typeof placement);
-  }, [open, placement, isMobile]);
+  const { computedPlacement, portalStyle } = usePopoverPosition({
+    open,
+    enabled: !isMobile,
+    placement,
+    triggerRef,
+    panelRef,
+    portal: isRow,
+  });
 
-  // Row variant only: recompute the portaled popover's viewport-fixed
-  // coordinates from the trigger's rect whenever it might move.
+  // The sidebar is CSS-hidden below 720px (`display: none`), not unmounted —
+  // a row-variant instance opened at tablet/desktop width stays mounted and
+  // `open` when the viewport crosses into mobile. Without this it would fall
+  // into the `isMobile` branch below and render a full-screen sheet the user
+  // never asked for, portaled outside the (hidden) sidebar. Force it closed
+  // instead of relying on the app to unmount the sidebar.
   useEffect(() => {
-    if (!isRow || !open || isMobile) {
-      setPortalRect(null);
-      return;
-    }
-    const trigger = triggerRef.current;
-    if (!trigger || typeof window === "undefined") return;
-    function recompute() {
-      const rect = trigger!.getBoundingClientRect();
-      const [v, h] = computedPlacement.split("-") as ["top" | "bottom", "left" | "right"];
-      const next: { top?: number; bottom?: number; left?: number; right?: number } = {};
-      if (v === "top") next.bottom = window.innerHeight - rect.top + 8;
-      else next.top = rect.bottom + 8;
-      if (h === "right") next.right = Math.max(8, window.innerWidth - rect.right);
-      else next.left = rect.left;
-      setPortalRect(next);
-    }
-    recompute();
-    window.addEventListener("resize", recompute);
-    window.addEventListener("scroll", recompute, true);
-    return () => {
-      window.removeEventListener("resize", recompute);
-      window.removeEventListener("scroll", recompute, true);
-    };
-  }, [isRow, open, isMobile, computedPlacement]);
+    if (isRow && isMobile) setOpen(false);
+  }, [isRow, isMobile]);
 
-  // Lock body scroll while the mobile sheet is open.
+  // Lock body scroll while the mobile sheet is open. Never for the row
+  // variant — it has no mobile sheet (see above), so it must never engage
+  // this lock even for the one commit before the effect above flushes.
   useEffect(() => {
-    if (!open || !isMobile || typeof document === "undefined") return;
+    if (!open || !isMobile || isRow || typeof document === "undefined") return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = prev;
     };
-  }, [open, isMobile]);
+  }, [open, isMobile, isRow]);
 
   const close = () => setOpen(false);
 
+  const rowLabelText = typeof label === "string" ? label : ariaLabel;
   const trigger = isRow ? (
     <button
       ref={triggerRef}
@@ -236,9 +194,8 @@ export function NotificationBell({
       aria-haspopup="dialog"
       aria-expanded={open}
       aria-controls={panelId}
-      aria-label={
-        badge > 0 ? `${typeof label === "string" ? label : ariaLabel} (${badge})` : undefined
-      }
+      aria-label={badge > 0 ? `${rowLabelText} (${badgeText})` : rowLabelText}
+      title={rowLabelText}
       onClick={() => setOpen((o) => !o)}
     >
       <span className="etu-sidebar-item-icon" aria-hidden>
@@ -272,8 +229,12 @@ export function NotificationBell({
     </button>
   );
 
+  // `!isRow` on the sheet branch is defense in depth alongside the
+  // force-close effect above: the row variant must never take the
+  // mobile-sheet branch, even for the one render before that effect's
+  // `setOpen(false)` commits.
   const panel =
-    open && isMobile ? (
+    open && isMobile && !isRow ? (
       <>
         <div className="etu-notif-bell-backdrop" onMouseDown={close} aria-hidden="true" />
         <div
@@ -294,14 +255,14 @@ export function NotificationBell({
           />
         </div>
       </>
-    ) : open && !isMobile && (!isRow || portalRect) ? (
+    ) : open && !isMobile ? (
       <div
         ref={panelRef}
         id={panelId}
         role="dialog"
         aria-label={typeof title === "string" ? title : undefined}
         className={`etu-notif-bell-popover etu-notif-bell-popover--${computedPlacement}`}
-        style={isRow && portalRect ? { position: "fixed", ...portalRect } : undefined}
+        style={portalStyle ?? (isRow ? POPOVER_MEASURING_STYLE : undefined)}
       >
         <NotifPanelBody
           title={title}
