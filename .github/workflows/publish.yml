@@ -1,7 +1,12 @@
 # Publish @etamong-playground/ui on tag push
 #
-# Trigger: push of a tag matching v*  (e.g. v0.34.0, v1.0.0-alpha.1)
-#          workflow_dispatch for bootstrap / manual re-publishes
+# Trigger: workflow_dispatch — the normal path. With no `tag` input it CUTS the
+#          release tag from package.json at main HEAD and publishes in the same
+#          run (tags are cut by CI, never pushed by hand; a GITHUB_TOKEN-created
+#          tag cannot re-trigger workflows, which is why cut+publish share a run).
+#          With a `tag` input it (re)publishes that existing tag.
+#          push of a tag matching v* also publishes (backstop for tags that
+#          arrive by other means).
 #
 # Publishes to two registries in the same job:
 #   1. GitHub Packages  (npm.pkg.github.com, scope @etamong-playground)
@@ -17,7 +22,8 @@
 #
 # Release flow:
 #   1. Bump version in package.json → PR → merge to main
-#   2. git tag vX.Y.Z && git push origin vX.Y.Z  → this workflow publishes
+#   2. Run this workflow (workflow_dispatch, no inputs) → CI cuts vX.Y.Z from
+#      package.json and publishes. Do not push tags manually.
 
 name: Publish
 
@@ -36,7 +42,7 @@ on:
         default: "latest"
 
 permissions:
-  contents: read
+  contents: write   # push the CI-cut release tag (read otherwise sufficed)
   packages: write   # GitHub Packages publish
   id-token: write   # npmjs OIDC trusted publishing (provenance)
 
@@ -59,11 +65,31 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # Dispatch without a tag input = cut the release here: tag main HEAD as
+      # v<package.json version>. Idempotent — an existing identical tag means
+      # republish mode, a version already tagged on a DIFFERENT commit fails.
+      - name: Cut release tag (dispatch without tag input)
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.tag == ''
+        run: |
+          TAG="v$(node -p "require('./package.json').version")"
+          EXISTING=$(git ls-remote --tags origin "refs/tags/$TAG" | cut -f1)
+          if [[ -n "$EXISTING" && "$EXISTING" != "$(git rev-parse HEAD)" ]]; then
+            echo "::error::$TAG already exists on $EXISTING (HEAD is $(git rev-parse HEAD)) — bump package.json first"; exit 1
+          fi
+          if [[ -z "$EXISTING" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag "$TAG"
+            git push origin "$TAG"
+          fi
+          echo "release_tag=$TAG" >> "$GITHUB_ENV"
+
       # Tag must match package.json so the published artifact stays traceable
       # to its source tag (planning#1095).
       - name: Verify tag matches package.json version
         run: |
-          REF="${{ github.event.inputs.tag || github.ref_name }}"
+          REF="${{ github.event.inputs.tag }}"
+          [[ -z "$REF" ]] && REF="${release_tag:-${{ github.ref_name }}}"
           PKG="v$(node -p "require('./package.json').version")"
           if [[ "$REF" != "$PKG" ]]; then
             echo "::error::tag $REF != package.json $PKG"; exit 1
