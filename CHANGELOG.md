@@ -1,5 +1,67 @@
 # Changelog
 
+## 0.44.0
+
+Standard push-permission affordance (planning#1140). The package shipped zero
+push-permission handling — only `res-train` had a hand-rolled one — so every
+app that wanted push reinvented the state machine. This adds the shared
+piece: permission + affordance only, never the subscription itself.
+
+### `usePushPermission()`
+
+- New hook: `{ state, supported, canPrompt, isBlocked, needsInstall, prompt() }`.
+- `state`: `"unsupported" | "needs-install" | "default" | "granted" | "denied"`.
+- `supported` is `false` only for `"unsupported"` (no `Notification` /
+  `PushManager` / service-worker — older WebViews, kiosk browsers).
+- `needsInstall` covers iOS Safari's prerequisite — web push only works once
+  the PWA is installed to the Home Screen. Detected by calling
+  `useInstallPrompt()` internally (the same `isIOS`/`isStandalone` signals
+  `<InstallBanner>` already computes), so the two can't drift apart.
+- `isBlocked` is `state === "denied"`. Browsers never re-prompt after a
+  denial, so `prompt()` is a no-op (returns the current state without
+  calling the native API) unless `state === "default"` — a stray call after
+  a denial can never re-trigger a prompt the platform would refuse anyway.
+
+### `<PushEnableRow>`
+
+- One presentational row — used both inside `<NotificationBell>`'s popover
+  and standalone on a settings page — driven entirely by a
+  `usePushPermission()` result passed in as `permission`.
+- Renders per state: the enable affordance (`"default"`), the install path
+  (`"needs-install"`, text-only — no programmatic iOS install prompt exists),
+  a re-enable explanation (`"denied"`, no button), nothing (`"unsupported"`),
+  and nothing-or-a-quiet-confirmation (`"granted"`, via
+  `showGrantedConfirmation`).
+- `onEnabled` fires once permission is newly granted via the row's own
+  button — the package stops there; do the actual
+  `registration.pushManager.subscribe(...)` + your app's own
+  `/api/push/subscribe` POST from that callback. No VAPID keys or endpoints
+  are baked into the package.
+- All copy is overridable via `labels`, following the same Korean-default /
+  prop-override pattern as `<InstallBanner>`.
+
+### `<NotificationBell push>` (opt-in)
+
+- New optional `push` prop: `{ permission, onEnabled?, labels? }`. Omitting
+  it leaves `NotificationBell` exactly as before — existing consumers are
+  unaffected.
+- When set and `permission.state === "default"`, the popover/sheet shows
+  `<PushEnableRow>` above the items list, and the trigger carries a quiet
+  hollow-ring setup dot (`.etu-notif-bell-setup-dot` / the row-variant
+  `--setup` modifiers) — visually distinct from the filled unread badge, and
+  suppressed whenever there's a real unread count to show instead. One
+  nudge, not a recurring nag: the dot disappears the moment the user
+  decides, either way.
+- No banner. The ask lives in the bell popover (an already-demonstrated-
+  intent moment) and the settings row — never a third full-width strip
+  stacking on `StatusBanner`/`PolicyChangeBanner`.
+
+### Behavioral notes for 0.44
+
+None — `push` on `<NotificationBell>` is a new optional prop with no
+default, and `usePushPermission`/`PushEnableRow` are new exports. Nothing
+existing changes visually or behaviorally without opting in.
+
 ## 0.43.0
 
 Sidebar structure pass (planning#1133) — the desktop collapse affordance, rail

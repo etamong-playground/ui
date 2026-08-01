@@ -33,6 +33,8 @@ React/ReactDOM are peer deps.
 | `DeployInfo` | React component | "deployed `<sha>` · `<rel time>`" badge; renders `null` when no build env | App-info section (settings / backoffice) — **not a footer** |
 | `InstallBanner` | React component | Mobile-only PWA install banner. Real install button on Chrome/Android; "Share → 홈 화면에 추가" hint on iOS Safari; auto-hides when already installed | Once near the app root (same boundary as `<Toaster />`) |
 | `useInstallPrompt()` | React hook | Lower-level — returns `{ canPrompt, promptInstall, isIOS, isStandalone }` for apps that want to render their own UI | Any client component |
+| `usePushPermission()` | React hook | Web Push permission state machine — `{ state, supported, canPrompt, isBlocked, needsInstall, prompt() }`. Permission + affordance only; subscription POST stays app-side | Any client component |
+| `PushEnableRow` | React component | One presentational push-permission row — used both inside `<NotificationBell push>`'s popover and standalone on a settings page | `<NotificationBell push>` popover, settings page |
 | `StatusBanner` | React component | Top-of-app strip that polls `/.well-known/maintenance.json` and renders when service-admin declared a `degraded` / `maintenance` incident on the host (outage takes origin offline, no banner needed). Dismissible per session per incident | Once at the app root |
 | `useStatusBanner()` | React hook | Lower-level — returns the parsed status JSON (`{ enabled, severity, message_ko, message_en, eta_iso, ... }`) for apps rendering their own UI | Any client component |
 | `ErrorPage` | React component | Full-page friendly error surface; pairs with the httperr `ref` pattern, no raw error / repo links leak | Error boundary / Next.js `error.tsx` / 404 fallback route |
@@ -602,6 +604,89 @@ packaged once — apps drop the component in, no per-app
 ```tsx
 // Lower-level hook if you want to render your own UI:
 const { canPrompt, promptInstall, isIOS, isStandalone } = useInstallPrompt();
+```
+
+## Push permission (usePushPermission + PushEnableRow)
+
+The package owns push **permission + affordance only**. Each app has its own
+`/api/push/...` endpoints, so the actual `registration.pushManager.subscribe(...)`
++ subscription POST stays app-side, wired through a callback. No VAPID keys
+or endpoints are baked into the package.
+
+```tsx
+import { NotificationBell, PushEnableRow, usePushPermission } from "@etamong-playground/ui";
+
+const push = usePushPermission();
+// { state, supported, canPrompt, isBlocked, needsInstall, prompt() }
+
+async function onEnabled() {
+  const reg = await navigator.serviceWorker.ready;
+  const sub = await reg.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: myVapidPublicKeyBytes,
+  });
+  await api.post("/push/subscribe", sub.toJSON());
+}
+
+// 1. Bell popover (primary) — the user already opened the bell, so intent
+//    is already demonstrated. No cold interruption.
+<NotificationBell items={items} push={{ permission: push, onEnabled }} />
+
+// 2. Settings page (the permanent, explicit control):
+<PushEnableRow permission={push} onEnabled={onEnabled} showGrantedConfirmation />
+
+// 3. Contextual moment (highest conversion) — call prompt() directly at a
+//    point of intent, e.g. right after a booking is created:
+<button onClick={async () => { if ((await push.prompt()) === "granted") onEnabled(); }}>
+  결과를 알림으로 받으시겠어요?
+</button>
+```
+
+**No banner.** The design doc for this (`planning#1140`) explicitly rules out
+a third full-width strip — the package already ships `StatusBanner` and the
+install/policy banner family, and stacking a third eats the mobile viewport
+and reads as nagging. The ask lives in the bell popover, an app-triggered
+contextual moment, and the settings row.
+
+**States, handled correctly:**
+
+- **`"unsupported"`** — no `Notification` / `PushManager` / service-worker
+  (older WebViews, kiosk browsers). `PushEnableRow` renders `null` — never a
+  dead button.
+- **`"needs-install"`** — iOS Safari only allows web push once the PWA is
+  installed to the Home Screen. Detected via the same `isIOS`/`isStandalone`
+  signals `useInstallPrompt` already computes (`usePushPermission` calls that
+  hook internally, so the two can't drift). Shows the install path
+  (text-only, same reasoning as `<InstallBanner>`'s iOS branch having no
+  button), never a permission button that would silently fail.
+- **`"denied"`** — browsers never re-prompt after a denial. `prompt()`
+  becomes a no-op (returns `"denied"` without calling the native API), and
+  `PushEnableRow` shows a re-enable explanation instead of a button. Never
+  loop a prompt the platform will refuse.
+- **`"default"`** — the enable affordance: title, body, and a CTA button
+  that calls `prompt()` on click (must run from a user gesture — `prompt()`
+  is safe to call directly from an `onClick`).
+- **`"granted"`** — `PushEnableRow` renders `null` by default, or a quiet
+  one-line confirmation with `showGrantedConfirmation`.
+
+**`<NotificationBell push>` discovery.** When `push` is set and permission is
+`"default"`, the trigger also carries a quiet hollow-ring "setup dot"
+(`.etu-notif-bell-setup-dot`, or the row-variant's `--setup` badge/dot
+modifiers) — visually distinct from the filled unread badge, and suppressed
+whenever there's a real unread count to show instead. One nudge, not a
+recurring nag: it disappears the moment the user decides, either way.
+
+All copy is overridable via `labels` (same Korean-default / prop-override
+pattern as every other component here):
+
+```tsx
+<PushEnableRow
+  permission={push}
+  labels={{
+    enableTitle: "새 소식을 알림으로 받아보세요",
+    enableCta: "허용",
+  }}
+/>
 ```
 
 ## StatusBanner (service-admin declared-incident strip)
@@ -1626,6 +1711,20 @@ On mobile the sidebar is hidden below 720px — mount the default
 the sidebar footer (crowds the identity control, collides in rail mode) and
 never paired with the theme toggle (moved into `<UserMenu themeToggle>`) —
 see "Bell and theme placement" under Sidebar.
+
+**Push-permission affordance (v0.44, opt-in):** pass `push` to show
+`<PushEnableRow>` at the top of the popover/sheet when permission is
+`"default"`, plus a quiet setup dot on the trigger. See "Push permission"
+below — omitting `push` leaves `NotificationBell` exactly as before.
+
+```tsx
+const push = usePushPermission();
+
+<NotificationBell
+  items={items}
+  push={{ permission: push, onEnabled: () => subscribeAppSide() }}
+/>
+```
 
 ## NavigationBar + floating tab bar (iOS 26 Liquid Glass)
 
