@@ -5,3 +5,6 @@ dist
 .npmrc
 playwright-report
 test-results
+
+# Agent scratch (house convention: ./.tmp is gitignored)
+.tmp/

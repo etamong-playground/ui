@@ -14,7 +14,7 @@ import { defineConfig } from "tsup";
 //   which apps run in their own node test runner. No `"use client"` banner
 //   on those — apply it per-config rather than globally.
 const sharedEsbuildOptions = {
-  external: ["react", "react-dom", "@playwright/test", "msw"],
+  external: ["react", "react-dom", "@playwright/test", "msw", "@grafana/faro-web-sdk"],
   format: ["esm", "cjs"] as const,
   dts: true,
   treeshake: true,
@@ -41,7 +41,10 @@ export default defineConfig([
   },
   {
     ...sharedEsbuildOptions,
-    entry: ["src/helpers.ts", "src/testing.ts"],
+    // rum stays server-safe like helpers/testing: no React, faro is an
+    // optional peer kept external, and both entry points guard on
+    // `typeof window`.
+    entry: ["src/helpers.ts", "src/testing.ts", "src/rum.ts"],
     clean: false,
   },
 ]);
