@@ -12,7 +12,7 @@ safe go-to shortcuts, **toast + dialog** notification primitives, and the
 `app-notifications`, `build-version-info`).
 
 Published to GitHub Packages; consumed by all app
-frontends. **Current: v0.43.** Releasing + consuming are documented at the bottom.
+frontends. **Current: v0.48.** Releasing + consuming are documented at the bottom.
 
 Works in both house stacks — Next.js (React 19) and Vite + apiserver (React 18).
 React/ReactDOM are peer deps.
@@ -1488,8 +1488,8 @@ canonical `<Sidebar footer>` control:
 
 - **`themeToggle={{ appKey }}`** adds a light/dark row to the popover, backed
   by `getTheme`/`setTheme` (same `appKey` as `noFlashThemeScript`). This is
-  the theme toggle's canonical home now — see "Bell and theme placement"
-  under Sidebar below for why it moved out of the footer as a loose icon.
+  the theme toggle's canonical home now — see "Bell placement" under Sidebar
+  below for why it moved out of the footer as a loose icon.
   **Adopting it means removing any pre-existing theme toggle the app already
   has** — two controls racing the same `localStorage` key fight each other.
   Concrete hazard: `porygon/webui` has its own `useTheme()` on the same
@@ -1500,9 +1500,12 @@ canonical `<Sidebar footer>` control:
 - **`badges`** — role/permission pills (`{ label, tone? }`, tone matches
   `.etu-badge--*`) rendered under the name, independent of the built-in
   `admin` pill (`showAdminBadge`).
-- The footer stays identity-only otherwise — don't drop unrelated icon
-  buttons (locale switch, command palette trigger, …) next to it; those
-  belong in `appHeaderExtra` or the app's own header/nav bar chrome.
+- The footer itself stays identity-only — don't drop unrelated icon buttons
+  (locale switch, command palette trigger, …) into it directly; those belong
+  in `appHeaderExtra` or the app's own header/nav bar chrome. The one
+  sanctioned exception is the notification bell, which sits *beside* this
+  control via the separate `<Sidebar footerAccessory>` prop — see "Bell
+  placement" below — not inlined into `footer` itself.
 
 ## Sidebar + MobileTabBar (fleet nav shell)
 
@@ -1520,12 +1523,6 @@ const primary: SidebarItem[] = [
   { id: "home",     label: "홈",     icon: <Home size={18} />,     active: view === "home",     onClick: () => go("home") },
   { id: "schedule", label: "일정",   icon: <Calendar size={18} />, active: view === "schedule", onClick: () => go("schedule") },
   { id: "members",  label: "구성원", icon: <Users size={18} />,    active: view === "members",  onClick: () => go("members") },
-  // Owns its own trigger + anchored popover, so it opts out of the plain
-  // onClick/active row shape via `render` — see "Bell and theme placement" below.
-  // `render` ignores every field but `id` — no `label` here, it'd mislead.
-  { id: "notifications", render: () => (
-      <NotificationBell variant="row" label="알림" items={notifItems} />
-  ) },
 ];
 
 const secondary: SidebarItem[] = [
@@ -1549,11 +1546,15 @@ function Shell({ children }: { children: ReactNode }) {
             onSignOut={signOut}
           />
         }
+        // Beside identity, not a nav row — see "Bell placement" below.
+        footerAccessory={
+          <NotificationBell variant="footer" ariaLabel="알림" items={notifItems} />
+        }
       />
       <main>{children}</main>
       <MobileTabBar
         items={[
-          ...primary.filter((it) => !it.render).slice(0, 4),
+          ...primary.slice(0, 4),
           { id: "more", label: "더보기", icon: <MoreHorizontal size={22} />, active: view === "more", onClick: () => go("more") },
         ]}
       />
@@ -1576,23 +1577,49 @@ Notes:
   router-agnostic and never read the URL.
 - **CSS variable `--etu-sidebar-w` overrides the 240px default width.**
 
-### Bell and theme placement (v0.43)
+### Bell placement (v0.48, planning#1133 §6 correction)
 
-A bell + theme icon pair sitting loose in the sidebar footer crowds it and
-collides once the rail collapses to 64px. The fleet convention instead:
+**Beside identity, never the nav list.** v0.43 tried the bell as a nav row
+(`<NotificationBell variant="row">` via `SidebarItem.render`); that read as a
+destination sitting next to Dashboard/Docs, which it isn't — our bell opens a
+popover of recent items and routes elsewhere, an *ephemeral stream* rather
+than a triageable object with its own URL-worthy state. GitHub, Vercel,
+Figma and Slack all place their bell beside identity, never among nav
+destinations, and that's the corrected fleet convention:
 
-- **Notifications are a nav row, not a footer icon.** `<NotificationBell
-  variant="row">` (see the NotificationBell section below) mounts via
-  `SidebarItem.render` — reusing `.etu-sidebar-item*` classes gives it
-  rail-collapse parity for free (icon-only, unread count → a dot) with no
-  extra wiring.
+```tsx
+<Sidebar
+  footer={<UserMenu variant="full" me={me} themeToggle={{ appKey: "myapp" }} />}
+  footerAccessory={<NotificationBell variant="footer" items={notifItems} />}
+/>
+```
+
+- **Expanded:** `footerAccessory` renders as a trailing icon button next to
+  the identity trigger, in one row — not stacked, not full-width.
+- **Collapsed rail (64px):** it becomes its own icon-only rail item, stacked
+  directly above the avatar, badge intact — the same pill as the standalone
+  trigger, unchanged at either width. This is deliberately different from
+  `SidebarItem.badge`'s own dot-degradation (see "`SidebarItem.badge`" above):
+  that rule exists because a plain nav-row badge is unbounded text a caller
+  supplies and could overflow a 64px column. The bell's own badge is bounded
+  to `"99+"` by the component itself, so it always fits the ~40px trigger
+  and never needs to degrade — nothing here is incidental.
 - **On mobile** the sidebar is hidden below 720px, so the bell moves to
-  `<NavigationBar trailing>` instead — a single icon with room, colliding
-  with nothing.
+  `<NavigationBar trailing>` instead — unchanged from before.
 - **Theme lives inside `<UserMenu themeToggle>`** (see "Full-width identity
-  footer" above), not as a loose footer icon either.
-- Never pair the bell with the theme toggle in the same spot — that's
-  exactly the crowding this convention replaces.
+  footer" above) — never a loose footer icon, and never paired with the bell
+  in the same spot. The rejected shape here was specifically a *cluster of
+  loose icons* (bell + theme side by side, colliding at rail width), not the
+  bell's adjacency to identity.
+
+**When a nav row is still correct.** The test: notifications earn a nav-list
+row only when the surface is a first-class **triageable object** — URL-worthy
+state a user returns to and manages (filter, snooze, mark-done,
+assigned-to-me), with real dwell time (Linear's/Notion's Inbox qualify). An
+ephemeral glance-and-click-through stream doesn't, ours included. `variant="row"`
+(v0.43) is **deprecated but not removed** — it still works for existing
+consumers; see the NotificationBell section below for its (unchanged)
+mechanics.
 
 ### `SidebarItem.badge` — unread counts and status dots
 
@@ -1611,10 +1638,12 @@ nowhere to anchor the dot.
 ### `SidebarItem.render` — custom rows
 
 Escape hatch for a row that needs to own more than an `onClick` —
-`NotificationBell`'s `"row"` variant is the reference implementation. When
-`render` is set, every other field except `id` is ignored; reuse the
-`.etu-sidebar-item*` classes in the returned markup to inherit rail-collapse
-behavior (icon-only, label hidden, badge → dot) automatically.
+`NotificationBell`'s deprecated `"row"` variant (see "Bell placement" above)
+is the reference implementation, still valid for rows that genuinely are
+nav destinations. When `render` is set, every other field except `id` is
+ignored; reuse the `.etu-sidebar-item*` classes in the returned markup to
+inherit rail-collapse behavior (icon-only, label hidden, badge → dot)
+automatically.
 
 ### Captioned secondary subsections (large apps)
 
@@ -1713,27 +1742,40 @@ Replaces per-app "inbox" tabs/routes: incoming notifications (access
 requests, deploy completions, mentions) belong on a global bell, not the
 primary nav.
 
-**Placement (v0.43):** `variant="row"` (default `"trigger"`) renders as a
-full-width `.etu-sidebar-item` row — icon + `label` + count — meant to be
-mounted via `SidebarItem.render` on tablet/desktop:
+**Placement (v0.48, planning#1133 §6 correction):** `variant="footer"`
+mounts via `<Sidebar footerAccessory>`, beside identity — the canonical
+placement on tablet/desktop. Visually identical to the default
+`variant="trigger"` icon button, but portals its popover like `"row"` does,
+since the footer sits inside `<Sidebar>`'s own `overflow: auto` region:
 
 ```tsx
+<Sidebar
+  footer={<UserMenu variant="full" me={me} .../>}
+  footerAccessory={<NotificationBell variant="footer" items={items} />}
+/>
+```
+
+See "Bell placement" under Sidebar above for the full placement rule, the
+expanded/collapsed layout, and the test for when a notification surface
+earns a nav row instead (rare — ours doesn't).
+
+On mobile the sidebar is hidden below 720px — mount the default
+`variant="trigger"` in `<NavigationBar trailing>` instead (see above).
+Never paired with the theme toggle (lives in `<UserMenu themeToggle>`).
+
+**`variant="row"` (v0.43) is deprecated, not removed.** It still mounts via
+`SidebarItem.render` as a full-width `.etu-sidebar-item` row — icon + `label`
++ count — reusing the same `.etu-sidebar-item*` classes `<Sidebar>` itself
+uses for rail-collapse (icon-only, badge → dot) parity, and its popover
+still portals to `<body>` the same way. Existing consumers keep working
+unchanged; new integrations should use `variant="footer"` above instead.
+
+```tsx
+// Deprecated — kept working, not the placement for new integrations
 { id: "notifications", render: () => (
     <NotificationBell variant="row" label="알림" items={items} />
 ) }
 ```
-
-It reuses the same `.etu-sidebar-item*` classes `<Sidebar>` itself uses, so
-it inherits rail-collapse (icon-only, badge → dot) for free — no extra
-wiring. The desktop popover renders through a portal to `<body>` so it isn't
-clipped by the sidebar's own `overflow: auto`, at any rail width including
-the 64px collapsed column.
-
-On mobile the sidebar is hidden below 720px — mount the default
-`variant="trigger"` in `<NavigationBar trailing>` instead (see above). Never
-the sidebar footer (crowds the identity control, collides in rail mode) and
-never paired with the theme toggle (moved into `<UserMenu themeToggle>`) —
-see "Bell and theme placement" under Sidebar.
 
 **Push-permission affordance (v0.44, opt-in):** pass `push` to show
 `<PushEnableRow>` at the top of the popover/sheet when permission is
@@ -1777,7 +1819,7 @@ Props (see `NavigationBarProps`):
 - `borderless` — drop the hairline border (for full-bleed transparent shells).
 
 `trailing` is also the mobile home for `<NotificationBell>` (v0.43) — the sidebar
-(and its nav-row bell, see "Bell and theme placement" above) is hidden below 720px:
+(and its footer bell, see "Bell placement" above) is hidden below 720px:
 
 ```tsx
 <NavigationBar title={title} trailing={<NotificationBell items={items} />} />

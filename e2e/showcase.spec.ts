@@ -153,11 +153,12 @@ test.describe("mobile tier", () => {
   });
 });
 
-// g3. Rail collapse — the toggle now lives in the header row; collapsing it
-// degrades the bell row's unread badge to a dot that stays visible (not
-// hidden), and its popover (portaled to <body>, escaping the sidebar's own
-// `overflow: auto`) still opens correctly while the rail is collapsed.
-test("rail collapse — bell badge dot and portaled popover", async ({ page }) => {
+// g3. Rail collapse — bell lives beside identity now (planning#1133 §6
+// correction, v0.48): expanded it's a trailing icon next to the identity
+// trigger; collapsed it stacks as its own icon-only rail item directly
+// above the avatar, badge intact, and its popover (portaled to <body>,
+// escaping the sidebar's own `overflow: auto`) still opens correctly.
+test("rail collapse — footer bell stacks above the avatar with its badge, popover opens", async ({ page }) => {
   await page.goto("/#/overview");
   const sidebar = page.locator(".etu-sidebar");
   await expect(sidebar).toBeVisible();
@@ -165,16 +166,78 @@ test("rail collapse — bell badge dot and portaled popover", async ({ page }) =
   await sidebar.locator(".etu-sidebar-rail-toggle").click();
   await expect(sidebar).toHaveAttribute("data-expanded", "false");
 
-  const bellRow = sidebar.getByRole("button", { name: /알림함/ });
-  await expect(bellRow).toBeVisible();
-  await expect(bellRow.locator(".etu-sidebar-item-badge-dot")).toBeVisible();
+  const bell = sidebar.locator(".etu-sidebar-footer-accessory .etu-notif-bell-trigger");
+  await expect(bell).toBeVisible();
+  await expect(bell.locator(".etu-notif-bell-badge")).toBeVisible();
 
-  await bellRow.click();
+  const avatarTrigger = sidebar.locator(".etu-sidebar-footer .etu-user-menu-trigger--full");
+  await expect(avatarTrigger).toBeVisible();
+
+  // "Directly above" — the bell's box sits entirely above the avatar's, not
+  // beside it or overlapping (the crowding failure mode §6 rejected).
+  const bellBox = await bell.boundingBox();
+  const avatarBox = await avatarTrigger.boundingBox();
+  expect(bellBox!.y + bellBox!.height).toBeLessThanOrEqual(avatarBox!.y + 1);
+
+  await bell.click();
   const popover = page.locator(".etu-notif-bell-popover");
   await expect(popover).toBeVisible();
   const box = await popover.boundingBox();
   expect(box!.x).toBeGreaterThanOrEqual(0);
   expect(box!.x + box!.width).toBeLessThanOrEqual(1280 + 1);
+});
+
+// g3c. Expanded rail — the bell sits beside identity in one row, not
+// stacked above it and not full-width (the two rejected shapes from the
+// §6 correction's earlier attempts).
+test("expanded sidebar — footer bell sits beside identity, not stacked or full-width", async ({ page }) => {
+  await page.goto("/#/overview");
+  const sidebar = page.locator(".etu-sidebar");
+  await expect(sidebar).toBeVisible();
+  await expect(sidebar).toHaveAttribute("data-expanded", "true");
+
+  const bell = sidebar.locator(".etu-sidebar-footer-accessory .etu-notif-bell-trigger");
+  const avatarTrigger = sidebar.locator(".etu-sidebar-footer .etu-user-menu-trigger--full");
+  await expect(bell).toBeVisible();
+  await expect(avatarTrigger).toBeVisible();
+
+  const bellBox = await bell.boundingBox();
+  const avatarBox = await avatarTrigger.boundingBox();
+  // Same row: vertically overlapping, bell to the right of the identity
+  // control's right edge.
+  expect(bellBox!.y).toBeLessThan(avatarBox!.y + avatarBox!.height);
+  expect(bellBox!.y + bellBox!.height).toBeGreaterThan(avatarBox!.y);
+  expect(bellBox!.x).toBeGreaterThanOrEqual(avatarBox!.x + avatarBox!.width - 1);
+  // Not full-width — a trailing icon button, not a stretched row.
+  expect(bellBox!.width).toBeLessThan(60);
+});
+
+// g3a2. Regression guard (planning#1133 §6 review round) — the first cut of
+// `footerAccessory` used a CSS-only `flex-direction: row-reverse` to render
+// the bell trailing while keeping it the first DOM child (for the collapsed
+// stacking order). That desynced tab order from visual order: a keyboard
+// user tabbing forward would reach the bell BEFORE identity even though the
+// bell renders to the right of it. DOM order was changed to track visible
+// order in each state instead — this asserts the actual keyboard path, not
+// just geometry, since geometry alone passed the whole time this bug shipped.
+test("expanded sidebar — Tab from the last nav item reaches identity before the bell", async ({ page }) => {
+  await page.goto("/#/overview");
+  const sidebar = page.locator(".etu-sidebar");
+  await expect(sidebar).toBeVisible();
+  await expect(sidebar).toHaveAttribute("data-expanded", "true");
+
+  const lastNavItem = sidebar.locator(".etu-sidebar-section--secondary .etu-sidebar-item").last();
+  await lastNavItem.focus();
+  await expect(lastNavItem).toBeFocused();
+
+  const avatarTrigger = sidebar.locator(".etu-sidebar-footer .etu-user-menu-trigger--full");
+  const bell = sidebar.locator(".etu-sidebar-footer-accessory .etu-notif-bell-trigger");
+
+  await page.keyboard.press("Tab");
+  await expect(avatarTrigger).toBeFocused();
+
+  await page.keyboard.press("Tab");
+  await expect(bell).toBeFocused();
 });
 
 // g3b. Regression guard (planning#1150): two adoption agents disagreed about
@@ -208,17 +271,18 @@ test("rail collapse — footer avatar trigger stays reachable and opens its popo
   expect(box!.x + box!.width).toBeLessThanOrEqual(1280 + 1);
 });
 
-// g4. Crossing into the mobile tier with the row bell open must not strand
-// an orphaned full-screen sheet — the sidebar is CSS-hidden (not unmounted)
-// below 720px, so the row bell instance stays alive and, pre-fix, fell into
-// the mobile-sheet branch the moment `isMobile` flipped true.
-test("row bell auto-closes when the viewport crosses into the mobile tier", async ({ page }) => {
+// g4. Crossing into the mobile tier with the footer bell open must not
+// strand an orphaned full-screen sheet — the sidebar is CSS-hidden (not
+// unmounted) below 720px, so the footer-bell instance stays alive and,
+// without the force-close guard, would fall into the mobile-sheet branch
+// the moment `isMobile` flips true.
+test("footer bell auto-closes when the viewport crosses into the mobile tier", async ({ page }) => {
   await page.goto("/#/overview");
   const sidebar = page.locator(".etu-sidebar");
   await expect(sidebar).toBeVisible();
 
-  const bellRow = sidebar.getByRole("button", { name: /알림함/ });
-  await bellRow.click();
+  const bell = sidebar.locator(".etu-sidebar-footer-accessory .etu-notif-bell-trigger");
+  await bell.click();
   await expect(page.locator(".etu-notif-bell-popover")).toBeVisible();
 
   await page.setViewportSize({ width: 390, height: 844 });

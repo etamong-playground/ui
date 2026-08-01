@@ -49,10 +49,18 @@
  * UserMenus are the retired anti-pattern. The canonical `footer` is now a
  * single full-width `<UserMenu variant="full" placement="top-right" .../>`
  * control (v0.43) — avatar + name + email, opening the same popover as the
- * header trigger. The footer stays identity-only: notifications and theme
- * moved out (see `SidebarItem.badge` / `render` below, and
- * `UserMenuProps.themeToggle`) rather than crowding it as a loose icon
- * cluster.
+ * header trigger. Theme lives inside that popover
+ * (`UserMenuProps.themeToggle`) rather than as a loose footer icon.
+ *
+ * The notification bell (v0.48, planning#1133 §6 correction) sits beside
+ * that identity control via `footerAccessory` — a trailing icon in the
+ * identity row when expanded, its own icon-only rail item stacked directly
+ * above the avatar when collapsed. It was a nav row in v0.43–v0.47
+ * (`SidebarItem.badge` / `render`, `<NotificationBell variant="row">`);
+ * that placement is now deprecated because our bell is an ephemeral
+ * popover of recent items, not a triageable object with its own
+ * nav-worthy destination — see `footerAccessory` below and
+ * `NotificationBell`'s doc comment for the full test.
  *
  * The rail-collapse toggle (v0.37) lives in the header row now, pinned to
  * the trailing edge alongside the app name/icon — not a separate row
@@ -111,6 +119,11 @@ export interface SidebarItem {
    * rail-collapse behavior (icon-only, label hidden, badge → dot) for free
    * — see `NotificationBell`'s `"row"` variant for the reference
    * implementation. (v0.43)
+   *
+   * **Deprecated for `NotificationBell` (v0.48).** Mounting the bell as a
+   * nav row read as a destination it isn't — see `SidebarProps.footerAccessory`
+   * for the corrected placement. `render` itself stays for rows that
+   * genuinely need custom markup; only the bell's use of it is deprecated.
    */
   render?: () => ReactNode;
 }
@@ -174,6 +187,31 @@ export interface SidebarProps {
    * Pass `null` for an anonymous shell (login routes, public-only hosts).
    */
   footer?: ReactNode;
+  /**
+   * Trailing control rendered beside `footer` in the identity row — the
+   * canonical mount for `<NotificationBell variant="footer">` (v0.48,
+   * planning#1133 §6 correction). Expanded: sits to the right of the
+   * identity trigger in one flex row (not stacked, not full-width).
+   * Collapsed rail: stacks as its own icon-only item directly above the
+   * (avatar-only-degraded) identity control — reusing `.etu-sidebar-footer`
+   * as a single coherent region rather than scattering a loose icon cluster
+   * (the earlier, rejected attempt paired the bell with a theme toggle here
+   * and it collided at 64px). Optional — omitting it leaves the footer
+   * exactly as before.
+   *
+   * DOM order tracks the visible order in both states (identity-then-bell
+   * expanded, bell-then-identity collapsed) rather than diverging via a
+   * CSS-only reorder trick — tab order and screen-reader linear reading
+   * follow DOM order, not flexbox visual order, so a mismatch there would
+   * invert the exact hierarchy this placement is meant to express.
+   *
+   * Expected to render a single ~40px icon-button target (matching
+   * `NotificationBell`'s `.etu-notif-bell-trigger` sizing) — not restricted
+   * to `NotificationBell`, but that's the only shipped consumer today, and
+   * the surrounding layout isn't built to accommodate a differently-sized
+   * control.
+   */
+  footerAccessory?: ReactNode;
   /** ARIA label for the nav landmark. Default: "주 메뉴". */
   ariaLabel?: string;
   /** Extra class merged with `etu-sidebar`. */
@@ -320,6 +358,7 @@ export function Sidebar({
   secondarySections,
   secondaryCaption = "더보기",
   footer,
+  footerAccessory,
   ariaLabel = "주 메뉴",
   className,
   tabletMode = "rail",
@@ -339,6 +378,12 @@ export function Sidebar({
     else if (viewport === "tablet") setExpanded(false);
   }, [tabletMode, viewport]);
   const collapsed = !(expanded ?? viewport === "desktop");
+  // `collapsed` alone isn't scoped to rail mode — for "drawer"/"full" it can
+  // spuriously read `true` at tablet width even though the footer never
+  // visually collapses there (no `[data-expanded]` CSS applies outside
+  // `data-tablet-mode="rail"`). Gate on `tabletMode` too so `footerAccessory`
+  // ordering below only flips in the one state that's actually collapsed.
+  const footerCollapsed = tabletMode === "rail" && collapsed;
 
   const dataAttrs: Record<string, string> = {
     "data-tablet-mode": tabletMode,
@@ -511,7 +556,32 @@ export function Sidebar({
             ))}
           </nav>
         ) : null}
-      {footer ? <div className="etu-sidebar-footer">{footer}</div> : null}
+      {footer || footerAccessory ? (
+        <div className="etu-sidebar-footer">
+          {/* DOM order tracks the visible order in each state (see the
+              `footerAccessory` doc comment above) — bell-then-identity only
+              while actually collapsed, identity-then-bell otherwise — so tab
+              order and screen-reader reading order never diverge from what's
+              on screen. The `.etu-sidebar-footer-identity` wrapper only
+              appears once `footerAccessory` is actually in play (so the
+              no-accessory path renders `footer` completely unwrapped, byte-
+              for-byte as before) — it exists so a multi-node `footer` value
+              (the documented identity + Logout + DeployInfo shape) stays one
+              flex item instead of each child individually matching the row
+              layout below and getting smeared sideways. */}
+          {footerAccessory && footerCollapsed ? (
+            <div className="etu-sidebar-footer-accessory">{footerAccessory}</div>
+          ) : null}
+          {footerAccessory && footer ? (
+            <div className="etu-sidebar-footer-identity">{footer}</div>
+          ) : (
+            footer
+          )}
+          {footerAccessory && !footerCollapsed ? (
+            <div className="etu-sidebar-footer-accessory">{footerAccessory}</div>
+          ) : null}
+        </div>
+      ) : null}
     </aside>
     </>
   );

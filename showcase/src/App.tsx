@@ -198,9 +198,11 @@ function LocaleToggleButton() {
   );
 }
 
-// Mock unread notifications — dogfoods the <NotificationBell variant="row">
-// sidebar-composition convention (planning#1133): bell = nav row on
-// tablet/desktop, NavigationBar trailing on mobile, never the footer.
+// Mock unread notifications — dogfoods the <NotificationBell variant="footer">
+// sidebar-composition convention (planning#1133 §6 correction): bell sits
+// beside identity in the footer on tablet/desktop, NavigationBar trailing
+// on mobile. The v0.43 nav-row placement is deprecated, not removed — see
+// NotificationsSection for that code sample.
 const mockNotifItems: NotificationBellItem[] = [
   {
     id: "1",
@@ -303,8 +305,8 @@ export function App() {
   };
 
   const primary: SidebarItem[] = useMemo(
-    () => [
-      ...["overview", "palette", "notifications", "chrome", "data"].map((id) => {
+    () =>
+      ["overview", "palette", "notifications", "chrome", "data"].map((id) => {
         const Icon = icons[id as SectionId];
         return {
           id,
@@ -314,23 +316,6 @@ export function App() {
           onClick: () => go(id as SectionId),
         };
       }),
-      // Bell owns its own trigger + anchored popover, so it opts out of the
-      // plain onClick/active row shape via `render`. Excluded from
-      // `mobileItems` below on purpose — mobile gets the bell via
-      // `<NavigationBar trailing>` instead, see the render() body.
-      {
-        id: "notif-bell",
-        label: t("nav.notifBell"),
-        render: () => (
-          <NotificationBell
-            variant="row"
-            label={t("nav.notifBell")}
-            title={t("nav.notifBell")}
-            items={mockNotifItems}
-          />
-        ),
-      },
-    ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [section, t, go],
   );
@@ -378,9 +363,9 @@ export function App() {
   const sectionTitle = t(`section.${section}`);
   const viewport = useViewport();
 
-  // Identity-only footer (planning#1133): a single full-width control that
-  // opens the same UserMenu popover as a header trigger would, with the
-  // theme toggle riding inside it — no loose icon cluster.
+  // Identity footer (planning#1133): a single full-width control that opens
+  // the same UserMenu popover as a header trigger would, with the theme
+  // toggle riding inside it — no loose icon cluster.
   const sidebarFooter = (
     <UserMenu
       me={mockAdmin}
@@ -390,6 +375,22 @@ export function App() {
       badges={[{ label: "Owner", tone: "accent" }]}
       themeToggle={{ appKey: "ui-showcase" }}
       onSignOut={() => alert("Signed out (demo)")}
+    />
+  );
+
+  // Bell beside identity (v0.48, planning#1133 §6 correction): a trailing
+  // icon in the footer row when expanded, its own rail item stacked above
+  // the avatar when collapsed. `variant="footer"` is visually the same
+  // standalone trigger used on `<NavigationBar trailing>` below — it just
+  // portals its popover, since this mount sits inside `<Sidebar>`'s own
+  // `overflow: auto` region.
+  const sidebarFooterAccessory = (
+    <NotificationBell
+      variant="footer"
+      ariaLabel={t("nav.notifBell")}
+      title={t("nav.notifBell")}
+      placement="top-right"
+      items={mockNotifItems}
     />
   );
 
@@ -414,6 +415,7 @@ export function App() {
           secondary={secondary}
           secondaryCaption={t("sidebar.more")}
           footer={sidebarFooter}
+          footerAccessory={sidebarFooterAccessory}
           tabletMode="rail"
         />
         <div className="sc-main-area">
@@ -422,7 +424,7 @@ export function App() {
             trailing={
               <div className="sc-nav-trailing">
                 {/* Sidebar is hidden below 720px, so the bell rides here on
-                    mobile instead of the (invisible) sidebar row above. */}
+                    mobile instead of the (invisible) sidebar footer above. */}
                 {viewport === "mobile" && (
                   <NotificationBell title={t("nav.notifBell")} items={mockNotifItems} />
                 )}

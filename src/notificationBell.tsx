@@ -12,11 +12,19 @@
  * not in the primary nav. The component is content-agnostic — consumers
  * render each item's body and any inline actions.
  *
- * **Placement convention (v0.43):** the bell is a `<Sidebar>` nav row
- * (`variant="row"`, mounted via `SidebarItem.render`) on tablet/desktop, or
- * `<NavigationBar trailing>` on mobile (the sidebar is hidden below 720px).
- * Never the sidebar footer — that's identity-only now — and never paired
- * with the theme toggle (which lives inside `<UserMenu themeToggle>`).
+ * **Placement convention (v0.48, planning#1133 §6 correction):** the bell
+ * lives beside identity, not in the nav list — `<Sidebar footerAccessory>`
+ * with `variant="footer"` on tablet/desktop, or `<NavigationBar trailing>`
+ * on mobile (the sidebar is hidden below 720px). The nav-list mount
+ * (`variant="row"` via `SidebarItem.render`) shipped in v0.43 is now
+ * **deprecated** — kept for existing consumers, but new integrations should
+ * use `variant="footer"`. Reasoning: our bell opens a popover of recent
+ * items and routes elsewhere — an *ephemeral stream*, not a first-class
+ * triageable object with its own URL-worthy state — so listing it beside
+ * Dashboard/Docs made it read as a destination it isn't. GitHub, Vercel,
+ * Figma and Slack all place their bell next to identity, never among nav
+ * destinations. Never paired with the theme toggle either way (that lives
+ * inside `<UserMenu themeToggle>`).
  *
  * **Mobile sheet is portaled (v0.45, planning#1151):** the default
  * `variant="trigger"`'s mobile sheet + backdrop render through a portal to
@@ -87,9 +95,23 @@ export interface NotificationBellProps {
   placement?: "bottom-right" | "bottom-left" | "top-right" | "top-left";
   /**
    * Presentation. `"trigger"` (default) is the standalone icon-button,
-   * sized for a header/toolbar — unchanged from prior versions. `"row"`
-   * (v0.43) renders as a full-width `.etu-sidebar-item` row (icon + `label`
-   * + count) meant to be mounted via `SidebarItem.render`:
+   * sized for a header/toolbar — unchanged from prior versions.
+   *
+   * `"footer"` (v0.48) is the canonical `<Sidebar footerAccessory>` mount —
+   * visually identical to `"trigger"` (same icon button, same badge), but
+   * portals its popover like `"row"` does, since the sidebar footer sits
+   * inside `<Sidebar>`'s own `overflow: auto` region:
+   *
+   * ```tsx
+   * <Sidebar
+   *   footer={<UserMenu variant="full" .../>}
+   *   footerAccessory={<NotificationBell variant="footer" items={items} />}
+   * />
+   * ```
+   *
+   * `"row"` (v0.43, **deprecated** — see the component doc comment above)
+   * renders as a full-width `.etu-sidebar-item` row (icon + `label` +
+   * count) meant to be mounted via `SidebarItem.render`:
    *
    * ```tsx
    * { id: "notifications", render: () => (
@@ -97,14 +119,13 @@ export interface NotificationBellProps {
    * ) }
    * ```
    *
-   * Reuses the same `.etu-sidebar-item*` classes `<Sidebar>` itself uses,
-   * so it inherits rail-collapse (icon-only, badge → dot) for free. The
-   * desktop popover renders through a portal so it isn't clipped by the
-   * sidebar's own `overflow: auto` — same visual result as the trigger
-   * variant, just anchored via computed viewport coordinates instead of
-   * `position: absolute` relative to an ancestor.
+   * It reuses the same `.etu-sidebar-item*` classes `<Sidebar>` itself
+   * uses, so it inherits rail-collapse (icon-only, badge → dot) for free.
+   * Kept working for existing consumers; new integrations should reach for
+   * `"footer"` instead unless the notification surface genuinely earns a
+   * nav row (see the doc comment above for the test).
    */
-  variant?: "trigger" | "row";
+  variant?: "trigger" | "row" | "footer";
   /** Row-variant label. Ignored in `"trigger"` variant. Default: `"알림"`. */
   label?: ReactNode;
   /**
@@ -113,6 +134,12 @@ export interface NotificationBellProps {
    * `NotificationBell` unchanged.
    */
   push?: NotificationBellPushProps;
+}
+
+function isDevBuild(): boolean {
+  const proc = (globalThis as { process?: { env?: { NODE_ENV?: string } } })
+    .process;
+  return !proc || !proc.env || proc.env.NODE_ENV !== "production";
 }
 
 /** Exported so `PushEnableRow`'s default icon matches the bell it lives under. */
@@ -160,11 +187,32 @@ export function NotificationBell({
   const badge = count ?? items.length;
   const badgeText = badge > 99 ? "99+" : String(badge);
   const isRow = variant === "row";
+  const isFooter = variant === "footer";
   // Only "default" — not "needs-install"/"denied" — earns the nudge. Those
   // two states already required the user to act (install) or were declined
   // (denied); re-showing a dot there would be exactly the "recurring nag"
   // the design doc rules out.
   const showSetupDot = push?.permission.state === "default";
+
+  // A bell mounted inside `<Sidebar footerAccessory>` without `variant="footer"`
+  // (or `"row"`, which also portals) silently gets clipped: its popover falls
+  // back to `position: absolute` against `.etu-notif-bell`, which sits inside
+  // `.etu-sidebar`'s own `overflow: auto` region — invisible until someone
+  // reports "clicking the bell does nothing," especially at the collapsed
+  // rail width. Dev-only, checked once per mount/variant change.
+  useEffect(() => {
+    if (!isDevBuild() || typeof document === "undefined") return;
+    const el = rootRef.current;
+    if (!el || !el.closest(".etu-sidebar-footer-accessory")) return;
+    if (isRow || isFooter) return;
+    // eslint-disable-next-line no-console
+    console.warn(
+      '[@etamong-playground/ui] <NotificationBell> is mounted inside ' +
+        '<Sidebar footerAccessory> but variant is not "footer" — its popover ' +
+        "will be clipped by the sidebar's own `overflow: auto`, especially at " +
+        'the collapsed rail width. Pass `variant="footer"`.',
+    );
+  }, [isRow, isFooter]);
 
   useEffect(() => {
     if (!open) return;
@@ -199,41 +247,45 @@ export function NotificationBell({
   // `filter`/`perspective` (planning#1151). `<NavigationBar>` always applies
   // `.etu-glass` (backdrop-filter), so a non-portaled trigger mounted in its
   // `trailing` slot had its sheet anchored to the header instead of the
-  // viewport. The desktop popover doesn't need this: it's `position:
-  // absolute` against `.etu-notif-bell` (`position: relative`, closer in the
-  // tree than any `.etu-glass` ancestor), which already wins the
-  // containing-block search regardless of backdrop-filter further out.
-  const shouldPortal = isRow || isMobile;
+  // viewport. The desktop popover doesn't need this normally: it's
+  // `position: absolute` against `.etu-notif-bell` (`position: relative`,
+  // closer in the tree than any `.etu-glass` ancestor), which already wins
+  // the containing-block search regardless of backdrop-filter further out —
+  // UNLESS that wrapper itself sits inside `<Sidebar>`'s `overflow: auto`
+  // region, which clips an absolutely-positioned panel at any rail width
+  // (same bug the row variant was built to dodge). `"footer"` is exactly
+  // that placement, so it portals too.
+  const shouldPortal = isRow || isFooter || isMobile;
   const { computedPlacement, portalStyle } = usePopoverPosition({
     open,
     enabled: !isMobile,
     placement,
     triggerRef,
     panelRef,
-    portal: isRow,
+    portal: isRow || isFooter,
   });
 
   // The sidebar is CSS-hidden below 720px (`display: none`), not unmounted —
-  // a row-variant instance opened at tablet/desktop width stays mounted and
-  // `open` when the viewport crosses into mobile. Without this it would fall
-  // into the `isMobile` branch below and render a full-screen sheet the user
-  // never asked for, portaled outside the (hidden) sidebar. Force it closed
-  // instead of relying on the app to unmount the sidebar.
+  // a row/footer-variant instance opened at tablet/desktop width stays
+  // mounted and `open` when the viewport crosses into mobile. Without this
+  // it would fall into the `isMobile` branch below and render a full-screen
+  // sheet the user never asked for, portaled outside the (hidden) sidebar.
+  // Force it closed instead of relying on the app to unmount the sidebar.
   useEffect(() => {
-    if (isRow && isMobile) setOpen(false);
-  }, [isRow, isMobile]);
+    if ((isRow || isFooter) && isMobile) setOpen(false);
+  }, [isRow, isFooter, isMobile]);
 
-  // Lock body scroll while the mobile sheet is open. Never for the row
-  // variant — it has no mobile sheet (see above), so it must never engage
-  // this lock even for the one commit before the effect above flushes.
+  // Lock body scroll while the mobile sheet is open. Never for the row/footer
+  // variants — neither has a mobile sheet (see above), so they must never
+  // engage this lock even for the one commit before the effect above flushes.
   useEffect(() => {
-    if (!open || !isMobile || isRow || typeof document === "undefined") return;
+    if (!open || !isMobile || isRow || isFooter || typeof document === "undefined") return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = prev;
     };
-  }, [open, isMobile, isRow]);
+  }, [open, isMobile, isRow, isFooter]);
 
   const close = () => setOpen(false);
 
@@ -295,12 +347,12 @@ export function NotificationBell({
     </button>
   );
 
-  // `!isRow` on the sheet branch is defense in depth alongside the
-  // force-close effect above: the row variant must never take the
+  // `!isRow && !isFooter` on the sheet branch is defense in depth alongside
+  // the force-close effect above: row/footer variants must never take the
   // mobile-sheet branch, even for the one render before that effect's
   // `setOpen(false)` commits.
   const panel =
-    open && isMobile && !isRow ? (
+    open && isMobile && !isRow && !isFooter ? (
       <>
         <div className="etu-notif-bell-backdrop" onMouseDown={close} aria-hidden="true" />
         <div
@@ -329,7 +381,7 @@ export function NotificationBell({
         role="dialog"
         aria-label={typeof title === "string" ? title : undefined}
         className={`etu-notif-bell-popover etu-notif-bell-popover--${computedPlacement}`}
-        style={portalStyle ?? (isRow ? POPOVER_MEASURING_STYLE : undefined)}
+        style={portalStyle ?? (isRow || isFooter ? POPOVER_MEASURING_STYLE : undefined)}
       >
         <NotifPanelBody
           title={title}

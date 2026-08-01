@@ -42,15 +42,16 @@ export function ChromeSection({ navigate }: { navigate: (path: string) => void }
         <p className="sc-card-body">
           The <strong>Sidebar</strong>, <strong>NavigationBar</strong>, and{" "}
           <strong>MobileTabBar</strong> you see surrounding this content are all
-          live library components — no demo buttons needed. The bell row near the
-          top of the sidebar (알림함 / Inbox) is{" "}
-          <code>{'<NotificationBell variant="row">'}</code> mounted via{" "}
-          <code>SidebarItem.render</code> — collapse the rail to see its badge
-          degrade to a dot. Resize under 720px and the same bell moves to the
-          navigation bar's trailing edge instead — the sidebar is hidden there.
-          Identity (avatar + name + email) is the sidebar footer; opening it
-          reveals the <strong>theme</strong> toggle, moved out of the footer
-          itself. <strong>i18n</strong> stays in the navigation bar via{" "}
+          live library components — no demo buttons needed. The bell beside the
+          identity footer (bottom of the sidebar) is{" "}
+          <code>{'<NotificationBell variant="footer">'}</code> mounted via{" "}
+          <code>{"<Sidebar footerAccessory>"}</code> — collapse the rail and it
+          stacks directly above the avatar instead of crowding it, badge intact.
+          Resize under 720px and the same bell moves to the navigation bar's
+          trailing edge instead — the sidebar is hidden there. Identity (avatar +
+          name + email) is the sidebar footer; opening it reveals the{" "}
+          <strong>theme</strong> toggle, moved out of the footer itself.{" "}
+          <strong>i18n</strong> stays in the navigation bar via{" "}
           <code>useLocale</code>.
         </p>
       </div>

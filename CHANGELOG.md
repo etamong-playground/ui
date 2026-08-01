@@ -1,5 +1,57 @@
 # Changelog
 
+## 0.48.0
+
+Bell placement correction (planning#1133 §6, operator: "프로필 근처 어딘가에
+뜨는게 맞음") — v0.43 put the bell in the sidebar's nav list; that read as a
+destination sitting next to Dashboard/Docs, which it isn't. Our bell opens a
+popover of recent items and routes elsewhere — an **ephemeral stream**, not
+a first-class triageable object with its own URL-worthy state (Linear's/
+Notion's Inbox are the triageable kind and legitimately earn a nav row;
+GitHub's/Vercel's/Figma's/Slack's bell is the ephemeral kind and sits beside
+identity instead). Apply that test — object substance, not product
+category — before mounting anything else in the nav list.
+
+- New `<Sidebar footerAccessory>` prop: a trailing control rendered beside
+  `footer` in the identity row. Expanded: sits to the right of the identity
+  trigger in one flex row (not stacked, not full-width). Collapsed rail:
+  stacks as its own icon-only item directly above the (avatar-only-degraded)
+  identity control, badge intact — the bell's own badge is bounded to
+  `"99+"` by the component itself, so it always fits the ~40px trigger and
+  stays a pill at both widths (unlike `SidebarItem.badge`, which degrades to
+  a corner dot on collapse because it's unbounded caller-supplied text).
+  Optional — omitting it leaves the footer exactly as before, and a `footer`
+  that renders multiple top-level nodes (the documented identity + Logout +
+  DeployInfo shape) is unaffected: it only gets wrapped for flex layout once
+  `footerAccessory` is actually present.
+- DOM order for `footer`/`footerAccessory` tracks the visible order in both
+  states (identity-then-bell expanded, bell-then-identity collapsed) — not a
+  CSS-only visual reorder — so keyboard tab order and screen-reader linear
+  reading never diverge from what's on screen.
+- New `NotificationBell` `variant="footer"`: visually identical to the
+  default `variant="trigger"` icon button, but portals its popover like
+  `"row"` does — the sidebar footer sits inside `<Sidebar>`'s own
+  `overflow: auto` region, which clips a non-portaled absolutely-positioned
+  panel at any rail width. Also force-closes (and skips the mobile
+  body-scroll lock) when the viewport crosses into the mobile tier, same as
+  `"row"` — the sidebar is CSS-hidden below 720px, not unmounted, so a
+  stale-open instance would otherwise fall into the full-screen mobile-sheet
+  branch it was never meant to take. A dev-only console warning fires if a
+  `NotificationBell` ends up inside `<Sidebar footerAccessory>` without
+  `variant="footer"` (or `"row"`) — otherwise the popover-clipping bug above
+  is invisible until someone reports "clicking the bell does nothing."
+
+### Behavioral notes for 0.48
+
+- `<NotificationBell variant="row">` (v0.43, mounted via
+  `SidebarItem.render`) is **deprecated, not removed** — existing consumers
+  keep working unchanged. New integrations should use
+  `<Sidebar footerAccessory>` + `variant="footer"` instead, unless the
+  notification surface genuinely is a triageable object per the test above.
+- No prop removals or renames, and no change to any existing variant's
+  rendered output — `footerAccessory` and `variant="footer"` are purely
+  additive. Apps that don't pass `footerAccessory` see no visual change.
+
 ## 0.47.0
 
 - New `./rum` subpath entry: fleet real-user-monitoring init (`initRum`) plus
