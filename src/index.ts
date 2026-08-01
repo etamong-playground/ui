@@ -142,6 +142,8 @@ export {
   Avatar,
   type UserMenuProps,
   type UserMenuItem,
+  type UserMenuBadge,
+  type UserMenuThemeToggle,
   type AvatarProps,
 } from "./userMenu";
 export {

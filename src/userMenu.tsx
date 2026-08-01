@@ -14,10 +14,18 @@
  * When `me` is `null` (anonymous), the component renders a "로그인" link
  * pointing at `oauth2-proxy` via `signInUrl()` — pass `signedOutAction`
  * to override (e.g. an in-app modal trigger).
+ *
+ * `variant="full"` (v0.43) renders a full-width avatar + name + email row
+ * instead of the avatar circle — the canonical `<Sidebar footer>` identity
+ * control. Pair with `placement="top-right"` so the popover opens upward
+ * from the bottom of the sidebar. `themeToggle` adds a light/dark row to
+ * the popover (backed by `getTheme`/`setTheme`) and `badges` adds
+ * role/permission pills under the name — both additive, both optional.
  */
 
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { signInUrl, signOut, type BaseMe } from "./useMe";
+import { getTheme, setTheme, type Theme } from "./theme";
 
 export interface AvatarProps {
   /** Picture URL — typically `me.picture`. */
@@ -115,6 +123,44 @@ export interface UserMenuProps<T extends BaseMe = BaseMe> {
    * the viewport.
    */
   placement?: "bottom-right" | "bottom-left" | "top-right" | "top-left";
+  /**
+   * Full-width identity trigger — avatar + name + email stacked — instead
+   * of the avatar-only circle. This is the canonical `<Sidebar footer>`
+   * control (v0.43): drop
+   * `<UserMenu variant="full" placement="top-right" .../>` straight into
+   * `footer` and it opens the same popover as the header trigger, upward.
+   * Default `"avatar"` — the existing header trigger, unchanged.
+   */
+  variant?: "avatar" | "full";
+  /**
+   * Extra role/permission badges rendered under the name, each a
+   * `.etu-badge` pill. Independent of `showAdminBadge` (the inline "admin"
+   * pill next to the name) — use this for app-specific roles ("owner",
+   * "billing", …) or permission flags. (v0.43)
+   */
+  badges?: UserMenuBadge[];
+  /**
+   * Renders a light/dark row inside the popover, backed by `getTheme`/
+   * `setTheme`. Omit to leave theme switching to the app — the row does
+   * not appear by default. The fleet convention (v0.43): the theme toggle
+   * lives here, not as a loose icon in the sidebar footer. (v0.43)
+   */
+  themeToggle?: UserMenuThemeToggle;
+}
+
+export interface UserMenuBadge {
+  label: ReactNode;
+  /** Tint — matches the `.etu-badge--*` modifiers. Default: `"neutral"`. */
+  tone?: "accent" | "ok" | "warn" | "err" | "neutral";
+}
+
+export interface UserMenuThemeToggle {
+  /** Same `appKey` passed to `getTheme`/`setTheme`/`noFlashThemeScript`. */
+  appKey: string;
+  /** Row label when currently light (offers switching to dark). Default: "다크 모드". */
+  darkLabel?: string;
+  /** Row label when currently dark (offers switching to light). Default: "라이트 모드". */
+  lightLabel?: string;
 }
 
 export interface UserMenuItem {
@@ -123,6 +169,23 @@ export interface UserMenuItem {
   onClick?: () => void;
   /** Open `href` in a new tab. Default: false. */
   external?: boolean;
+}
+
+function SunIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <circle cx="12" cy="12" r="5" />
+      <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+    </svg>
+  );
+}
+
+function MoonIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+    </svg>
+  );
 }
 
 export function UserMenu<T extends BaseMe = BaseMe>({
@@ -137,8 +200,12 @@ export function UserMenu<T extends BaseMe = BaseMe>({
   className,
   showAdminBadge = true,
   placement = "bottom-right",
+  variant = "avatar",
+  badges,
+  themeToggle,
 }: UserMenuProps<T>) {
   const [open, setOpen] = useState(false);
+  const [theme, setThemeState] = useState<Theme | null>(null);
   const [computedPlacement, setComputedPlacement] = useState(placement);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -199,6 +266,12 @@ export function UserMenu<T extends BaseMe = BaseMe>({
     setComputedPlacement(`${v}-${h}` as typeof placement);
   }, [open, placement]);
 
+  // Re-read the theme on every open — it may have changed elsewhere (another
+  // toggle, another tab) while the popover was closed.
+  useEffect(() => {
+    if (open && themeToggle) setThemeState(getTheme(themeToggle.appKey));
+  }, [open, themeToggle]);
+
   if (!me) {
     return (
       <div className={"etu-user-menu" + (className ? " " + className : "")}>
@@ -217,23 +290,38 @@ export function UserMenu<T extends BaseMe = BaseMe>({
   return (
     <div
       ref={rootRef}
-      className={"etu-user-menu" + (className ? " " + className : "")}
+      className={
+        "etu-user-menu" +
+        (variant === "full" ? " etu-user-menu--full" : "") +
+        (className ? " " + className : "")
+      }
     >
       <button
         ref={triggerRef}
         type="button"
-        className="etu-user-menu-trigger"
+        className={
+          "etu-user-menu-trigger" +
+          (variant === "full" ? " etu-user-menu-trigger--full" : "")
+        }
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={menuId}
         onClick={() => setOpen((o) => !o)}
-        title={displayName}
+        title={variant === "full" ? undefined : displayName}
       >
         <Avatar
           src={me.picture}
           fallback={me.preferred_username || me.email}
           size={avatarSize}
         />
+        {variant === "full" && (
+          <span className="etu-user-menu-trigger-text">
+            <span className="etu-user-menu-trigger-name">{displayName}</span>
+            {displayName !== me.email && (
+              <span className="etu-user-menu-trigger-email">{me.email}</span>
+            )}
+          </span>
+        )}
       </button>
       {open && (
         <div
@@ -258,6 +346,21 @@ export function UserMenu<T extends BaseMe = BaseMe>({
               {displayName !== me.email && (
                 <div className="etu-user-menu-email">{me.email}</div>
               )}
+              {badges && badges.length > 0 && (
+                <div className="etu-user-menu-badges">
+                  {badges.map((b, i) => (
+                    <span
+                      key={i}
+                      className={
+                        "etu-badge" +
+                        (b.tone && b.tone !== "neutral" ? ` etu-badge--${b.tone}` : "")
+                      }
+                    >
+                      {b.label}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
           <div className="etu-user-menu-divider" />
@@ -270,6 +373,25 @@ export function UserMenu<T extends BaseMe = BaseMe>({
                 item={{ label: myInfoLabel, href: myInfoHref }}
                 close={() => setOpen(false)}
               />
+            )}
+            {themeToggle && theme && (
+              <button
+                type="button"
+                role="menuitem"
+                className="etu-user-menu-item"
+                onClick={() => {
+                  const next: Theme = theme === "dark" ? "light" : "dark";
+                  setTheme(themeToggle.appKey, next);
+                  setThemeState(next);
+                }}
+              >
+                <span className="etu-user-menu-item-icon" aria-hidden>
+                  {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+                </span>
+                {theme === "dark"
+                  ? (themeToggle.lightLabel ?? "라이트 모드")
+                  : (themeToggle.darkLabel ?? "다크 모드")}
+              </button>
             )}
             <button
               type="button"

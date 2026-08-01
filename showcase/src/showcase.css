@@ -246,15 +246,6 @@ body {
   padding: 0 8px;
 }
 
-/* ── Sidebar footer ───────────────────────────────────── */
-
-.sc-sidebar-footer {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 8px 0;
-}
-
 /* ── Nav bar trailing ─────────────────────────────────── */
 
 .sc-nav-trailing {

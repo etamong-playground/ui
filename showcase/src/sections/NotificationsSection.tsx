@@ -1,6 +1,12 @@
 import { useState } from "react";
-import { toast, uiConfirm, uiPrompt, useT } from "@etamong-playground/ui";
+import { NotificationBell, toast, uiConfirm, uiPrompt, useT } from "@etamong-playground/ui";
 import { FeatureTag } from "../FeatureTag";
+
+const demoBellItems = [
+  { id: "1", content: <div><strong>배포 완료</strong><div className="sc-muted">3분 전</div></div> },
+  { id: "2", content: <div><strong>리뷰 요청</strong><div className="sc-muted">1시간 전</div></div> },
+  { id: "3", content: <div><strong>새 댓글</strong><div className="sc-muted">어제</div></div> },
+];
 
 export function NotificationsSection() {
   const t = useT();
@@ -17,6 +23,37 @@ export function NotificationsSection() {
           <code>uiConfirm()</code>, and <code>uiPrompt()</code> from anywhere —
           they talk to the mounted hosts via module-level pub/sub.
         </p>
+      </div>
+
+      <div className="sc-card">
+        <div className="sc-card-header">
+          <span>NotificationBell</span>
+          <FeatureTag id="notification-bell" />
+        </div>
+        <p className="sc-card-body">
+          Bell trigger + unread badge; click opens a popover (desktop/tablet) or a
+          bottom sheet (mobile). <strong>Placement convention:</strong> a{" "}
+          <code>{"<Sidebar>"}</code> nav row (<code>variant="row"</code>, see the live
+          sidebar to the left) on tablet/desktop, or{" "}
+          <code>{"<NavigationBar trailing>"}</code> on mobile — never the sidebar
+          footer, and never paired with the theme toggle (that lives in{" "}
+          <code>{"<UserMenu themeToggle>"}</code> now). This standalone trigger below
+          is the same component in its default <code>variant="trigger"</code> form,
+          for a plain header/toolbar mount.
+        </p>
+        <div className="sc-demo-row">
+          <NotificationBell items={demoBellItems} title="알림" placement="bottom-left" />
+        </div>
+        <pre className="sc-code">{`// Header/toolbar — standalone trigger (default)
+<NotificationBell items={items} />
+
+// Sidebar row (desktop/rail) — mounted via SidebarItem.render
+{ id: "notifications", render: () => (
+    <NotificationBell variant="row" label="알림함" items={items} />
+) }
+
+// Mobile — NavigationBar's trailing edge (sidebar is hidden < 720px)
+<NavigationBar trailing={<NotificationBell items={items} />} />`}</pre>
       </div>
 
       <div className="sc-card">
