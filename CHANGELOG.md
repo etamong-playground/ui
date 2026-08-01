@@ -1,5 +1,95 @@
 # Changelog
 
+## 0.43.0
+
+Sidebar structure pass (planning#1133) — the desktop collapse affordance, rail
+parity, the identity footer, and where the notification bell/theme toggle live
+all move to match the reference UI. Presentation + placement, not new state.
+
+### Collapse control
+
+- The rail-collapse chevrons button — previously a separate row floating
+  below the brand, reading as an afterthought — now lives in the sidebar
+  header row, pinned to the trailing edge and vertically aligned with the
+  app name/icon. Same `⌘/Ctrl+B` shortcut, same `useSidebarDrawer` behavior,
+  unchanged.
+- Collapsed rail: the app name/icon hide and the toggle becomes the sole
+  visible header control — the top item of the rail, so re-expanding stays
+  discoverable without hovering.
+
+### Rail parity
+
+- Collapsed rail keeps the same item order/grouping/vertical rhythm as
+  expanded (unchanged from v0.37 — no code change needed, called out here
+  because it's now paired with the caption fix below).
+- Section captions (`secondarySections` captions, `secondaryCaption`)
+  collapse to a subtle 1px divider instead of vanishing outright — without
+  it, a second-or-later `secondarySections` group (no border-top of its
+  own) lost all visual separation from the group above once collapsed.
+- Quiet caption treatment: `--etu-fs-caption` / `--etu-text-subtle`
+  unchanged, but `font-weight` drops from `--etu-fw-semibold` to
+  `--etu-fw-medium` and the top padding/margin grows, so a caption reads as
+  a label, not a competing heading.
+
+### Identity footer + UserMenu
+
+- `<UserMenu variant="full">` — a full-width avatar + name + email trigger,
+  opening the same popover as the existing avatar circle. This is now the
+  canonical `<Sidebar footer>` control.
+- `<UserMenu themeToggle={{ appKey }}>` — adds a light/dark row to the
+  popover, backed by `getTheme`/`setTheme`. The theme toggle's canonical
+  home now, not a loose footer icon.
+- `<UserMenu badges={[{ label, tone? }]}>` — role/permission pills under
+  the name, independent of the existing `admin` pill (`showAdminBadge`);
+  reuses the shared `.etu-badge` classes.
+- All three are new optional props — existing `<UserMenu>` usage (avatar
+  trigger, no badges, no theme row) is visually unchanged.
+
+### Bell and theme placement
+
+- `<NotificationBell variant="row">` — a full-width `.etu-sidebar-item` row
+  (icon + `label` + count), meant to be mounted via the new
+  `SidebarItem.render`. Reuses the same `.etu-sidebar-item*` classes
+  `<Sidebar>` itself uses, so it inherits rail-collapse (icon-only, badge →
+  dot) for free. The desktop popover now renders through a portal to
+  `<body>` (row variant only) so it isn't clipped by the sidebar's own
+  `overflow: auto` at any rail width, including the 64px collapsed column.
+  The existing standalone `variant="trigger"` (default) is unchanged.
+- `SidebarItem.badge` — a trailing indicator (unread count, status dot) on
+  any plain nav row. Expanded: a pill after the label. Collapsed rail:
+  degrades to a small dot overlaid on the icon's corner via a pure CSS
+  swap (no JS branching on collapse state) instead of disappearing.
+- `SidebarItem.render` — escape hatch that replaces a row's default
+  button/link markup entirely, for rows that need to own more than an
+  `onClick` (`NotificationBell`'s `"row"` variant is the reference
+  implementation).
+- Convention: the bell is a nav row (desktop/rail) or
+  `<NavigationBar trailing>` (mobile, since the sidebar is hidden below
+  720px) — never the sidebar footer, and never paired with the theme
+  toggle. `NotificationBell` itself is unchanged/not deprecated, only the
+  footer-icon-cluster placement is retired; nothing in this package's own
+  showcase mounts it there.
+
+### Behavioral notes for 0.43
+
+Visible changes an app might notice after bumping to 0.43, without any code
+change on the app's side:
+
+- **Section captions are lighter.** `--etu-fw-semibold` → `--etu-fw-medium`
+  on `.etu-sidebar-caption` / `.etu-sidebar-section-caption`, with more space
+  above. Purely visual.
+- **The rail toggle moved and shrank.** From a standalone 40×40 button
+  centered in its own row below the header, to a 32×32 button inside the
+  header row, pinned to the trailing edge. Apps that pass `appIcon` and/or
+  `appName` alongside `tabletMode="rail"` will see this shift automatically
+  — no prop change needed.
+- **The app icon/name hide on collapsed rail** (previously the icon stayed
+  visible, centered). The toggle is now the sole top-of-rail control while
+  collapsed.
+- **`.etu-sidebar-header-name` truncates with an ellipsis** instead of
+  wrapping/overflowing when the app name is long enough to compete with the
+  now-inline toggle button.
+
 ## 0.42.1
 
 Fix (planning#976) — `@playwright/test` and `msw` are no longer `peerDependencies`

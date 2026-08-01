@@ -81,7 +81,8 @@ test("toast", async ({ page }) => {
   await expect(page.locator(".etu-toast")).toBeVisible();
 });
 
-// f. Theme toggle persistence — toggle in sidebar, survives reload
+// f. Theme toggle persistence — toggle inside the sidebar footer's UserMenu
+// popover (planning#1133: moved out of the loose footer icon cluster), survives reload
 test("theme toggle persistence", async ({ page }) => {
   await page.goto("/#/overview");
   await expect(page.locator(".etu-sidebar")).toBeVisible();
@@ -91,7 +92,8 @@ test("theme toggle persistence", async ({ page }) => {
   );
   const expectedTheme = initialTheme === "dark" ? "light" : "dark";
 
-  await page.locator(".etu-sidebar").getByRole("button", { name: /mode/ }).click();
+  await page.locator(".etu-sidebar .etu-user-menu-trigger--full").click();
+  await page.getByRole("menuitem", { name: /모드/ }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", expectedTheme);
 
   await page.reload();
@@ -108,6 +110,41 @@ test.describe("mobile tier", () => {
     await expect(page.locator(".etu-mobile-tab-bar")).toBeVisible();
     await expect(page.locator(".etu-sidebar")).not.toBeVisible();
   });
+
+  // g2. Mobile bell — the sidebar (and its nav-row bell) is hidden below
+  // 720px, so the bell rides on NavigationBar's trailing edge instead.
+  test("notification bell on navigation bar trailing edge", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/#/overview");
+    const navBell = page.locator(".etu-navbar .etu-notif-bell-trigger");
+    await expect(navBell).toBeVisible();
+    await navBell.click();
+    await expect(page.locator(".etu-notif-bell-sheet")).toBeVisible();
+  });
+});
+
+// g3. Rail collapse — the toggle now lives in the header row; collapsing it
+// degrades the bell row's unread badge to a dot that stays visible (not
+// hidden), and its popover (portaled to <body>, escaping the sidebar's own
+// `overflow: auto`) still opens correctly while the rail is collapsed.
+test("rail collapse — bell badge dot and portaled popover", async ({ page }) => {
+  await page.goto("/#/overview");
+  const sidebar = page.locator(".etu-sidebar");
+  await expect(sidebar).toBeVisible();
+
+  await sidebar.locator(".etu-sidebar-rail-toggle").click();
+  await expect(sidebar).toHaveAttribute("data-expanded", "false");
+
+  const bellRow = sidebar.getByRole("button", { name: /알림함/ });
+  await expect(bellRow).toBeVisible();
+  await expect(bellRow.locator(".etu-sidebar-item-badge-dot")).toBeVisible();
+
+  await bellRow.click();
+  const popover = page.locator(".etu-notif-bell-popover");
+  await expect(popover).toBeVisible();
+  const box = await popover.boundingBox();
+  expect(box!.x).toBeGreaterThanOrEqual(0);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(1280 + 1);
 });
 
 // h. Versions view — renders ≥5 version groups and a v0.28.0 heading

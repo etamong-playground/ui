@@ -6,23 +6,9 @@ import {
   UserMenu,
   useInAppBack,
   useT,
-  type BaseMe,
 } from "@etamong-playground/ui";
 import { FeatureTag } from "../FeatureTag";
-
-const mockMe: BaseMe = {
-  email: "demo@example.com",
-  preferred_username: "demo",
-  name: "Demo User",
-  is_admin: false,
-};
-
-const mockAdmin: BaseMe = {
-  email: "admin@example.com",
-  preferred_username: "admin",
-  name: "Admin User",
-  is_admin: true,
-};
+import { mockMe, mockAdmin } from "../mockMe";
 
 export function ChromeSection({ navigate }: { navigate: (path: string) => void }) {
   const t = useT();
@@ -48,6 +34,7 @@ export function ChromeSection({ navigate }: { navigate: (path: string) => void }
             <FeatureTag id="sidebar" />
             <FeatureTag id="navigation-bar" />
             <FeatureTag id="mobile-tab-bar" />
+            <FeatureTag id="notification-bell" />
             <FeatureTag id="theme" />
             <FeatureTag id="i18n" />
           </span>
@@ -55,10 +42,16 @@ export function ChromeSection({ navigate }: { navigate: (path: string) => void }
         <p className="sc-card-body">
           The <strong>Sidebar</strong>, <strong>NavigationBar</strong>, and{" "}
           <strong>MobileTabBar</strong> you see surrounding this content are all
-          live library components — no demo buttons needed. The{" "}
-          <strong>theme</strong> and <strong>i18n</strong> toggles in the sidebar
-          footer (desktop) and navigation bar (mobile) demonstrate{" "}
-          <code>getTheme/setTheme</code> and <code>useLocale</code>.
+          live library components — no demo buttons needed. The bell row near the
+          top of the sidebar (알림함 / Inbox) is{" "}
+          <code>{'<NotificationBell variant="row">'}</code> mounted via{" "}
+          <code>SidebarItem.render</code> — collapse the rail to see its badge
+          degrade to a dot. Resize under 720px and the same bell moves to the
+          navigation bar's trailing edge instead — the sidebar is hidden there.
+          Identity (avatar + name + email) is the sidebar footer; opening it
+          reveals the <strong>theme</strong> toggle, moved out of the footer
+          itself. <strong>i18n</strong> stays in the navigation bar via{" "}
+          <code>useLocale</code>.
         </p>
       </div>
 
@@ -105,6 +98,40 @@ export function ChromeSection({ navigate }: { navigate: (path: string) => void }
         </div>
         <pre className="sc-code">{`<UserMenu me={me} myInfoHref="/me" onSignOut={handleSignOut} />
 <Avatar src={me.picture} fallback={me.email} size={32} />`}</pre>
+      </div>
+
+      <div className="sc-card">
+        <div className="sc-card-header">
+          <span>UserMenu — Sidebar Identity Footer</span>
+          <FeatureTag id="user-menu" />
+        </div>
+        <p className="sc-card-body">
+          <code>variant="full"</code> — the canonical <code>{"<Sidebar footer>"}</code>{" "}
+          control (avatar + name + email, full width). The live sidebar's footer to the
+          left is this exact component; the button below is a static copy so it doesn't
+          shift with page scroll. <code>badges</code> adds role/permission pills;{" "}
+          <code>themeToggle</code> adds a light/dark row to the popover — the theme
+          toggle's canonical home now, not a loose footer icon.
+        </p>
+        <div className="sc-demo-row" style={{ maxWidth: 224 }}>
+          <UserMenu
+            me={mockAdmin}
+            variant="full"
+            myInfoHref={null}
+            placement="bottom-right"
+            badges={[{ label: "Owner", tone: "accent" }, { label: "Billing" }]}
+            themeToggle={{ appKey: "ui-showcase" }}
+            onSignOut={() => alert("Signed out (demo)")}
+          />
+        </div>
+        <pre className="sc-code">{`<UserMenu
+  me={me}
+  variant="full"
+  placement="top-right"     // opens upward from the sidebar footer
+  badges={[{ label: "Owner", tone: "accent" }]}
+  themeToggle={{ appKey: "myapp" }}
+  onSignOut={handleSignOut}
+/>`}</pre>
       </div>
 
       <div className="sc-card">

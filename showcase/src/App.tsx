@@ -5,19 +5,24 @@ import {
   DialogHost,
   MobileTabBar,
   NavigationBar,
+  NotificationBell,
   Sidebar,
   Toaster,
+  UserMenu,
   crossLocaleKeywords,
   getTheme,
   setTheme,
   useGoToShortcuts,
   useLocale,
   useT,
+  useViewport,
   type CommandSection,
   type MobileTabBarItem,
+  type NotificationBellItem,
   type SidebarItem,
 } from "@etamong-playground/ui";
 import { messages } from "./messages";
+import { mockAdmin } from "./mockMe";
 import { Overview } from "./sections/Overview";
 import { PaletteSection } from "./sections/PaletteSection";
 import { NotificationsSection } from "./sections/NotificationsSection";
@@ -85,10 +90,14 @@ function IconPalette() {
     </svg>
   );
 }
-function IconBell() {
+// Toast/dialog demo page — deliberately NOT a bell glyph. The new
+// NotificationBell nav row (below, in `primary`) owns the bell icon; two
+// near-identical bells stacked adjacently reads as a duplicate, not two
+// distinct destinations.
+function IconMessageSquare() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" />
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
     </svg>
   );
 }
@@ -189,6 +198,30 @@ function LocaleToggleButton() {
   );
 }
 
+// Mock unread notifications — dogfoods the <NotificationBell variant="row">
+// sidebar-composition convention (planning#1133): bell = nav row on
+// tablet/desktop, NavigationBar trailing on mobile, never the footer.
+const mockNotifItems: NotificationBellItem[] = [
+  {
+    id: "1",
+    content: (
+      <div>
+        <strong>배포 완료</strong>
+        <div className="sc-muted">ui-showcase build #482 · 3분 전</div>
+      </div>
+    ),
+  },
+  {
+    id: "2",
+    content: (
+      <div>
+        <strong>리뷰 요청</strong>
+        <div className="sc-muted">sidebar-1133 PR 리뷰 대기 중 · 1시간 전</div>
+      </div>
+    ),
+  },
+];
+
 export function App() {
   const t = useT();
   const [hash, navigate] = useHash();
@@ -259,7 +292,7 @@ export function App() {
   const icons: Record<SectionId, typeof IconOverview> = {
     overview: IconOverview,
     palette: IconPalette,
-    notifications: IconBell,
+    notifications: IconMessageSquare,
     chrome: IconLayers,
     data: IconTable,
     tokens: IconTokens,
@@ -270,8 +303,8 @@ export function App() {
   };
 
   const primary: SidebarItem[] = useMemo(
-    () =>
-      ["overview", "palette", "notifications", "chrome", "data"].map((id) => {
+    () => [
+      ...["overview", "palette", "notifications", "chrome", "data"].map((id) => {
         const Icon = icons[id as SectionId];
         return {
           id,
@@ -281,6 +314,23 @@ export function App() {
           onClick: () => go(id as SectionId),
         };
       }),
+      // Bell owns its own trigger + anchored popover, so it opts out of the
+      // plain onClick/active row shape via `render`. Excluded from
+      // `mobileItems` below on purpose — mobile gets the bell via
+      // `<NavigationBar trailing>` instead, see the render() body.
+      {
+        id: "notif-bell",
+        label: t("nav.notifBell"),
+        render: () => (
+          <NotificationBell
+            variant="row"
+            label={t("nav.notifBell")}
+            title={t("nav.notifBell")}
+            items={mockNotifItems}
+          />
+        ),
+      },
+    ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [section, t, go],
   );
@@ -326,13 +376,21 @@ export function App() {
   }, [section, t, go]);
 
   const sectionTitle = t(`section.${section}`);
+  const viewport = useViewport();
 
+  // Identity-only footer (planning#1133): a single full-width control that
+  // opens the same UserMenu popover as a header trigger would, with the
+  // theme toggle riding inside it — no loose icon cluster.
   const sidebarFooter = (
-    <div className="sc-sidebar-footer">
-      <ThemeToggleButton />
-      <LocaleToggleButton />
-      <CommandPaletteTrigger label={t("palette.search")} />
-    </div>
+    <UserMenu
+      me={mockAdmin}
+      variant="full"
+      myInfoHref={null}
+      placement="top-right"
+      badges={[{ label: "Owner", tone: "accent" }]}
+      themeToggle={{ appKey: "ui-showcase" }}
+      onSignOut={() => alert("Signed out (demo)")}
+    />
   );
 
   return (
@@ -351,6 +409,7 @@ export function App() {
       <div className="etu-app-shell sc-shell">
         <Sidebar
           appName={t("sidebar.appName")}
+          appHeaderExtra={<CommandPaletteTrigger label={t("palette.search")} />}
           primary={primary}
           secondary={secondary}
           secondaryCaption={t("sidebar.more")}
@@ -362,6 +421,11 @@ export function App() {
             title={sectionTitle}
             trailing={
               <div className="sc-nav-trailing">
+                {/* Sidebar is hidden below 720px, so the bell rides here on
+                    mobile instead of the (invisible) sidebar row above. */}
+                {viewport === "mobile" && (
+                  <NotificationBell title={t("nav.notifBell")} items={mockNotifItems} />
+                )}
                 <ThemeToggleButton />
                 <LocaleToggleButton />
               </div>

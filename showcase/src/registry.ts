@@ -108,6 +108,12 @@ export const registry: Record<string, FeatureEntry> = {
     since: "0.16.0",
     src: "src/userMenu.tsx",
   },
+  "notification-bell": {
+    label: "Notification Bell",
+    exports: ["NotificationBell"],
+    since: "0.32.0",
+    src: "src/notificationBell.tsx",
+  },
   "mobile-tab-bar": {
     label: "Mobile Tab Bar",
     exports: ["MobileTabBar"],
@@ -191,6 +197,7 @@ export const featureRoute: Record<string, string> = {
   "app-info-section": "#/appinfo",
   "rel-time": "#/data",
   "user-menu": "#/chrome",
+  "notification-bell": "#/chrome",
   "mobile-tab-bar": "#/chrome",
   "sidebar": "#/chrome",
   "navigation-bar": "#/chrome",

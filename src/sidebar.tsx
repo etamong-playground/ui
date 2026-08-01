@@ -27,8 +27,8 @@
  *   - "rail"   — inline-collapsible sidebar. Default. Collapsed = icon-only
  *                ~64px column (items carry tooltips); expanded = the normal
  *                240px sidebar, pushing content — no overlay, no scrim. A
- *                chevrons toggle under the header flips it at BOTH the
- *                tablet and desktop tiers; the default follows the tier
+ *                chevrons toggle pinned to the header's trailing edge flips
+ *                it at BOTH the tablet and desktop tiers; the default follows the tier
  *                (tablet collapsed / desktop expanded) and re-derives when
  *                the viewport crosses 1024px. iPad Mini portrait (768px)
  *                needs the collapsed default — a full 240px sidebar leaves
@@ -46,7 +46,20 @@
  *
  * No `userMenu` prop. Identity + Logout live in `footer` (mirrors the
  * mobile `/more` AppInfoSection + `[Logout]` button). Header-dropdown
- * UserMenus are the retired anti-pattern.
+ * UserMenus are the retired anti-pattern. The canonical `footer` is now a
+ * single full-width `<UserMenu variant="full" placement="top-right" .../>`
+ * control (v0.43) — avatar + name + email, opening the same popover as the
+ * header trigger. The footer stays identity-only: notifications and theme
+ * moved out (see `SidebarItem.badge` / `render` below, and
+ * `UserMenuProps.themeToggle`) rather than crowding it as a loose icon
+ * cluster.
+ *
+ * The rail-collapse toggle (v0.37) lives in the header row now, pinned to
+ * the trailing edge alongside the app name/icon — not a separate row
+ * floating below the brand. When the rail is collapsed to its 64px
+ * icon-only column, the app name/icon hide and the toggle becomes the sole
+ * visible header control, i.e. the top item of the rail, so re-expanding
+ * stays discoverable without hovering (v0.43).
  */
 
 import { useCallback, useEffect, useState, type ReactNode, type MouseEvent } from "react";
@@ -66,6 +79,27 @@ export interface SidebarItem {
   onClick?: () => void;
   /** Link target. Renders an `<a>` instead of a `<button>`. */
   href?: string;
+  /**
+   * Right-aligned indicator — unread count, a status dot, etc. Expanded:
+   * renders as a pill after the label. Collapsed rail: degrades to a small
+   * dot overlaid on the icon's top-right corner (pure CSS swap driven by
+   * `.etu-sidebar[data-expanded="false"]`, no JS branching) instead of
+   * disappearing — staying visible collapsed is the point of a notification
+   * indicator. Requires `icon` to have somewhere to attach the dot; on an
+   * icon-less item the dot has nowhere to render while collapsed. (v0.43)
+   */
+  badge?: ReactNode;
+  /**
+   * Escape hatch that replaces this row's default button/link markup
+   * entirely — e.g. `<NotificationBell variant="row">`, which needs to own
+   * its own trigger *and* an anchored popover, not just an `onClick`. When
+   * set, every other field except `id` is ignored. Reuse the
+   * `.etu-sidebar-item*` classes in the returned markup to inherit the
+   * rail-collapse behavior (icon-only, label hidden, badge → dot) for free
+   * — see `NotificationBell`'s `"row"` variant for the reference
+   * implementation. (v0.43)
+   */
+  render?: () => ReactNode;
 }
 
 /**
@@ -172,18 +206,27 @@ function Item({
   item: SidebarItem;
   collapsed?: boolean;
 }) {
+  if (item.render) return <>{item.render()}</>;
+
   const cls =
     "etu-sidebar-item" + (item.active ? " etu-sidebar-item--active" : "");
   const strLabel = typeof item.label === "string" ? item.label : undefined;
   const showTitle = collapsed === true && strLabel != null;
+  const hasBadge = item.badge != null;
   const inner = (
     <>
       {item.icon ? (
         <span className="etu-sidebar-item-icon" aria-hidden>
           {item.icon}
+          {hasBadge ? (
+            <span className="etu-sidebar-item-badge-dot" aria-hidden />
+          ) : null}
         </span>
       ) : null}
       <span className="etu-sidebar-item-label">{item.label}</span>
+      {hasBadge ? (
+        <span className="etu-sidebar-item-badge">{item.badge}</span>
+      ) : null}
     </>
   );
   if (item.href) {
@@ -314,63 +357,66 @@ export function Sidebar({
       aria-label={ariaLabel}
       {...dataAttrs}
     >
-      {(appName || appIcon || appHeaderExtra) && (
+      {(appName || appIcon || appHeaderExtra || tabletMode === "rail") && (
         <div className="etu-sidebar-header">
-          {(appIcon || appName) && (
-            <div className="etu-sidebar-header-app">
-              {appIcon ? (
-                <span className="etu-sidebar-header-icon" aria-hidden>
-                  {appIcon}
-                </span>
-              ) : null}
-              {appName ? (
-                <span className="etu-sidebar-header-name">{appName}</span>
-              ) : null}
-            </div>
-          )}
+          <div className="etu-sidebar-header-row">
+            {(appIcon || appName) && (
+              <div className="etu-sidebar-header-app">
+                {appIcon ? (
+                  <span className="etu-sidebar-header-icon" aria-hidden>
+                    {appIcon}
+                  </span>
+                ) : null}
+                {appName ? (
+                  <span className="etu-sidebar-header-name">{appName}</span>
+                ) : null}
+              </div>
+            )}
+            {tabletMode === "rail" ? (
+              <button
+                type="button"
+                className="etu-sidebar-rail-toggle"
+                aria-label={collapsed ? railExpandLabel : railCollapseLabel}
+                aria-expanded={!collapsed}
+                title={`${collapsed ? railExpandLabel : railCollapseLabel} (${
+                  typeof navigator !== "undefined" &&
+                  /Mac|iP/.test(navigator.platform)
+                    ? "⌘B"
+                    : "Ctrl+B"
+                })`}
+                onClick={() => setExpanded(collapsed)}
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden
+                >
+                  {collapsed ? (
+                    <>
+                      <polyline points="13 17 18 12 13 7" />
+                      <polyline points="6 17 11 12 6 7" />
+                    </>
+                  ) : (
+                    <>
+                      <polyline points="11 17 6 12 11 7" />
+                      <polyline points="18 17 13 12 18 7" />
+                    </>
+                  )}
+                </svg>
+              </button>
+            ) : null}
+          </div>
           {appHeaderExtra ? (
             <div className="etu-sidebar-header-extra">{appHeaderExtra}</div>
           ) : null}
         </div>
       )}
-      {tabletMode === "rail" ? (
-        <button
-          type="button"
-          className="etu-sidebar-rail-toggle"
-          aria-label={collapsed ? railExpandLabel : railCollapseLabel}
-          aria-expanded={!collapsed}
-          title={`${collapsed ? railExpandLabel : railCollapseLabel} (${
-            typeof navigator !== "undefined" && /Mac|iP/.test(navigator.platform)
-              ? "⌘B"
-              : "Ctrl+B"
-          })`}
-          onClick={() => setExpanded(collapsed)}
-        >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden
-          >
-            {collapsed ? (
-              <>
-                <polyline points="13 17 18 12 13 7" />
-                <polyline points="6 17 11 12 6 7" />
-              </>
-            ) : (
-              <>
-                <polyline points="11 17 6 12 11 7" />
-                <polyline points="18 17 13 12 18 7" />
-              </>
-            )}
-          </svg>
-        </button>
-      ) : null}
       <nav className="etu-sidebar-section etu-sidebar-section--primary">
         {primary.map((it) => (
           <Item key={it.id} item={it} {...itemProps} />

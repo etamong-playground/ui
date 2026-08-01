@@ -1427,6 +1427,13 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   display: inline-block;
 }
 
+/* Canonical <Sidebar footer> identity control (v0.43) — full-width row
+ * instead of the shrink-wrapped avatar trigger. */
+.etu-user-menu--full {
+  display: block;
+  width: 100%;
+}
+
 .etu-user-menu-trigger {
   background: transparent;
   border: none;
@@ -1436,6 +1443,48 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.etu-user-menu-trigger--full {
+  width: 100%;
+  padding: 0.45rem 0.5rem;
+  border-radius: var(--etu-r-sm);
+  gap: 0.6rem;
+  justify-content: flex-start;
+  text-align: left;
+  transition: background var(--etu-t-fast) var(--etu-ease);
+}
+
+.etu-user-menu-trigger--full:hover {
+  background: var(--etu-surface-2);
+}
+
+.etu-user-menu-trigger-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  flex: 1 1 auto;
+  gap: 0.05rem;
+}
+
+.etu-user-menu-trigger-name {
+  font-size: var(--etu-fs-sm);
+  font-weight: var(--etu-fw-semibold);
+  color: var(--etu-text);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.etu-user-menu-trigger-email {
+  font-size: var(--etu-fs-caption);
+  color: var(--etu-text-muted);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .etu-user-menu-trigger:focus-visible {
@@ -1521,6 +1570,16 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   border-radius: var(--etu-r-full);
 }
 
+/* Role/permission badges (v0.43) — independent of the inline admin pill
+ * above; reuses the shared `.etu-badge` pill so app-level tone overrides
+ * apply here too. */
+.etu-user-menu-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.35rem;
+}
+
 .etu-user-menu-divider {
   height: 1px;
   background: var(--etu-border);
@@ -1553,6 +1612,18 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   transition: background var(--etu-t-fast) var(--etu-ease);
 }
 
+/* Icon slot for the theme-toggle row (v0.43) — the only `.etu-user-menu-item`
+ * that carries a leading icon today. */
+.etu-user-menu-item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  flex-shrink: 0;
+  color: var(--etu-text-muted);
+}
+
 .etu-user-menu-item:hover {
   background: var(--etu-surface-2);
 }
@@ -1577,6 +1648,16 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 .etu-notif-bell {
   position: relative;
   display: inline-block;
+}
+
+/* Sidebar-row variant (v0.43) — full width, mounted via SidebarItem.render.
+ * The trigger itself reuses .etu-sidebar-item* (no styles needed here); the
+ * popover renders through a portal to <body>, so it isn't sized/positioned
+ * relative to this wrapper at all — this class only affects the wrapper's
+ * own layout inside the nav row it sits in. */
+.etu-notif-bell--row {
+  display: block;
+  width: 100%;
 }
 
 .etu-notif-bell-trigger {
@@ -2009,10 +2090,20 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   padding: 0.5rem 0.5rem 0.25rem;
 }
 
+/* Brand row (app icon/name) + the rail toggle share this row, toggle
+ * pinned to the trailing edge via margin-left: auto below. */
+.etu-sidebar-header-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .etu-sidebar-header-app {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .etu-sidebar-header-icon {
@@ -2021,6 +2112,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   justify-content: center;
   width: 1.5rem;
   height: 1.5rem;
+  flex-shrink: 0;
 }
 
 .etu-sidebar-header-icon > svg {
@@ -2033,6 +2125,9 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   font-weight: var(--etu-fw-semibold);
   color: var(--etu-text);
   letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .etu-sidebar-header-extra {
@@ -2047,20 +2142,23 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 }
 
 .etu-sidebar-section--secondary {
-  margin-top: 0.25rem;
-  padding-top: 0.5rem;
+  margin-top: 0.4rem;
+  padding-top: 0.75rem;
   border-top: 1px solid var(--etu-border);
 }
 
 .etu-sidebar-section--secondary + .etu-sidebar-section--secondary {
-  margin-top: 0.5rem;
+  margin-top: 0.75rem;
   padding-top: 0.25rem;
   border-top: 0;
 }
 
+/* Quiet treatment (v0.43) — a caption is a label, not a heading: caption
+ * type scale, subtle text color, no heavy weight, generous space above so
+ * it reads as a section break rather than competing with the items below. */
 .etu-sidebar-caption {
   font-size: var(--etu-fs-caption);
-  font-weight: var(--etu-fw-semibold);
+  font-weight: var(--etu-fw-medium);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--etu-text-subtle);
@@ -2069,11 +2167,11 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 
 .etu-sidebar-section-caption {
   font-size: var(--etu-fs-caption);
-  font-weight: var(--etu-fw-semibold);
+  font-weight: var(--etu-fw-medium);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--etu-text-subtle);
-  padding: 0.4rem 0.5rem 0.15rem;
+  padding: 0.6rem 0.5rem 0.2rem;
 }
 
 .etu-sidebar-item {
@@ -2113,6 +2211,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 }
 
 .etu-sidebar-item-icon {
+  position: relative; /* anchors the collapsed-rail badge dot */
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2132,6 +2231,41 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Expanded: a pill after the label. Collapsed rail: hidden — the dot on the
+ * icon (below) takes over so the affordance survives the collapse, see the
+ * `[data-expanded="false"]` overrides further down. */
+.etu-sidebar-item-badge {
+  margin-left: auto;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.1rem;
+  height: 1.1rem;
+  padding: 0 0.3rem;
+  border-radius: var(--etu-r-full);
+  background: var(--etu-danger, #dc2626);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: var(--etu-fw-semibold);
+  line-height: 1;
+}
+
+/* Collapsed-rail-only dot, overlaid on the icon's top-right corner. Hidden
+ * by default; unhidden by the `[data-expanded="false"]` rules below — pure
+ * CSS swap, no JS branching on collapse state. */
+.etu-sidebar-item-badge-dot {
+  display: none;
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--etu-r-full);
+  background: var(--etu-danger, #dc2626);
+  box-shadow: 0 0 0 2px var(--etu-surface);
 }
 
 .etu-sidebar-footer {
@@ -2635,23 +2769,46 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-header-name,
   .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-header-extra,
   .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-item-label,
-  .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-caption,
-  .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-section-caption,
+  .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-item-badge,
   .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-footer {
     display: none;
+  }
+  /* Captions collapse to a subtle divider rather than vanishing outright —
+   * without it, a second+ secondarySections group (no border-top of its
+   * own) loses all visual separation from the group above once collapsed. */
+  .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-caption,
+  .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-section-caption {
+    height: 1px;
+    width: 20px;
+    margin: 0.6rem auto 0.3rem;
+    padding: 0;
+    background: var(--etu-border);
+    color: transparent;
+    font-size: 0;
+    line-height: 0;
+    overflow: hidden;
+  }
+  .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-item-badge-dot {
+    display: block;
   }
   .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-item {
     justify-content: center;
     padding: 0.5rem 0;
     gap: 0;
   }
+  .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-header-row {
+    justify-content: center;
+  }
+  .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-header-app {
+    display: none;
+  }
+  .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-rail-toggle {
+    margin-left: 0;
+  }
   .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-header {
     padding: 0.25rem 0;
     justify-content: center;
     align-items: center;
-  }
-  .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-header-app {
-    justify-content: center;
   }
 
   /* Drawer mode — hidden by default, slides in over a scrim when open. */
@@ -2730,15 +2887,16 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   outline-offset: 2px;
 }
 
-/* Rail collapse/expand toggle — inlined in the sidebar, tablet + desktop.
- * Hidden on mobile where <MobileTabBar> owns nav. */
+/* Rail collapse/expand toggle — pinned to the header row's trailing edge
+ * (tablet + desktop). Hidden on mobile where <MobileTabBar> owns nav. */
 .etu-sidebar-rail-toggle {
   display: none;
   align-items: center;
   justify-content: center;
-  align-self: center;
-  width: 40px;
-  height: 40px;
+  flex-shrink: 0;
+  margin-left: auto;
+  width: 32px;
+  height: 32px;
   padding: 0;
   background: transparent;
   border: 0;
@@ -2760,9 +2918,6 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   outline: 2px solid var(--etu-ring);
   outline-offset: 2px;
 }
-.etu-sidebar[data-expanded="true"] .etu-sidebar-rail-toggle {
-  align-self: flex-end;
-}
 
 /* Rail mode, inline collapse (keycloak-console style): collapsed = 64px
  * icon column, expanded = the normal in-flow sidebar pushing content — no
@@ -2781,21 +2936,43 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 .etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-header-name,
 .etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-header-extra,
 .etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-item-label,
-.etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-caption,
-.etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-section-caption,
+.etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-item-badge,
 .etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-footer {
   display: none;
+}
+/* Captions collapse to a subtle divider rather than vanishing outright —
+ * see the matching pre-hydration block above for why. */
+.etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-caption,
+.etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-section-caption {
+  height: 1px;
+  width: 20px;
+  margin: 0.6rem auto 0.3rem;
+  padding: 0;
+  background: var(--etu-border);
+  color: transparent;
+  font-size: 0;
+  line-height: 0;
+  overflow: hidden;
+}
+.etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-item-badge-dot {
+  display: block;
 }
 .etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-item {
   justify-content: center;
   padding: 0.5rem 0;
   gap: 0;
 }
+.etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-header-row {
+  justify-content: center;
+}
+.etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-header-app {
+  display: none;
+}
+.etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-rail-toggle {
+  margin-left: 0;
+}
 .etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-header {
   padding: 0.25rem 0;
   justify-content: center;
   align-items: center;
-}
-.etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-header-app {
-  justify-content: center;
 }

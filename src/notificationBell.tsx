@@ -11,8 +11,15 @@
  * (access requests, deploy completions, mentions) belong on a global bell,
  * not in the primary nav. The component is content-agnostic — consumers
  * render each item's body and any inline actions.
+ *
+ * **Placement convention (v0.43):** the bell is a `<Sidebar>` nav row
+ * (`variant="row"`, mounted via `SidebarItem.render`) on tablet/desktop, or
+ * `<NavigationBar trailing>` on mobile (the sidebar is hidden below 720px).
+ * Never the sidebar footer — that's identity-only now — and never paired
+ * with the theme toggle (which lives inside `<UserMenu themeToggle>`).
  */
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { useViewport } from "./viewport";
 
 export interface NotificationBellItem {
@@ -49,6 +56,28 @@ export interface NotificationBellProps {
    * as `<UserMenu>`. Ignored on mobile (always bottom sheet).
    */
   placement?: "bottom-right" | "bottom-left" | "top-right" | "top-left";
+  /**
+   * Presentation. `"trigger"` (default) is the standalone icon-button,
+   * sized for a header/toolbar — unchanged from prior versions. `"row"`
+   * (v0.43) renders as a full-width `.etu-sidebar-item` row (icon + `label`
+   * + count) meant to be mounted via `SidebarItem.render`:
+   *
+   * ```tsx
+   * { id: "notifications", render: () => (
+   *     <NotificationBell variant="row" label={t.nav.notifications} items={items} />
+   * ) }
+   * ```
+   *
+   * Reuses the same `.etu-sidebar-item*` classes `<Sidebar>` itself uses,
+   * so it inherits rail-collapse (icon-only, badge → dot) for free. The
+   * desktop popover renders through a portal so it isn't clipped by the
+   * sidebar's own `overflow: auto` — same visual result as the trigger
+   * variant, just anchored via computed viewport coordinates instead of
+   * `position: absolute` relative to an ancestor.
+   */
+  variant?: "trigger" | "row";
+  /** Row-variant label. Ignored in `"trigger"` variant. Default: `"알림"`. */
+  label?: ReactNode;
 }
 
 function BellIcon() {
@@ -81,15 +110,30 @@ export function NotificationBell({
   icon,
   className,
   placement = "bottom-right",
+  variant = "trigger",
+  label = "알림",
 }: NotificationBellProps) {
   const [open, setOpen] = useState(false);
   const [computedPlacement, setComputedPlacement] = useState(placement);
+  // Fixed-position coordinates for the row variant's portaled popover — it
+  // renders on <body>, outside the sidebar's own `overflow: auto`, so it
+  // can't rely on `position: absolute` relative to an ancestor like the
+  // trigger variant does.
+  const [portalRect, setPortalRect] = useState<{
+    top?: number;
+    bottom?: number;
+    left?: number;
+    right?: number;
+  } | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const panelId = useId();
   const viewport = useViewport();
   const isMobile = viewport === "mobile";
   const badge = count ?? items.length;
+  const badgeText = badge > 99 ? "99+" : String(badge);
+  const isRow = variant === "row";
 
   useEffect(() => {
     if (!open) return;
@@ -102,7 +146,10 @@ export function NotificationBell({
   useEffect(() => {
     if (!open) return;
     const onDocClick = (e: MouseEvent) => {
-      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+      const t = e.target as Node;
+      if (rootRef.current?.contains(t)) return;
+      if (panelRef.current?.contains(t)) return;
+      setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
@@ -141,6 +188,34 @@ export function NotificationBell({
     setComputedPlacement(`${v}-${h}` as typeof placement);
   }, [open, placement, isMobile]);
 
+  // Row variant only: recompute the portaled popover's viewport-fixed
+  // coordinates from the trigger's rect whenever it might move.
+  useEffect(() => {
+    if (!isRow || !open || isMobile) {
+      setPortalRect(null);
+      return;
+    }
+    const trigger = triggerRef.current;
+    if (!trigger || typeof window === "undefined") return;
+    function recompute() {
+      const rect = trigger!.getBoundingClientRect();
+      const [v, h] = computedPlacement.split("-") as ["top" | "bottom", "left" | "right"];
+      const next: { top?: number; bottom?: number; left?: number; right?: number } = {};
+      if (v === "top") next.bottom = window.innerHeight - rect.top + 8;
+      else next.top = rect.bottom + 8;
+      if (h === "right") next.right = Math.max(8, window.innerWidth - rect.right);
+      else next.left = rect.left;
+      setPortalRect(next);
+    }
+    recompute();
+    window.addEventListener("resize", recompute);
+    window.addEventListener("scroll", recompute, true);
+    return () => {
+      window.removeEventListener("resize", recompute);
+      window.removeEventListener("scroll", recompute, true);
+    };
+  }, [isRow, open, isMobile, computedPlacement]);
+
   // Lock body scroll while the mobile sheet is open.
   useEffect(() => {
     if (!open || !isMobile || typeof document === "undefined") return;
@@ -153,60 +228,63 @@ export function NotificationBell({
 
   const close = () => setOpen(false);
 
-  return (
-    <div
-      ref={rootRef}
-      className={"etu-notif-bell" + (className ? " " + className : "")}
+  const trigger = isRow ? (
+    <button
+      ref={triggerRef}
+      type="button"
+      className={"etu-sidebar-item" + (open ? " etu-sidebar-item--active" : "")}
+      aria-haspopup="dialog"
+      aria-expanded={open}
+      aria-controls={panelId}
+      aria-label={
+        badge > 0 ? `${typeof label === "string" ? label : ariaLabel} (${badge})` : undefined
+      }
+      onClick={() => setOpen((o) => !o)}
     >
-      <button
-        ref={triggerRef}
-        type="button"
-        className="etu-notif-bell-trigger"
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        aria-controls={panelId}
-        aria-label={badge > 0 ? `${ariaLabel} (${badge})` : ariaLabel}
-        onClick={() => setOpen((o) => !o)}
-      >
+      <span className="etu-sidebar-item-icon" aria-hidden>
         {icon ?? <BellIcon />}
-        {badge > 0 && (
-          <span className="etu-notif-bell-badge" aria-hidden="true">
-            {badge > 99 ? "99+" : badge}
-          </span>
-        )}
-      </button>
-      {open && isMobile && (
-        <>
-          <div
-            className="etu-notif-bell-backdrop"
-            onMouseDown={close}
-            aria-hidden="true"
-          />
-          <div
-            id={panelId}
-            role="dialog"
-            aria-modal="true"
-            aria-label={typeof title === "string" ? title : undefined}
-            className="etu-notif-bell-sheet"
-          >
-            <div className="etu-notif-bell-sheet-grabber" aria-hidden="true" />
-            <NotifPanelBody
-              title={title}
-              items={items}
-              emptyMessage={emptyMessage}
-              footer={footer}
-              onClose={close}
-            />
-          </div>
-        </>
+        {badge > 0 ? <span className="etu-sidebar-item-badge-dot" aria-hidden /> : null}
+      </span>
+      <span className="etu-sidebar-item-label">{label}</span>
+      {badge > 0 ? (
+        <span className="etu-sidebar-item-badge" aria-hidden>
+          {badgeText}
+        </span>
+      ) : null}
+    </button>
+  ) : (
+    <button
+      ref={triggerRef}
+      type="button"
+      className="etu-notif-bell-trigger"
+      aria-haspopup="dialog"
+      aria-expanded={open}
+      aria-controls={panelId}
+      aria-label={badge > 0 ? `${ariaLabel} (${badge})` : ariaLabel}
+      onClick={() => setOpen((o) => !o)}
+    >
+      {icon ?? <BellIcon />}
+      {badge > 0 && (
+        <span className="etu-notif-bell-badge" aria-hidden="true">
+          {badgeText}
+        </span>
       )}
-      {open && !isMobile && (
+    </button>
+  );
+
+  const panel =
+    open && isMobile ? (
+      <>
+        <div className="etu-notif-bell-backdrop" onMouseDown={close} aria-hidden="true" />
         <div
+          ref={panelRef}
           id={panelId}
           role="dialog"
+          aria-modal="true"
           aria-label={typeof title === "string" ? title : undefined}
-          className={`etu-notif-bell-popover etu-notif-bell-popover--${computedPlacement}`}
+          className="etu-notif-bell-sheet"
         >
+          <div className="etu-notif-bell-sheet-grabber" aria-hidden="true" />
           <NotifPanelBody
             title={title}
             items={items}
@@ -215,7 +293,37 @@ export function NotificationBell({
             onClose={close}
           />
         </div>
-      )}
+      </>
+    ) : open && !isMobile && (!isRow || portalRect) ? (
+      <div
+        ref={panelRef}
+        id={panelId}
+        role="dialog"
+        aria-label={typeof title === "string" ? title : undefined}
+        className={`etu-notif-bell-popover etu-notif-bell-popover--${computedPlacement}`}
+        style={isRow && portalRect ? { position: "fixed", ...portalRect } : undefined}
+      >
+        <NotifPanelBody
+          title={title}
+          items={items}
+          emptyMessage={emptyMessage}
+          footer={footer}
+          onClose={close}
+        />
+      </div>
+    ) : null;
+
+  return (
+    <div
+      ref={rootRef}
+      className={
+        "etu-notif-bell" +
+        (isRow ? " etu-notif-bell--row" : "") +
+        (className ? " " + className : "")
+      }
+    >
+      {trigger}
+      {isRow && typeof document !== "undefined" ? createPortal(panel, document.body) : panel}
     </div>
   );
 }
