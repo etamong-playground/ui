@@ -704,6 +704,43 @@ body:has(.etu-mobile-tab-bar) .etu-toaster {
 }
 
 /* ----------------------------------------------------------------------------
+ * Text input (class recipe, no component: <input className="etu-input" />)
+ *
+ * The generic standalone text field, promoted from meloetta (planning#1116).
+ * Unlike .etu-dialog-input it carries no width/margin — layout (flex, max-
+ * width) belongs to the caller. .etu-input--sm is the compact modifier for
+ * dense toolbars.
+ * ------------------------------------------------------------------------- */
+
+.etu-input {
+  height: 36px;
+  padding: 0 var(--etu-space-3);
+  box-sizing: border-box;
+  border-radius: var(--etu-r-sm);
+  border: 1px solid var(--etu-border-strong);
+  background: var(--etu-surface);
+  color: var(--etu-text);
+  font-family: var(--etu-font);
+  font-size: var(--etu-fs-base);
+  transition: border-color var(--etu-t-fast) var(--etu-ease);
+}
+
+.etu-input::placeholder {
+  color: var(--etu-text-subtle);
+}
+
+.etu-input:focus-visible {
+  outline: 2px solid var(--etu-ring);
+  outline-offset: 1px;
+}
+
+.etu-input--sm {
+  height: 30px;
+  padding: 0 var(--etu-space-2);
+  font-size: var(--etu-fs-sm);
+}
+
+/* ----------------------------------------------------------------------------
  * DeployInfo (<DeployInfo version builtAt />)
  * ------------------------------------------------------------------------- */
 
