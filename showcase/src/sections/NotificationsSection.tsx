@@ -67,12 +67,14 @@ export function NotificationsSection() {
         </div>
         <p className="sc-card-body">
           Bell trigger + unread badge; click opens a popover (desktop/tablet) or a
-          bottom sheet (mobile). <strong>Placement convention:</strong> a{" "}
-          <code>{"<Sidebar>"}</code> nav row (<code>variant="row"</code>, see the live
-          sidebar to the left) on tablet/desktop, or{" "}
-          <code>{"<NavigationBar trailing>"}</code> on mobile — never the sidebar
-          footer, and never paired with the theme toggle (that lives in{" "}
-          <code>{"<UserMenu themeToggle>"}</code> now). This standalone trigger below
+          bottom sheet (mobile). <strong>Placement convention (v0.48, planning#1133
+          §6 correction):</strong> beside identity, via{" "}
+          <code>{"<Sidebar footerAccessory>"}</code> with{" "}
+          <code>variant="footer"</code> (see the live sidebar's identity footer to
+          the left) on tablet/desktop, or <code>{"<NavigationBar trailing>"}</code>{" "}
+          on mobile — never a nav-list row (that mount, <code>variant="row"</code>,
+          is now deprecated), and never paired with the theme toggle (that lives in{" "}
+          <code>{"<UserMenu themeToggle>"}</code>). This standalone trigger below
           is the same component in its default <code>variant="trigger"</code> form,
           for a plain header/toolbar mount.
         </p>
@@ -97,13 +99,23 @@ export function NotificationsSection() {
         <pre className="sc-code">{`// Header/toolbar — standalone trigger (default)
 <NotificationBell items={items} />
 
-// Sidebar row (desktop/rail) — mounted via SidebarItem.render
-{ id: "notifications", render: () => (
-    <NotificationBell variant="row" label="알림함" items={items} />
-) }
+// Sidebar footer (desktop/rail) — beside identity, v0.48 canonical placement
+<Sidebar
+  footer={<UserMenu variant="full" .../>}
+  footerAccessory={<NotificationBell variant="footer" items={items} />}
+/>
 
 // Mobile — NavigationBar's trailing edge (sidebar is hidden < 720px)
 <NavigationBar trailing={<NotificationBell items={items} />} />
+
+// Deprecated (v0.43–v0.47): nav-list row via SidebarItem.render. Kept
+// working for existing consumers — new integrations use footerAccessory
+// above unless the notification surface earns a nav row in its own right
+// (a first-class triageable object with URL-worthy state — see the
+// NotificationBell doc comment for the full test).
+{ id: "notifications", render: () => (
+    <NotificationBell variant="row" label="알림함" items={items} />
+) }
 
 // Opt-in push-permission affordance (v0.44, planning#1140) — omit \`push\`
 // and NotificationBell is unchanged.

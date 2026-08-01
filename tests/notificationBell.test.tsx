@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 
 import { NotificationBell } from "../src/notificationBell";
@@ -107,6 +107,84 @@ describe("NotificationBell — push permission default", () => {
     );
     expect(rowIndex).toBeGreaterThanOrEqual(0);
     expect(rowIndex).toBeLessThan(itemsIndex);
+  });
+});
+
+// v0.48 (planning#1133 §6 correction) — the canonical `<Sidebar
+// footerAccessory>` mount. Visually identical to the default trigger, but
+// must portal its popover the same way `"row"` does, since the sidebar
+// footer sits inside `<Sidebar>`'s own `overflow: auto` region.
+describe("NotificationBell footer variant — trigger markup + portaled popover", () => {
+  it("renders the standalone trigger markup, not the sidebar-item row markup", () => {
+    render(<NotificationBell variant="footer" ariaLabel="알림" items={[]} />);
+    const button = screen.getByRole("button");
+    expect(button.className).toContain("etu-notif-bell-trigger");
+    expect(button.className).not.toContain("etu-sidebar-item");
+  });
+
+  it("folds the unread count into the trigger's aria-label, same as the default trigger", () => {
+    render(
+      <NotificationBell
+        variant="footer"
+        ariaLabel="알림"
+        items={[
+          { id: "1", content: "one" },
+          { id: "2", content: "two" },
+        ]}
+      />,
+    );
+    expect(screen.getByRole("button").getAttribute("aria-label")).toBe("알림 (2)");
+  });
+
+  it("opens a popover positioned via inline fixed-position style (portaled), not plain CSS-absolute", () => {
+    render(<NotificationBell variant="footer" items={[]} />);
+    fireEvent.click(screen.getByRole("button"));
+    const popover = document.querySelector(".etu-notif-bell-popover") as HTMLElement;
+    expect(popover).not.toBeNull();
+    // The default `variant="trigger"` popover carries no inline `style`
+    // attribute at all (pure CSS `position: absolute`); a portaled panel
+    // always gets an inline style — either the pre-measurement placeholder
+    // or the computed fixed coordinates — because it can't rely on a
+    // `position: relative` ancestor.
+    expect(popover.style.position).toBe("fixed");
+  });
+});
+
+// Review round — mounting a non-portaling variant inside `<Sidebar
+// footerAccessory>` silently clips the popover; nothing about that failure
+// is visible until someone clicks and nothing happens. A dev-only warning
+// makes the mismatch loud instead.
+describe("NotificationBell — footerAccessory variant-mismatch dev warning", () => {
+  beforeEach(() => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("warns when the default trigger variant is mounted inside .etu-sidebar-footer-accessory", () => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "etu-sidebar-footer-accessory";
+    document.body.appendChild(wrapper);
+    render(<NotificationBell items={[]} />, { container: wrapper });
+    expect(console.warn).toHaveBeenCalledWith(
+      expect.stringContaining('variant is not "footer"'),
+    );
+    wrapper.remove();
+  });
+
+  it("stays quiet when variant=\"footer\" is mounted inside .etu-sidebar-footer-accessory", () => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "etu-sidebar-footer-accessory";
+    document.body.appendChild(wrapper);
+    render(<NotificationBell variant="footer" items={[]} />, { container: wrapper });
+    expect(console.warn).not.toHaveBeenCalled();
+    wrapper.remove();
+  });
+
+  it("stays quiet for the default trigger variant outside a footerAccessory slot", () => {
+    render(<NotificationBell items={[]} />);
+    expect(console.warn).not.toHaveBeenCalled();
   });
 });
 

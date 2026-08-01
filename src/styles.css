@@ -2456,6 +2456,39 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   color: var(--etu-text-muted);
 }
 
+/* footerAccessory (v0.48, planning#1133 §6 correction) — identity + bell
+ * share one row instead of the bell stacking as a separate block, so the
+ * footer reads as one coherent region. `:has()` scopes this to footers that
+ * actually carry an accessory, leaving the plain identity-only footer (the
+ * common case, no bell) untouched.
+ *
+ * Plain `row`, not a CSS reorder trick (`row-reverse`/`order`): `Sidebar`
+ * itself flips the DOM order of `.etu-sidebar-footer-accessory` and
+ * `.etu-sidebar-footer-identity` based on collapse state (see the
+ * `footerAccessory` doc comment in sidebar.tsx), so this rule only ever has
+ * to lay out whatever order it's given, left to right. Reordering visually
+ * via CSS while leaving DOM order untouched would desync tab order and
+ * screen-reader reading order from what's on screen — the earlier version
+ * of this rule did exactly that with `row-reverse` and was corrected. */
+.etu-sidebar-footer:has(.etu-sidebar-footer-accessory) {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.etu-sidebar-footer-accessory {
+  flex-shrink: 0;
+}
+/* Targets the wrapper `Sidebar` puts around `footer`, not a generic
+ * `:not(.etu-sidebar-footer-accessory)` child selector — `footer` is
+ * documented to accept a multi-node value (identity row + Logout + inline
+ * DeployInfo), and a generic child selector would match each of those
+ * nodes individually and smear them sideways into this row instead of
+ * keeping them stacked as one flex item. */
+.etu-sidebar-footer-identity {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 /* --------------------------------------------------------------------------
  * StatusBanner — top-of-app strip surfacing service-admin declared incidents.
  * Outage incidents take origin offline and never reach the banner; the strip
@@ -2965,7 +2998,17 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
     justify-content: center;
     padding: 0.5rem 0;
   }
-  .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-footer:not(:has(.etu-user-menu-trigger--full)) {
+  /* With a footerAccessory (v0.48), stack it directly above the degraded
+   * identity control instead of the row layout used at full width — same
+   * DOM order (accessory first), just a column instead of a row. */
+  .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-footer:has(.etu-sidebar-footer-accessory) {
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  /* A footerAccessory earns the footer visibility too — not just the
+   * canonical UserMenu-full identity control — so a bell survives collapse
+   * even before/without identity being present. */
+  .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-footer:not(:has(.etu-user-menu-trigger--full)):not(:has(.etu-sidebar-footer-accessory)) {
     display: none;
   }
   .etu-sidebar[data-tablet-mode="rail"]:not([data-expanded]) .etu-sidebar-footer .etu-user-menu--full {
@@ -3171,7 +3214,12 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   justify-content: center;
   padding: 0.5rem 0;
 }
-.etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-footer:not(:has(.etu-user-menu-trigger--full)) {
+/* Mirrors the pre-hydration media-query block's accessory rules above. */
+.etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-footer:has(.etu-sidebar-footer-accessory) {
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-footer:not(:has(.etu-user-menu-trigger--full)):not(:has(.etu-sidebar-footer-accessory)) {
   display: none;
 }
 .etu-sidebar[data-tablet-mode="rail"][data-expanded="false"] .etu-sidebar-footer .etu-user-menu--full {
