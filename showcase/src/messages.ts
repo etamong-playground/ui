@@ -3,6 +3,7 @@ import type { MessageBundle } from "@etamong-playground/ui";
 export const messages: MessageBundle = {
   ko: {
     "nav.overview": "개요",
+    "nav.composition": "페이지 구성",
     "nav.palette": "커맨드 팔레트",
     "nav.notifications": "알림",
     "nav.notifBell": "알림함",
@@ -27,6 +28,7 @@ export const messages: MessageBundle = {
     "sidebar.appName": "UI Showcase",
     "sidebar.more": "더보기",
     "section.overview": "개요",
+    "section.composition": "페이지 구성과 설정",
     "section.palette": "커맨드 팔레트 & 단축키",
     "section.notifications": "알림",
     "section.chrome": "크롬",
@@ -42,6 +44,7 @@ export const messages: MessageBundle = {
   },
   en: {
     "nav.overview": "Overview",
+    "nav.composition": "Page Composition",
     "nav.palette": "Command Palette",
     "nav.notifications": "Notifications",
     "nav.notifBell": "Inbox",
@@ -66,6 +69,7 @@ export const messages: MessageBundle = {
     "sidebar.appName": "UI Showcase",
     "sidebar.more": "More",
     "section.overview": "Overview",
+    "section.composition": "Page Composition & Settings",
     "section.palette": "Command Palette & Shortcuts",
     "section.notifications": "Notifications",
     "section.chrome": "Chrome",

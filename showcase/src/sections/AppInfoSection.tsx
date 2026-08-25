@@ -30,7 +30,7 @@ export function AppInfoSection() {
         <LibAppInfoSection
           name="@etamong-playground/ui"
           description="Shared React frontend scaffold for etamong-lab apps"
-          appVersion="0.35.1"
+          appVersion="0.49.0"
           version={BUILD_SHA}
           builtAt={BUILD_TIME}
           links={[

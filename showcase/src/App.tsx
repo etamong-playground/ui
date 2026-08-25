@@ -33,10 +33,12 @@ import { StateHooksSection } from "./sections/StateHooksSection";
 import { ErrorPageSection } from "./sections/ErrorPageSection";
 import { AppInfoSection } from "./sections/AppInfoSection";
 import { VersionsSection } from "./sections/VersionsSection";
+import { PageCompositionSection } from "./sections/PageCompositionSection";
 
 // Sections ordered — drives sidebar, mobile tab bar, and command palette
 const SECTION_IDS = [
   "overview",
+  "composition",
   "palette",
   "notifications",
   "chrome",
@@ -87,6 +89,13 @@ function IconPalette() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" />
+    </svg>
+  );
+}
+function IconComposition() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M8 3v18" /><path d="M12 8h5" /><path d="M12 12h5" />
     </svg>
   );
 }
@@ -234,6 +243,7 @@ export function App() {
   const goToRoutes = useMemo(
     () => [
       { key: "o", href: "#/overview" },
+      { key: "l", href: "#/composition" },
       { key: "p", href: "#/palette" },
       { key: "n", href: "#/notifications" },
       { key: "c", href: "#/chrome" },
@@ -293,6 +303,7 @@ export function App() {
 
   const icons: Record<SectionId, typeof IconOverview> = {
     overview: IconOverview,
+    composition: IconComposition,
     palette: IconPalette,
     notifications: IconMessageSquare,
     chrome: IconLayers,
@@ -306,7 +317,7 @@ export function App() {
 
   const primary: SidebarItem[] = useMemo(
     () =>
-      ["overview", "palette", "notifications", "chrome", "data"].map((id) => {
+      ["overview", "composition", "palette", "notifications", "chrome", "data"].map((id) => {
         const Icon = icons[id as SectionId];
         return {
           id,
@@ -440,6 +451,7 @@ export function App() {
               </div>
             )}
             {section === "overview" && <Overview navigate={navigate} />}
+            {section === "composition" && <PageCompositionSection />}
             {section === "palette" && <PaletteSection />}
             {section === "notifications" && <NotificationsSection />}
             {section === "chrome" && <ChromeSection navigate={navigate} />}

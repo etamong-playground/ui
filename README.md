@@ -57,6 +57,9 @@ React/ReactDOM are peer deps.
 | `BackofficeLayout` | React component | Page-head with title + AdminBadge + actions slot + body | Backoffice / admin-console route layout |
 | `isAdminLike(input)` | function | The check behind `AdminGate` exposed as a pure function | Imperative gates / route guards |
 | `AppInfoSection` | React component | Canonical "앱 정보" card — name, description, app version, build (`<DeployInfo>`), links, free-form rows | Settings / backoffice "About" route |
+| `PageContainer` | React component | Responsive narrow / regular / wide content measure with mobile-safe gutters | Once around a page body |
+| `PageHeader` | React component | Restrained page title hierarchy with optional kicker, description, actions, and compact density | First child of `PageContainer` |
+| `SettingsGroup` / `SettingsRow` | React components | Canonical divided settings rows with a separate danger-zone tone | Settings routes; compose with `AppInfoSection` |
 | `formatRelTime(when)` | function | `"3분 전"` / `"in 2 hours"` via `Intl.RelativeTimeFormat`; locale from the document | Lists, activity feeds, anywhere "ago" reads right |
 | `formatAbsTime(when, opts?)` | function | Absolute time via `Intl.DateTimeFormat`; defaults to KST (`Asia/Seoul`) Korean. Style presets: `date` / `time` / `datetime` / `datetime-seconds` | Timestamps, log lines, tooltips |
 | `RelTime` | React component | Auto-refreshing relative-time label (`<time dateTime>` with absolute time as `title`) | Anywhere `formatRelTime` would otherwise need re-renders |
@@ -1358,6 +1361,73 @@ Props:
 Both the identity block and the `<dl>` rows are conditional: if you
 only pass `version`/`builtAt`, the card collapses to just the build
 row.
+
+## Page composition and settings
+
+`PageContainer` owns responsive content measure and mobile-safe gutters.
+`PageHeader` owns a restrained title hierarchy without adding a card or tinted
+surface. Use `density="compact"` for settings and utility screens. Product
+content such as feed cards, charts, and campaign imagery stays app-owned.
+
+```tsx
+import {
+  AppInfoSection,
+  PageContainer,
+  PageHeader,
+  SettingsGroup,
+  SettingsRow,
+} from "@etamong-playground/ui";
+
+<PageContainer measure="narrow">
+  <PageHeader
+    density="compact"
+    kicker="개인 설정"
+    title="설정"
+    description="계정과 앱 정보를 관리합니다."
+  />
+
+  <SettingsGroup heading="환경">
+    <SettingsRow
+      label="언어"
+      description="이 기기에서 사용할 표시 언어"
+      action={(accessibility) => <LanguagePicker {...accessibility} />}
+    />
+  </SettingsGroup>
+
+  <AppInfoSection appVersion={pkg.version} version={SHA} builtAt={BUILT_AT} />
+
+  <SettingsGroup heading="계정" tone="danger">
+    <SettingsRow
+      label="계정 삭제"
+      description="요청 후 30일 동안 취소할 수 있습니다."
+      action={(accessibility) => <DeleteAccountButton {...accessibility} />}
+    />
+  </SettingsGroup>
+</PageContainer>
+```
+
+Measures are `narrow` (40rem), `regular` (56rem, default), and `wide`
+(72rem). `PageContainer` renders `<main>` by default; pass `as="section"` or
+`as="div"` only when composing inside an existing main landmark.
+`PageHeader` renders an `h1`; use `headingLevel={2}` only when the composition
+is embedded below an existing page title. `SettingsGroup` requires a non-empty
+string heading and renders an `h2`; set `headingLevel={3}` or `{4}` when it is
+nested beneath another section. The danger tone keeps destructive settings
+visibly separate from ordinary preferences.
+
+`SettingsRow.action` is a render function. Spread its accessibility props onto
+the select, checkbox, button, or other control so the row label and description
+become its accessible name and help text.
+
+Theme selection is opt-in at the page level. A light-only app omits the theme
+control and pins its theme at bootstrap. Offering dark mode means reviewing an
+intentional dark composition at phone and desktop sizes; token inversion alone
+does not satisfy that design requirement.
+
+Typography variables (`--etu-fs-display`, `--etu-fs-page-title`,
+`--etu-fs-section-title`, `--etu-fs-body`, `--etu-fs-metadata`) and matching
+`.etu-type-*` classes are available for app-owned content that must align with
+the same hierarchy.
 
 ## Time helpers (formatRelTime / formatAbsTime / RelTime)
 

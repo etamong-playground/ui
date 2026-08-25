@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.49.0
+
+`PageContainer`, `PageHeader`, `SettingsGroup`, and `SettingsRow` add the
+shared seam for responsive page measure, restrained title hierarchy, compact
+settings rows, and a visually separate danger zone. Typography size and
+line-height tokens plus `.etu-type-*` classes keep app-owned feed and campaign
+content on the same hierarchy. The showcase covers single-item and multi-row
+settings states at phone, tablet, and desktop widths.
+
 ## 0.48.0
 
 Bell placement correction (planning#1133 §6, operator: "프로필 근처 어딘가에

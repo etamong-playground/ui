@@ -24,6 +24,9 @@
  * See planning wiki: concepts/pwa-cache-and-ios-shell + concepts/ios-pwa-safe-area.
  * ------------------------------------------------------------------------- */
 :root { color-scheme: light dark; }
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"],
+.dark { color-scheme: dark; }
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
@@ -108,6 +111,15 @@ body.etu-page {
   --etu-ok: #1f9e5b;
   --etu-warn: #d97706;
   --etu-err: #e5484d;
+  --etu-err-text: #b4232a;
+  --etu-fs-display: clamp(2.25rem, 5vw, 4.5rem);
+  --etu-fs-page-title: clamp(1.75rem, 2vw + 1rem, 2.25rem);
+  --etu-fs-section-title: 1.125rem;
+  --etu-fs-body: 0.95rem;
+  --etu-fs-metadata: 0.78rem;
+  --etu-lh-display: 1.02;
+  --etu-lh-title: 1.15;
+  --etu-lh-body: 1.6;
   --etu-danger: var(--etu-err);
   --etu-ok-soft: #e7f3ed;
   --etu-warn-soft: #f9efe1;
@@ -191,6 +203,7 @@ body.etu-page {
   --etu-ok: #34d399;
   --etu-warn: #f5b83d;
   --etu-err: #ff6b6b;
+  --etu-err-text: #ff8a8e;
   --etu-ok-soft: #16261d;
   --etu-warn-soft: #2b2318;
   --etu-err-soft: #2b191b;
@@ -1464,6 +1477,232 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
 .etu-app-info-link:hover {
   color: var(--etu-text);
   text-decoration: underline;
+}
+
+/* Page composition — restrained content measure, hierarchy and settings rows. */
+.etu-type-display {
+  font-family: var(--etu-font);
+  font-size: var(--etu-fs-display);
+  font-weight: 500;
+  line-height: var(--etu-lh-display);
+  letter-spacing: -0.045em;
+}
+
+.etu-type-page-title {
+  font-family: var(--etu-font);
+  font-size: var(--etu-fs-page-title);
+  font-weight: 600;
+  line-height: var(--etu-lh-title);
+  letter-spacing: -0.035em;
+}
+
+.etu-type-section-title {
+  font-family: var(--etu-font);
+  font-size: var(--etu-fs-section-title);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+}
+
+.etu-type-body {
+  font-family: var(--etu-font);
+  font-size: var(--etu-fs-body);
+  font-weight: 400;
+  line-height: var(--etu-lh-body);
+}
+
+.etu-type-metadata {
+  font-family: var(--etu-font);
+  font-size: var(--etu-fs-metadata);
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: 0.005em;
+}
+
+.etu-page-container {
+  box-sizing: border-box;
+  width: 100%;
+  margin-inline: auto;
+  padding-top: clamp(1.25rem, 3vw, 2.5rem);
+  padding-right: max(clamp(1rem, 3vw, 2rem), env(safe-area-inset-right));
+  padding-bottom: max(2rem, env(safe-area-inset-bottom));
+  padding-left: max(clamp(1rem, 3vw, 2rem), env(safe-area-inset-left));
+  color: var(--etu-text);
+  font-family: var(--etu-font);
+}
+
+.etu-page-container--narrow { max-width: 40rem; }
+.etu-page-container--regular { max-width: 56rem; }
+.etu-page-container--wide { max-width: 72rem; }
+
+.etu-app-shell .etu-page-container {
+  padding-right: clamp(1rem, 3vw, 2rem);
+  padding-bottom: 2rem;
+  padding-left: clamp(1rem, 3vw, 2rem);
+}
+
+.etu-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: clamp(1.75rem, 4vw, 3.5rem);
+}
+
+.etu-page-header--compact { margin-bottom: clamp(1.25rem, 3vw, 2rem); }
+
+.etu-page-header-copy {
+  min-width: 0;
+  max-width: 42rem;
+}
+
+.etu-page-header-kicker {
+  margin-bottom: 0.55rem;
+  color: var(--etu-text-muted);
+  font-size: var(--etu-fs-metadata);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+}
+
+.etu-page-header-title {
+  margin: 0;
+  color: var(--etu-text);
+  font-size: var(--etu-fs-page-title);
+  font-weight: 600;
+  line-height: var(--etu-lh-title);
+  letter-spacing: -0.035em;
+}
+
+.etu-page-header--compact .etu-page-header-title {
+  font-size: clamp(1.6rem, 1.5vw + 1rem, 1.875rem);
+}
+
+.etu-page-header-description {
+  margin-top: 0.75rem;
+  color: var(--etu-text-muted);
+  font-size: var(--etu-fs-body);
+  line-height: var(--etu-lh-body);
+}
+
+.etu-page-header-actions {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.etu-page-header-actions > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.etu-settings-group + .etu-settings-group,
+.etu-app-info + .etu-settings-group,
+.etu-settings-group + .etu-app-info {
+  margin-top: 2rem;
+}
+
+.etu-settings-group-header {
+  margin-bottom: 0.65rem;
+}
+
+.etu-settings-group-title {
+  margin: 0;
+  color: var(--etu-text);
+  font-size: var(--etu-fs-section-title);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+}
+
+.etu-settings-group-description {
+  margin-top: 0.3rem;
+  color: var(--etu-text-muted);
+  font-size: var(--etu-fs-metadata);
+  line-height: 1.5;
+}
+
+.etu-settings-list {
+  border-block: 1px solid var(--etu-border);
+}
+
+.etu-settings-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1.5rem;
+  min-height: 4.5rem;
+  padding: 1rem 0;
+}
+
+.etu-settings-row + .etu-settings-row {
+  border-top: 1px solid var(--etu-border);
+}
+
+.etu-settings-row-copy { min-width: 0; }
+
+.etu-settings-row-label {
+  color: var(--etu-text);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.etu-settings-row-description {
+  margin-top: 0.25rem;
+  color: var(--etu-text-muted);
+  font-size: var(--etu-fs-metadata);
+  line-height: 1.5;
+}
+
+.etu-settings-row-action {
+  display: flex;
+  justify-content: flex-end;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.etu-settings-row-action > * { max-width: 100%; }
+
+.etu-settings-group--danger .etu-settings-group-title {
+  color: var(--etu-err-text);
+}
+
+.etu-settings-group--danger .etu-settings-list {
+  border-block-color: var(--etu-err);
+  border-block-color: color-mix(in srgb, var(--etu-err) 45%, var(--etu-border));
+}
+
+@media (max-width: 719px) {
+  .etu-page-header {
+    display: block;
+  }
+
+  .etu-page-header-actions {
+    margin-top: 1rem;
+  }
+
+  .etu-settings-row {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .etu-settings-row-action {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .etu-settings-row-action > select,
+  .etu-settings-row-action > input,
+  .etu-settings-row-action > textarea {
+    width: 100%;
+  }
 }
 
 .etu-app-info-link:focus-visible {
