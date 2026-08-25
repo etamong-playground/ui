@@ -129,6 +129,21 @@ export {
   type AppInfoLink,
 } from "./appInfoSection";
 export {
+  PageContainer,
+  PageHeader,
+  SettingsGroup,
+  SettingsRow,
+  type PageContainerProps,
+  type PageHeaderProps,
+  type PageMeasure,
+  type PageHeaderDensity,
+  type SettingsGroupProps,
+  type SettingsGroupHeadingLevel,
+  type SettingsGroupTone,
+  type SettingsRowProps,
+  type SettingsRowActionProps,
+} from "./pageComposition";
+export {
   formatRelTime,
   formatAbsTime,
   RelTime,

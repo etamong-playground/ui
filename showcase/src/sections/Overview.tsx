@@ -132,6 +132,7 @@ export function Overview({ navigate }: { navigate: (id: string) => void }) {
           {(
             [
               ["palette", "Command Palette & Shortcuts"],
+              ["composition", "Page Composition & Settings"],
               ["notifications", "Notifications"],
               ["chrome", "Chrome (shell, identity, back, empty)"],
               ["data", "Data & Time"],

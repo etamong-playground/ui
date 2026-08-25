@@ -96,6 +96,12 @@ export const registry: Record<string, FeatureEntry> = {
     since: "0.14.0",
     src: "src/appInfoSection.tsx",
   },
+  "page-composition": {
+    label: "Page Composition & Settings",
+    exports: ["PageContainer", "PageHeader", "SettingsGroup", "SettingsRow"],
+    since: "0.49.0",
+    src: "src/pageComposition.tsx",
+  },
   "rel-time": {
     label: "Relative & Absolute Time",
     exports: ["RelTime", "formatRelTime", "formatAbsTime"],
@@ -201,6 +207,7 @@ export const featureRoute: Record<string, string> = {
   "empty-state": "#/chrome",
   "copy-button": "#/data",
   "app-info-section": "#/appinfo",
+  "page-composition": "#/composition",
   "rel-time": "#/data",
   "user-menu": "#/chrome",
   "notification-bell": "#/chrome",

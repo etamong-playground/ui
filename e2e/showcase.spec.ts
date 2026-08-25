@@ -109,6 +109,7 @@ test.describe("mobile tier", () => {
     await page.goto("/#/overview");
     await expect(page.locator(".etu-mobile-tab-bar")).toBeVisible();
     await expect(page.locator(".etu-sidebar")).not.toBeVisible();
+    await expect(page.locator(".etu-mobile-tab-bar").getByRole("button", { name: "크롬" })).toBeVisible();
   });
 
   // g2. Mobile bell — the sidebar (and its nav-row bell) is hidden below
@@ -315,3 +316,61 @@ test("feature tag since badge links to version page", async ({ page }) => {
   const href = await sinceChip.getAttribute("href");
   expect(href).toMatch(/npmjs\.com|releases\/tag/);
 });
+
+for (const profile of [
+  { name: "phone", width: 390, height: 844 },
+  { name: "tablet", width: 768, height: 900 },
+  { name: "desktop", width: 1280, height: 900 },
+] as const) {
+  test(`page composition fits the ${profile.name} viewport`, async ({ page }) => {
+    await page.setViewportSize({ width: profile.width, height: profile.height });
+    await page.goto("/#/composition");
+
+    await expect(page.getByTestId("composition-single")).toBeVisible();
+    await expect(page.getByTestId("composition-settings")).toBeVisible();
+    const settingsHeading = page
+      .getByTestId("composition-settings")
+      .getByRole("heading", { level: 2, name: "설정", exact: true });
+    await expect(settingsHeading).toBeVisible();
+
+    const headingSize = await settingsHeading.evaluate((element) =>
+      Number.parseFloat(getComputedStyle(element).fontSize),
+    );
+    expect(headingSize).toBeLessThanOrEqual(30);
+
+    const overflows = await page.evaluate(
+      () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    );
+    expect(overflows).toBe(false);
+
+    const rows = page.locator(".etu-settings-row");
+    await expect(rows).toHaveCount(3);
+    for (let index = 0; index < await rows.count(); index += 1) {
+      const box = await rows.nth(index).boundingBox();
+      expect(box!.x).toBeGreaterThanOrEqual(0);
+      expect(box!.x + box!.width).toBeLessThanOrEqual(profile.width + 1);
+    }
+
+    const controls = page.locator(".etu-page-header-actions > *, .etu-settings-row-action > *");
+    for (let index = 0; index < await controls.count(); index += 1) {
+      const box = await controls.nth(index).boundingBox();
+      expect(box!.x).toBeGreaterThanOrEqual(0);
+      expect(box!.x + box!.width).toBeLessThanOrEqual(profile.width + 1);
+    }
+
+    const settings = page.getByTestId("composition-settings");
+    await expect(settings.locator(".etu-app-info")).toBeVisible();
+    await expect(settings.locator(".etu-settings-group--danger")).toBeVisible();
+    await expect(settings.getByRole("combobox", { name: "언어" })).toBeVisible();
+    await expect(settings.getByRole("button", { name: "알림" })).toBeVisible();
+    await expect(settings.getByRole("button", { name: "계정 삭제" })).toBeVisible();
+    const order = await settings.evaluate((element) => [
+      ...element.querySelectorAll(":scope .etu-settings-group, :scope .etu-app-info"),
+    ].map((node) => node.className));
+    expect(order).toEqual([
+      "etu-settings-group etu-settings-group--default",
+      "etu-app-info",
+      "etu-settings-group etu-settings-group--danger",
+    ]);
+  });
+}
