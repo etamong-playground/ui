@@ -1,17 +1,57 @@
-name: Feature request
-description: Suggest an idea or improvement
+name: UI improvement proposal
+description: Propose a component, behavior improvement, or documented composition recipe
 labels: ["enhancement"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Check the current exports, README, showcase, and open and closed issues first.
+        Existing components may need adoption or documentation rather than replacement.
+        Keep private application details, identities, and internal URLs out of public reports; use a sanitized reproduction.
   - type: textarea
     id: problem
     attributes:
-      label: Problem / motivation
-      description: What problem would this solve, or what's the use case?
+      label: User problem and current workaround
+      description: Describe the task, observed failure, and what the consumer currently implements itself.
+      placeholder: "A tablet data-entry screen uses a local keypad because focusing numeric fields opens the system keyboard."
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Version and evidence
+      description: Include the installed package version, the current library revision checked, relevant exports or examples, and a minimal reproduction or redacted screenshot. Separate observations from assumptions.
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Proposed scope
+      options:
+        - Extend an existing component or helper
+        - Add a missing primitive
+        - Add a composition example or documentation
+        - Unsure - needs review
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Existing options and related issues
+      description: Name the closest exports, documentation, and open or closed proposals you checked. Explain the specific unmet behavior, or say what remains unverified.
     validations:
       required: true
   - type: textarea
     id: proposal
     attributes:
-      label: Proposed solution
+      label: Proposed behavior and ownership
+      description: Describe the smallest reusable behavior, a real consumer, and what stays in the application (business rules, authorization, persistence, synchronization). API sketches are optional and provisional.
     validations:
-      required: false
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Acceptance and compatibility
+      description: Give observable acceptance criteria. Include relevant keyboard/touch, accessibility, localization, responsive layout, failure states, and compatibility constraints; omit dimensions that do not apply.
+    validations:
+      required: true
