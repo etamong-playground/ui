@@ -1910,6 +1910,10 @@ Both `.etu-navbar` and `.etu-mtb` (`.etu-mobile-tab-bar`) opt into the
 `.etu-glass` material. Apply it to any other surface (sheet, popover, dock) to
 match the fleet's iOS-26 visual.
 
+## Contributions
+
+See [Contributing](CONTRIBUTING.md) for the improvement proposal form, evidence requirements, and agent proposal/review workflows.
+
 ## Releasing
 
 The package publishes from CI **on a version tag** — no manual `pnpm publish`.
