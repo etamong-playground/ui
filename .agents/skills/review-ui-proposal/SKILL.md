@@ -14,7 +14,7 @@ Review is read-only unless the user also authorizes a comment or specific triage
 ## Verify independently
 
 Check the installed package version and current source exports, props, README, showcase, and tests for the claimed gap.
-Search open and closed issues, including discussion and resolutions, before declaring a duplicate or reviving a rejected approach.
+Search open and closed issues in the canonical tracker and the public library tracker when they differ, including discussion and resolutions, before declaring a duplicate or reviving a rejected approach.
 Where a source or private reproduction is inaccessible, state the limitation and which claim remains unverified.
 Do not equate a custom implementation with an absent library capability, or a deployed asset with the code actually running in an existing tab.
 
