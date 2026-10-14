@@ -498,7 +498,7 @@ CI runs `pnpm typecheck` + `pnpm build` on every pull request.
 
 A live component showcase is rebuilt and redeployed automatically on every push to `main`:
 
-**https://ui-showcase.custom-site.m.etamong.com/**
+**https://ui-showcase.cst.onul.me/**
 
 The showcase dogfoods the library — the shell itself uses `Sidebar`, `MobileTabBar`,
 `NavigationBar`, `CommandPalette`, theme, and i18n from this package — so it doubles as a
