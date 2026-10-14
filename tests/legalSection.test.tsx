@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 
 import {
-  LEGAL_HUB_BASE_URL,
   LegalMenuItem,
   LegalPage,
   useLegalAvailability,
@@ -142,19 +141,20 @@ describe("<LegalMenuItem>", () => {
 
 describe("<LegalPage>", () => {
   it("renders one external row per published L2 kind + the always-present L1 identity row", async () => {
-    mockManifest({
+    const fetchSpy = mockManifest({
       services: { "alert-ops": { terms: true, privacy: true, identity: true } },
     });
-    render(<LegalPage appSlug="alert-ops" manifestUrl={MANIFEST_URL} />);
+    render(<LegalPage appSlug="alert-ops" />);
     await waitFor(() => {
       expect(screen.getByRole("link", { name: /이용약관/ })).toBeDefined();
     });
     const terms = screen.getByRole("link", { name: /이용약관/ });
     const privacy = screen.getByRole("link", { name: /개인정보처리방침/ });
     const identity = screen.getByRole("link", { name: /로그인 정책/ });
-    expect(terms.getAttribute("href")).toBe(`${LEGAL_HUB_BASE_URL}/#alert-ops-terms`);
-    expect(privacy.getAttribute("href")).toBe(`${LEGAL_HUB_BASE_URL}/#alert-ops-privacy`);
-    expect(identity.getAttribute("href")).toBe(`${LEGAL_HUB_BASE_URL}/#identity`);
+    expect(fetchSpy).toHaveBeenCalledWith("https://legal.onul.me/api/public-manifest", expect.any(Object));
+    expect(terms.getAttribute("href")).toBe("https://legal.onul.me/#alert-ops-terms");
+    expect(privacy.getAttribute("href")).toBe("https://legal.onul.me/#alert-ops-privacy");
+    expect(identity.getAttribute("href")).toBe("https://legal.onul.me/#identity");
     for (const a of [terms, privacy, identity]) {
       expect(a.getAttribute("target")).toBe("_blank");
       expect(a.getAttribute("rel")).toBe("noopener noreferrer");
@@ -162,13 +162,13 @@ describe("<LegalPage>", () => {
   });
 
   it("shows the empty-state line when the manifest reports no L2 kinds for the app", async () => {
-    mockManifest({ services: {} });
-    render(<LegalPage appSlug="alert-ops" manifestUrl={MANIFEST_URL} />);
+    const fetchSpy = mockManifest({ services: {} });
+    render(<LegalPage appSlug="alert-ops" manifestUrl={MANIFEST_URL} hubBaseUrl="https://legal.example.test" />);
     await waitFor(() => {
       expect(screen.getByText("현재 등록된 법률 문서가 없습니다.")).toBeDefined();
     });
-    // L1 still present.
-    expect(screen.getByRole("link", { name: /로그인 정책/ })).toBeDefined();
+    expect(fetchSpy).toHaveBeenCalledWith(MANIFEST_URL, expect.any(Object));
+    expect(screen.getByRole("link", { name: /로그인 정책/ }).getAttribute("href")).toBe("https://legal.example.test/#identity");
   });
 
   it("does NOT show the empty-state line while loading — only after a successful fetch returns nothing", () => {

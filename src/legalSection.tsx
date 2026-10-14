@@ -24,7 +24,7 @@
  *     The list rendered at `/more/legal`. Driven by `useLegalAvailability`:
  *     one row per published L2 kind (terms, privacy, …) followed by the
  *     always-present L1 identity row. Each row opens
- *     `https://legal.m.etamong.com/#<anchor>` in a new tab. Empty L2 state
+ *     `https://legal.onul.me/#<anchor>` in a new tab. Empty L2 state
  *     shows the L1 row plus a muted "현재 등록된 법률 문서가 없습니다." line.
  */
 
@@ -37,10 +37,8 @@ import {
   type ReactNode,
 } from "react";
 
-// ----- Constants --------------------------------------------------------
-
 /** Production legal hub host. Override via `manifestUrl` / `hubBaseUrl` props. */
-export const LEGAL_HUB_BASE_URL = "https://legal.m.etamong.com";
+export const LEGAL_HUB_BASE_URL = "https://legal.onul.me";
 
 /** Default manifest endpoint. Override per-prop for tests / staging. */
 export const LEGAL_MANIFEST_URL = `${LEGAL_HUB_BASE_URL}/api/public-manifest`;

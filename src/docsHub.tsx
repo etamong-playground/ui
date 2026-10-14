@@ -35,7 +35,7 @@ export interface DocsHubSkill {
   body: string;
   /**
    * Stable public URL serving the same skill markdown bytes as the
-   * download button. Convention: `https://<app>.m.etamong.com/skill.md`.
+   * download button. Convention: `https://<app>.onul.me/skill.md`.
    * When set, DocsHub shows a `curl … -o ~/.claude/skills/<slug>/SKILL.md`
    * one-liner as the primary install path (download stays as fallback).
    * The endpoint must be unauthenticated and return `text/markdown`.
