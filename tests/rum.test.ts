@@ -35,7 +35,7 @@ describe("initRum", () => {
 
     expect(initializeFaro).toHaveBeenCalledTimes(1);
     const cfg = initializeFaro.mock.calls[0]![0];
-    expect(cfg.url).toBe("https://faro.m.etamong.com/collect");
+    expect(cfg.url).toBe("https://faro.onul.me/collect");
     expect(cfg.apiKey).toBe("k");
     expect(cfg.app).toEqual({ name: "meloetta", version: "abc1234" });
     expect(cfg.sessionTracking).toEqual({ samplingRate: 1 });
