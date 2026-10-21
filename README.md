@@ -95,6 +95,7 @@ adopters pnpm's "you forgot to install it" warning while non-adopters install no
 entry no-ops outside a browser and never throws out of app boot. Call
 `initRum({ app, version, apiKey })` once at app entry; the `apiKey` arrives at build time
 (see the fleet RUM docs for provisioning).
+The default collector is `https://faro.onul.me/collect`; `endpoint` overrides remain supported.
 
 ## Where to mount the hosts (Next vs Vite)
 

@@ -33,7 +33,7 @@ export interface InitRumOptions {
    * gate, not a secret.
    */
   apiKey: string;
-  /** Collector endpoint. Default: the fleet faro.m collector. */
+  /** Collector endpoint. Default: https://faro.onul.me/collect. */
   endpoint?: string;
   /**
    * Session sampling rate 0–1 (default 1: homelab-scale traffic). A sampled-out
@@ -43,7 +43,7 @@ export interface InitRumOptions {
   sessionSampleRate?: number;
 }
 
-const DEFAULT_ENDPOINT = "https://faro.m.etamong.com/collect";
+const DEFAULT_ENDPOINT = "https://faro.onul.me/collect";
 
 /**
  * Initialize fleet RUM. Call once from the app entry, before render. No-ops
