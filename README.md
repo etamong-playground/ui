@@ -1965,3 +1965,51 @@ Uses [`cmdk`](https://github.com/pacocoursey/cmdk) (MIT) for the command palette
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+### Account-scoped AuthGate
+
+`AuthGate` accepts optional `identityOptions` with the same endpoint/fetcher contract as `useIdentity`.
+Without options it keeps the existing `/api/me` lookup and redirect behavior.
+Custom fetchers return `null` for an explicitly anonymous identity and reject transport/server failures.
+With `identityOptions`, an error withholds children and renders `identityErrorFallback` (default `null`) without redirecting; an anonymous result follows the normal redirect contract.
+`treat401AsAnonymous` only applies to the default fetcher.
+Keep the fetcher stable and remount the gate and its account-owned subtree using the selected account as its React key.
+A UI gate does not replace server authorization: the server must validate the selected account against the browser session on every request.
+
+```tsx
+function AccountTasks({ slotId }: { slotId: string }) {
+  const fetcher = useCallback(async () => {
+    const response = await fetch("/api/me", {
+      credentials: "same-origin",
+      headers: { "X-Account-ID": slotId },
+    });
+    if (response.status === 401) return null;
+    if (!response.ok) throw new Error("Identity unavailable");
+    return response.json();
+  }, [slotId]);
+
+  return (
+    <AuthGate key={slotId} identityOptions={{ fetcher }} loadingFallback="Checking account" identityErrorFallback="Identity unavailable">
+      <TaskWorkspace />
+    </AuthGate>
+  );
+}
+```
+
+The showcase's App Info section includes a fixture-driven account-switch example that makes no authentication request.
+
+For an account-aware menu, call `useIdentity({ fetcher })` in the keyed account subtree and pass its `me` explicitly to `UserMenu`.
+`SessionBadge` performs its own default lookup, including when a `me` override is supplied, so it is unsuitable for an endpoint requiring an explicit account selector.
+Neither component inherits identity options from `AuthGate`.
+
+```tsx
+function AccountMenu({ fetcher, onSignOut }: {
+  fetcher: () => Promise<BaseMe | null>;
+  onSignOut: () => void;
+}) {
+  const { me } = useIdentity({ fetcher });
+  return <UserMenu me={me} onSignOut={onSignOut} />;
+}
+```
+
+Mount `AccountMenu` inside the same keyed account subtree; `onSignOut` supplies the application's account-scoped logout operation.

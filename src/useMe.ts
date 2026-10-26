@@ -37,9 +37,10 @@ export interface UseMeOptions<T extends BaseMe> {
   /**
    * Custom fetcher — usually the `api.get<T>("/me")` from your
    * `createFetch` client. Use this when the app's API is mounted under a
-   * non-default base path or needs custom headers.
+   * non-default base path or needs custom headers. Return null for anonymous;
+   * reject request failures.
    */
-  fetcher?: () => Promise<T>;
+  fetcher?: () => Promise<T | null>;
   /**
    * When `true` (default), 401 from the default fetcher counts as
    * "anonymous" rather than an error — `me` becomes `null`, `error`
