@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.50.0
+
+`AuthGate`에서 계정별 identity fetcher를 지정할 수 있습니다.
+계정을 전환할 때 gate를 다시 마운트하면 이전 계정의 응답이 새 계정의 화면을 열지 못합니다.
+조회에 실패하면 `identityErrorFallback`을 표시하고, fetcher가 `null`을 반환하면 로그인을 진행합니다.
+기본 `/api/me` 조회 방식은 유지합니다.
+
 ## 0.49.0
 
 `PageContainer`, `PageHeader`, `SettingsGroup`, and `SettingsRow` add the

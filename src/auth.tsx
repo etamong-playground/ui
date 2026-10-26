@@ -104,6 +104,10 @@ export function useIdentity<T extends BaseMe = BaseMe>(
  */
 export interface AuthGateProps {
   children: React.ReactNode;
+  /** Keep options stable; key the gate by account when selecting another identity. */
+  identityOptions?: UseMeOptions<BaseMe>;
+  /** Custom identity-fetch errors withhold children without initiating sign-in. */
+  identityErrorFallback?: React.ReactNode;
   /** Override the post-login redirect target. Default = current location. */
   rd?: string;
   /** What to show while `/api/me` is in flight. Default = `null`. */
@@ -119,6 +123,8 @@ export interface AuthGateProps {
 }
 export function AuthGate({
   children,
+  identityOptions,
+  identityErrorFallback = null,
   rd,
   loadingFallback = null,
   userAgent,
@@ -128,18 +134,21 @@ export function AuthGate({
     userAgent ??
     (typeof navigator !== "undefined" ? navigator.userAgent : undefined);
   const crawler = isShareCrawler(ua);
-  const { me, loading } = useIdentity();
+  const { me, loading, error } = useIdentity(identityOptions);
+  const scopedError = Boolean(identityOptions && error);
 
   useEffect(() => {
     if (crawler) return;
     if (loading) return;
     if (me) return;
+    if (scopedError) return;
     if (disableRedirect) return;
     fleetSignIn(rd);
-  }, [crawler, loading, me, rd, disableRedirect]);
+  }, [crawler, loading, me, scopedError, rd, disableRedirect]);
 
   if (crawler) return <>{children}</>;
   if (loading) return <>{loadingFallback}</>;
+  if (scopedError) return <>{identityErrorFallback}</>;
   if (!me) return null;
   return <>{children}</>;
 }

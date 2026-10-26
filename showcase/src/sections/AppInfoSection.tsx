@@ -1,6 +1,8 @@
+import { useCallback, useState } from "react";
 import {
   AppInfoSection as LibAppInfoSection,
   DeployInfo,
+  AuthGate,
   useT,
 } from "@etamong-playground/ui";
 import { FeatureTag } from "../FeatureTag";
@@ -80,6 +82,8 @@ export function AppInfoSection() {
         </pre>
       </div>
 
+      <AccountGateDemo />
+
       <div className="sc-card">
         <div className="sc-card-header">Not demoed here</div>
         <ul className="sc-card-body">
@@ -110,12 +114,35 @@ export function AppInfoSection() {
             require fleet infrastructure endpoints. See the README.
           </li>
           <li>
-            <strong>AuthGate / useIdentity / fleet auth</strong> — requires the
+            <strong>Fleet sign-in / sign-out</strong> — requires the
             unified <code>/auth/*</code> + <code>/api/me</code> fleet
             endpoints. See the README.
           </li>
         </ul>
       </div>
     </div>
+  );
+}
+
+function AccountGateDemo() {
+  const [account, setAccount] = useState("work");
+  const fetcher = useCallback(async () => ({ email: `${account}@example.test` }), [account]);
+  return (
+    <section className="sc-card">
+      <div className="sc-card-header"><span>Account-scoped AuthGate</span><FeatureTag id="account-auth-gate" /></div>
+      <div className="sc-card-body">
+        <p>Fixture identities demonstrate remounting the gated subtree when the selected account changes.</p>
+        <label>
+          Account
+          <select value={account} onChange={(event) => setAccount(event.target.value)}>
+            <option value="work">Work</option>
+            <option value="personal">Personal</option>
+          </select>
+        </label>
+        <AuthGate key={account} identityOptions={{ fetcher }} loadingFallback="Checking account" disableRedirect>
+          <p role="status">Selected fixture: {account}@example.test</p>
+        </AuthGate>
+      </div>
+    </section>
   );
 }

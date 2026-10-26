@@ -90,6 +90,12 @@ export const registry: Record<string, FeatureEntry> = {
     since: "0.11.0",
     src: "src/copyButton.tsx",
   },
+  "account-auth-gate": {
+    label: "Account-scoped AuthGate",
+    exports: ["AuthGate", "useIdentity"],
+    since: "0.50.0",
+    src: "src/auth.tsx",
+  },
   "app-info-section": {
     label: "App Info Section Card",
     exports: ["AppInfoSection"],
@@ -206,6 +212,7 @@ export const featureRoute: Record<string, string> = {
   "back-button": "#/chrome",
   "empty-state": "#/chrome",
   "copy-button": "#/data",
+  "account-auth-gate": "#/appinfo",
   "app-info-section": "#/appinfo",
   "page-composition": "#/composition",
   "rel-time": "#/data",
