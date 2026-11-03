@@ -145,7 +145,7 @@ describe("native form controls", () => {
     expect((screen.getByLabelText("Password") as HTMLInputElement).type).toBe("password");
   });
 
-  it("does not overwrite a newer caret position during deferred restoration", () => {
+  it.each([0, 8])("does not overwrite a newer caret at %i during deferred restoration", (position) => {
     const frames: FrameRequestCallback[] = [];
     vi.spyOn(window, "requestAnimationFrame").mockImplementation((callback) => { frames.push(callback); return frames.length; });
     vi.spyOn(window, "cancelAnimationFrame").mockImplementation(() => undefined);
@@ -153,10 +153,11 @@ describe("native form controls", () => {
     const input = screen.getByLabelText("Password") as HTMLInputElement;
     input.setSelectionRange(2, 6);
     fireEvent.click(screen.getByRole("button", { name: "Show password" }));
-    input.setSelectionRange(8, 8);
+    input.setSelectionRange(position, position);
+    fireEvent.select(input);
     act(() => { frames.forEach((callback) => callback(0)); });
-    expect(input.selectionStart).toBe(8);
-    expect(input.selectionEnd).toBe(8);
+    expect(input.selectionStart).toBe(position);
+    expect(input.selectionEnd).toBe(position);
   });
 
   it("hydrates document-language defaults without replacing the server-rendered control", async () => {
