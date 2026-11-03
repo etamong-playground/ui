@@ -34,11 +34,13 @@ import { ErrorPageSection } from "./sections/ErrorPageSection";
 import { AppInfoSection } from "./sections/AppInfoSection";
 import { VersionsSection } from "./sections/VersionsSection";
 import { PageCompositionSection } from "./sections/PageCompositionSection";
+import { FormsSection } from "./sections/FormsSection";
 
 // Sections ordered — drives sidebar, mobile tab bar, and command palette
 const SECTION_IDS = [
   "overview",
   "composition",
+  "forms",
   "palette",
   "notifications",
   "chrome",
@@ -304,6 +306,7 @@ export function App() {
   const icons: Record<SectionId, typeof IconOverview> = {
     overview: IconOverview,
     composition: IconComposition,
+    forms: IconComposition,
     palette: IconPalette,
     notifications: IconMessageSquare,
     chrome: IconLayers,
@@ -317,7 +320,7 @@ export function App() {
 
   const primary: SidebarItem[] = useMemo(
     () =>
-      ["overview", "composition", "palette", "notifications", "chrome", "data"].map((id) => {
+      ["overview", "composition", "forms", "palette", "notifications", "chrome", "data"].map((id) => {
         const Icon = icons[id as SectionId];
         return {
           id,
@@ -452,6 +455,7 @@ export function App() {
             )}
             {section === "overview" && <Overview navigate={navigate} />}
             {section === "composition" && <PageCompositionSection />}
+            {section === "forms" && <FormsSection />}
             {section === "palette" && <PaletteSection />}
             {section === "notifications" && <NotificationsSection />}
             {section === "chrome" && <ChromeSection navigate={navigate} />}

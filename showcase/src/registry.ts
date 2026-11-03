@@ -6,6 +6,12 @@ export interface FeatureEntry {
 }
 
 export const registry: Record<string, FeatureEntry> = {
+  "form-controls": {
+    label: "Native Form Controls",
+    exports: ["Field", "TextField", "PasswordField", "Select"],
+    since: "0.51.0",
+    src: "src/formControls.tsx",
+  },
   "command-palette": {
     label: "Command Palette",
     exports: ["CommandPalette", "CommandPaletteTrigger", "openCommandPalette"],
@@ -198,6 +204,7 @@ export function srcUrl(entry: FeatureEntry): string {
 
 /** Feature id → showcase hash route for the demo jump button */
 export const featureRoute: Record<string, string> = {
+  "form-controls": "#/forms",
   "command-palette": "#/palette",
   "go-to-shortcuts": "#/palette",
   "cross-locale-keywords": "#/palette",
