@@ -1,4 +1,4 @@
-import { createRef, useState } from "react";
+import { createRef, useLayoutEffect, useState } from "react";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { hydrateRoot, type Root } from "react-dom/client";
 import { renderToString } from "react-dom/server";
@@ -187,5 +187,28 @@ describe("native form controls", () => {
       container.remove();
       errors.mockRestore();
     }
+  });
+
+  it("retains a parent-requested caret change before the visibility effect runs", () => {
+    const frames: FrameRequestCallback[] = [];
+    vi.spyOn(window, "requestAnimationFrame").mockImplementation((callback) => { frames.push(callback); return frames.length; });
+    vi.spyOn(window, "cancelAnimationFrame").mockImplementation(() => undefined);
+    const ref = createRef<HTMLInputElement>();
+    function Parent() {
+      const [changed, setChanged] = useState(false);
+      useLayoutEffect(() => {
+        if (changed && ref.current) {
+          ref.current.setSelectionRange(0, 0);
+          ref.current.dispatchEvent(new Event("select", { bubbles: true }));
+        }
+      }, [changed]);
+      return <div onClick={() => setChanged(true)}><PasswordField ref={ref} label="Password" defaultValue="example-value" locale="en" /></div>;
+    }
+    render(<Parent />);
+    ref.current!.setSelectionRange(2, 6);
+    fireEvent.click(screen.getByRole("button", { name: "Show password" }));
+    act(() => { frames.forEach((callback) => callback(0)); });
+    expect(ref.current!.selectionStart).toBe(0);
+    expect(ref.current!.selectionEnd).toBe(0);
   });
 });

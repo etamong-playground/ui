@@ -119,7 +119,7 @@ export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(fu
   "aria-describedby": describedBy, "aria-invalid": invalid, ...props
 }, ref) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const selectionRef = useRef<{ start: number; end: number; direction: "forward" | "backward" | "none" } | null>(null);
+  const selectionRef = useRef<{ start: number; end: number; direction: "forward" | "backward" | "none"; value: string } | null>(null);
   const [visible, setVisible] = useState(false);
   const [documentLocale, setDocumentLocale] = useState<"ko" | "en">("en");
   useImperativeHandle(ref, () => inputRef.current!, []);
@@ -132,31 +132,35 @@ export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(fu
     : labels?.show ?? (korean ? "비밀번호 보기" : "Show password");
 
   useEffect(() => {
-    const selection = selectionRef.current;
     const input = inputRef.current;
-    if (!selection || !input) return;
-    let cancelled = false;
-    const cancelRestoration = () => { cancelled = true; };
+    if (!input) return;
+    const cancelRestoration = () => { selectionRef.current = null; };
     const onSelect = () => {
-      if (input.selectionStart !== selection.start || input.selectionEnd !== selection.end) cancelRestoration();
+      const selection = selectionRef.current;
+      if (selection && (input.selectionStart !== selection.start || input.selectionEnd !== selection.end)) cancelRestoration();
     };
     const interactionEvents = ["pointerdown", "keydown", "beforeinput", "input", "blur"];
     for (const event of interactionEvents) input.addEventListener(event, cancelRestoration);
     input.addEventListener("select", onSelect);
-    const restoreSelection = () => {
-      if (!cancelled && input.selectionStart === 0 && input.selectionEnd === 0) {
-        input.setSelectionRange(selection.start, selection.end, selection.direction);
-      }
-    };
-    restoreSelection();
-    // Browsers can clear selection after a password type change commits.
-    const frame = requestAnimationFrame(restoreSelection);
     return () => {
       cancelRestoration();
-      cancelAnimationFrame(frame);
       for (const event of interactionEvents) input.removeEventListener(event, cancelRestoration);
       input.removeEventListener("select", onSelect);
     };
+  }, []);
+
+  useEffect(() => {
+    const selection = selectionRef.current;
+    if (!selection) return;
+    // Browsers can clear selection after a password type change commits.
+    const frame = requestAnimationFrame(() => {
+      const input = inputRef.current;
+      if (selectionRef.current === selection && input?.value === selection.value && input.selectionStart === 0 && input.selectionEnd === 0) {
+        input.setSelectionRange(selection.start, selection.end, selection.direction);
+      }
+      if (selectionRef.current === selection) selectionRef.current = null;
+    });
+    return () => cancelAnimationFrame(frame);
   }, [visible]);
 
   return (
@@ -177,7 +181,7 @@ export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(fu
             onClick={() => {
               const input = inputRef.current;
               selectionRef.current = input && input.selectionStart !== null && input.selectionEnd !== null
-                ? { start: input.selectionStart, end: input.selectionEnd, direction: input.selectionDirection ?? "none" }
+                ? { start: input.selectionStart, end: input.selectionEnd, direction: input.selectionDirection ?? "none", value: input.value }
                 : null;
               setVisible((value) => !value);
             }}
