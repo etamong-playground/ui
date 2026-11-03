@@ -784,3 +784,15 @@ body {
   text-align: center;
   white-space: nowrap;
 }
+
+.sc-form-example {
+  display: grid;
+  gap: var(--etu-space-4);
+  width: 100%;
+  padding: var(--etu-space-4);
+  box-sizing: border-box;
+}
+.sc-form-card { max-width: 40rem; }
+.sc-form-example > h3 { margin: 0; }
+.sc-form-example > button[type="submit"] { min-height: 48px; }
+.sc-form-example output { overflow-wrap: anywhere; }

@@ -12,7 +12,7 @@ safe go-to shortcuts, **toast + dialog** notification primitives, and the
 `app-notifications`, `build-version-info`).
 
 Published to GitHub Packages; consumed by all app
-frontends. **Current: v0.48.** Releasing + consuming are documented at the bottom.
+frontends. **Current: v0.51.** Releasing + consuming are documented at the bottom.
 
 Works in both house stacks — Next.js (React 19) and Vite + apiserver (React 18).
 React/ReactDOM are peer deps.
@@ -60,6 +60,7 @@ React/ReactDOM are peer deps.
 | `PageContainer` | React component | Responsive narrow / regular / wide content measure with mobile-safe gutters | Once around a page body |
 | `PageHeader` | React component | Restrained page title hierarchy with optional kicker, description, actions, and compact density | First child of `PageContainer` |
 | `SettingsGroup` / `SettingsRow` | React components | Canonical divided settings rows with a separate danger-zone tone | Settings routes; compose with `AppInfoSection` |
+| `Field` / `TextField` / `PasswordField` / `Select` | React components | Accessible labels, descriptions and errors around native controls, with forwarded refs and password visibility | Forms; see [native form controls](#native-form-controls) |
 | `formatRelTime(when)` | function | `"3분 전"` / `"in 2 hours"` via `Intl.RelativeTimeFormat`; locale from the document | Lists, activity feeds, anywhere "ago" reads right |
 | `formatAbsTime(when, opts?)` | function | Absolute time via `Intl.DateTimeFormat`; defaults to KST (`Asia/Seoul`) Korean. Style presets: `date` / `time` / `datetime` / `datetime-seconds` | Timestamps, log lines, tooltips |
 | `RelTime` | React component | Auto-refreshing relative-time label (`<time dateTime>` with absolute time as `title`) | Anywhere `formatRelTime` would otherwise need re-renders |
@@ -1917,19 +1918,13 @@ See [Contributing](CONTRIBUTING.md) for the improvement proposal form, evidence 
 
 ## Releasing
 
-The package publishes from CI **on a version tag** — no manual `pnpm publish`.
+Merge a version-bump PR into `main` after its checks pass.
+The Auto release workflow dispatches Publish, which cuts the immutable version tag in CI and publishes to npmjs and GitHub Packages.
+If a dispatch is needed manually, run `gh workflow run publish.yml --ref main` without a tag input.
+Do not push release tags or publish from a workstation.
 
-```sh
-# 1. bump the version on a branch → PR → merge to main
-#    (edit "version" in package.json, e.g. 0.4.0 → 0.5.0)
-# 2. tag the merged commit and push the tag:
-git checkout main && git pull
-git tag v0.5.0           # the tag MUST equal package.json's version
-git push origin v0.5.0
-```
-
-The tag pipeline verifies `vX.Y.Z` matches `package.json`, builds, and publishes
-to GitHub Packages. Versioning is **semver, but `0.x`**: cut **minor** bumps
+The pipeline verifies `vX.Y.Z` matches `package.json` before publication.
+Versioning is **semver, but `0.x`**: cut **minor** bumps
 (0.4 → 0.5) for new components/exports and **patch** (0.4.0 → 0.4.1) for fixes.
 Re-tagging an already-published version fails loudly (npm won't overwrite).
 
@@ -1957,6 +1952,58 @@ git add package.json pnpm-lock.yaml && git commit -m "bump @etamong-playground/u
 Note `^0.x` is narrow: `^0.4.0` = `>=0.4.0 <0.5.0`, so a **minor** bump needs the
 pin changed in every consumer (a patch stays in range but still needs the
 lockfile updated).
+
+## Native form controls
+
+`TextField`, `PasswordField` and `Select` render native controls inside a `Field`.
+Import `@etamong-playground/ui/styles.css` once at the application root.
+They provide stable IDs, explicit labels, linked descriptions and errors, native required/disabled behavior, and forwarded DOM refs.
+Controls use existing tokens with a 44px minimum height and a 16px input font to avoid mobile focus zoom.
+
+```tsx
+<TextField
+  label="Display name"
+  name="displayName"
+  value={name}
+  onChange={(event) => setName(event.target.value)}
+  description="Shown on your profile."
+  error={nameError}
+  autoComplete="name"
+  required
+/>
+<PasswordField label="Password" name="password" autoComplete="new-password" locale="en" />
+<Select label="Region" name="region" defaultValue="ko">
+  <option value="ko">Korea</option>
+  <option value="en">Other</option>
+</Select>
+```
+
+| Component or prop | Contract |
+| --- | --- |
+| `Field` | Requires a label and a child callback receiving `FieldControlProps`; spread those props onto one labelable control. |
+| `TextField` | Native input props and ref; types `text`, `email`, `search`, `tel`, `url` and `number`. |
+| `PasswordField` | Native password input props and ref; its visibility button preserves the value and selection and does not submit the form. |
+| `Select` | Native select props and ref, including `multiple`, `size`, option groups and disabled options. |
+| `description`, `error` | Optional React content; an error sets `aria-invalid` and is linked alongside helper text and caller-supplied `aria-describedby` IDs. |
+| `id`, `required`, `disabled` | Passed to the control and used by Field's label and accessibility wiring. Generated IDs remain stable while mounted. |
+| `className`, `fieldClassName` | Native control class and outer field class, respectively. `Field` accepts `fieldClassName`. |
+| `locale`, `labels` | Password visibility labels use an explicit locale or resolve KO/EN from the document after mounting. Pass `locale` to localize server output and follow reactive locale changes; `labels.show` and `labels.hide` override defaults. |
+
+Validation timing, messages and submitted values stay with the application.
+Native input/select events, controlled `value`, uncontrolled `defaultValue`, `readOnly`, browser validation and form serialization retain their normal behavior.
+The controls do not normalize or log values.
+Use native `Select` for a small finite set; it does not provide searchable or free-text selection.
+
+Use `Field` for a custom native control without cloning its child:
+
+```tsx
+<Field label="Notes" description="Optional details." error={notesError}>
+  {(control) => <textarea {...control} className="etu-input" name="notes" rows={3} />}
+</Field>
+```
+
+Keep caller-supplied description elements mounted while their IDs appear in `aria-describedby`.
+The showcase's Forms section includes editable, error, disabled, read-only and custom-control examples in both locales.
 
 ## Acknowledgements
 

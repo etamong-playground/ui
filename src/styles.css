@@ -3517,3 +3517,65 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   justify-content: center;
   align-items: center;
 }
+
+.etu-field {
+  display: grid;
+  gap: var(--etu-space-2);
+  min-width: 0;
+}
+.etu-field-label {
+  color: var(--etu-text-muted);
+  font-size: var(--etu-fs-sm);
+  font-weight: var(--etu-fw-semibold);
+}
+.etu-field-required, .etu-field-error { color: var(--etu-danger); }
+.etu-field-description, .etu-field-error {
+  font-size: var(--etu-fs-sm);
+  overflow-wrap: anywhere;
+}
+.etu-field-description { color: var(--etu-text-muted); }
+.etu-input, .etu-select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: var(--etu-space-2) var(--etu-space-3);
+  border: 1px solid var(--etu-border-strong);
+  border-radius: var(--etu-r-sm);
+  background: var(--etu-surface);
+  color: var(--etu-text);
+  font-family: var(--etu-font);
+  font-size: var(--etu-fs-md);
+  line-height: var(--etu-lh);
+}
+.etu-input:focus-visible, .etu-select:focus-visible, .etu-password-toggle:focus-visible {
+  outline: 2px solid var(--etu-ring);
+  outline-offset: 2px;
+}
+.etu-input[aria-invalid="true"], .etu-select[aria-invalid="true"] { border-color: var(--etu-danger); }
+.etu-input:disabled, .etu-select:disabled, .etu-password-toggle:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.etu-input[readonly] { background: var(--etu-surface-2); }
+.etu-password {
+  display: flex;
+  align-items: stretch;
+  gap: var(--etu-space-2);
+  min-width: 0;
+}
+.etu-password .etu-input { flex: 1; width: 0; }
+.etu-password-toggle {
+  flex-shrink: 0;
+  min-height: 44px;
+  max-width: 50%;
+  padding: var(--etu-space-2);
+  border: 1px solid var(--etu-border-strong);
+  border-radius: var(--etu-r-sm);
+  background: var(--etu-surface-2);
+  color: var(--etu-text);
+  font: inherit;
+  font-size: var(--etu-fs-sm);
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
