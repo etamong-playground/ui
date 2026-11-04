@@ -374,3 +374,35 @@ for (const profile of [
     ]);
   });
 }
+
+for (const theme of ["light", "dark"] as const) {
+  for (const width of [390, 768, 1280]) {
+    test(`feed search and hierarchy at ${width}px in ${theme}`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.addInitScript((theme) => localStorage.setItem("ui-showcase-theme", theme), theme);
+      await page.goto("/#/composition");
+      const feed = page.getByTestId("composition-feed");
+      await expect(feed.getByRole("listitem")).toHaveCount(3);
+      await expect(feed.getByRole("status")).toHaveText("게시글 3개 중 3개");
+      const heading = feed.locator(".etu-page-header-title");
+      const size = await heading.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+      expect(size).toBeGreaterThanOrEqual(24);
+      expect(size).toBeLessThanOrEqual(28);
+      const list = feed.locator(".sc-feed-list");
+      const headerBox = await heading.boundingBox();
+      const rowBox = await list.locator("h3").first().boundingBox();
+      expect(Math.abs(headerBox!.x - rowBox!.x)).toBeLessThan(1);
+      const search = feed.getByRole("searchbox", { name: "게시글 검색" });
+      await search.fill("화분");
+      await expect(feed.getByRole("listitem")).toHaveCount(1);
+      await expect(feed.getByRole("heading", { name: "분갈이한 화분에 새잎이 났어요" })).toBeVisible();
+      await expect(feed.getByRole("img")).toBeVisible();
+      await search.fill("no-matching-title");
+      await expect(feed.getByRole("listitem")).toHaveCount(0);
+      await expect(feed.getByText("검색 결과가 없습니다.")).toBeVisible();
+      await search.fill("");
+      await expect(feed.getByRole("listitem")).toHaveCount(3);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    });
+  }
+}

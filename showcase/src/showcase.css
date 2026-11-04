@@ -796,3 +796,49 @@ body {
 .sc-form-example > h3 { margin: 0; }
 .sc-form-example > button[type="submit"] { min-height: 48px; }
 .sc-form-example output { overflow-wrap: anywhere; }
+
+.sc-feed-result {
+  margin: 1rem 0 0;
+  color: var(--etu-text-muted);
+  font-size: var(--etu-fs-sm);
+}
+
+.sc-card .sc-feed-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-feed-list > li + li { border-top: 1px solid var(--etu-border); }
+
+.sc-feed-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding-block: 1.25rem;
+}
+
+.sc-feed-copy { flex: 1; min-width: 0; }
+
+.sc-feed-copy h3 {
+  margin: 0;
+  color: var(--etu-text);
+  font-size: var(--etu-fs-md);
+  font-weight: var(--etu-fw-semibold);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.sc-feed-copy p {
+  margin: 0.375rem 0 0;
+  color: var(--etu-text-muted);
+  font-size: var(--etu-fs-sm);
+  line-height: 1.5;
+}
+
+.sc-feed-row img {
+  width: clamp(4rem, 16vw, 5.5rem);
+  height: auto;
+  flex: none;
+  border-radius: var(--etu-r-sm);
+}

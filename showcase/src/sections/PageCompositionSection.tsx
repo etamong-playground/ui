@@ -1,15 +1,26 @@
+import { useState } from "react";
 import {
   AppInfoSection,
   PageContainer,
   PageHeader,
   SettingsGroup,
   SettingsRow,
+  TextField,
   useT,
 } from "@etamong-playground/ui";
 import { FeatureTag } from "../FeatureTag";
 
 export function PageCompositionSection() {
   const t = useT();
+  const [query, setQuery] = useState("");
+  const posts = [
+    { title: t("feed.first"), category: t("feed.question"), age: t("feed.day"), likes: 6, comments: 8 },
+    { title: t("feed.second"), category: t("feed.daily"), age: t("feed.day"), likes: 12, comments: 3, image: true },
+    { title: t("feed.third"), category: t("feed.meeting"), age: t("feed.days"), likes: 4, comments: 2 },
+  ];
+  const visiblePosts = posts.filter((post) =>
+    `${post.title} ${post.category}`.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()),
+  );
 
   return (
     <div className="sc-section">
@@ -34,6 +45,36 @@ export function PageCompositionSection() {
           <span className="etu-type-body">Body text stays readable and quiet.</span>
           <span className="etu-type-metadata">Metadata · 8 candidates</span>
         </div>
+      </div>
+
+      <div className="sc-card" data-testid="composition-feed">
+        <div className="sc-card-header">Feed and search results</div>
+        <PageContainer as="section" measure="regular" className="sc-composition-frame">
+          <PageHeader title={t("feed.heading")} description={t("feed.description")} headingLevel={2} />
+          <TextField
+            label={t("feed.search")}
+            type="search"
+            placeholder={t("feed.searchHint")}
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+          <p className="sc-feed-result" role="status">{t("feed.count", { count: visiblePosts.length, total: posts.length })}</p>
+          <ul className="sc-feed-list" role="list">
+            {visiblePosts.map((post) => (
+              <li key={post.title}>
+                <article className="sc-feed-row">
+                  <div className="sc-feed-copy">
+                    <h3>{post.title}</h3>
+                    <p>{post.category} · {post.age}</p>
+                    <p>{t("feed.likes", { count: post.likes })} · {t("feed.comments", { count: post.comments })}</p>
+                  </div>
+                  {post.image && <img src="plant.svg" alt={t("feed.image")} width="88" height="88" />}
+                </article>
+              </li>
+            ))}
+          </ul>
+          {visiblePosts.length === 0 && <p className="etu-type-body">{t("feed.empty")}</p>}
+        </PageContainer>
       </div>
 
       <div className="sc-card" data-testid="composition-single">
