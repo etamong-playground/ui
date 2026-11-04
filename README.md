@@ -53,7 +53,7 @@ React/ReactDOM are peer deps.
 | `networkFirstSwSource({ version, … })` | function | Returns the canonical online-first SW recipe as a string — write to `public/sw.js` at build time. Network-first nav + assets, never intercepts `/api/*`, versioned caches. **`version` MUST be a per-build identifier** (git SHA or build timestamp), not a hardcoded constant — see "PWA cache strategy" below | Build step (or served dynamically) |
 | `installIOSPwaShell()` | function | Tags `<html>` with `etu-pwa-standalone` / `etu-ios-pwa` and re-locks `-webkit-text-size-adjust` in iOS PWA mode so Korean body text doesn't shrink in standalone launch. Opt-in `data-etu-lock-zoom` adds `maximum-scale=1` to the viewport meta to suppress input-focus zoom | Once at app bootstrap |
 | `AdminGate` | React component | Renders `children` only when `me` passes `is_admin` / email allowlist / role / predicate (logical OR); otherwise renders `fallback` | Wrap any admin-only route or section |
-| `AdminBadge` | React component | Small "관리자 전용" pill | Inline next to the page title |
+| `AdminBadge` | React component | Small "관리자 전용" badge | Inline next to the page title |
 | `BackofficeLayout` | React component | Page-head with title + AdminBadge + actions slot + body | Backoffice / admin-console route layout |
 | `isAdminLike(input)` | function | The check behind `AdminGate` exposed as a pure function | Imperative gates / route guards |
 | `AppInfoSection` | React component | Canonical "앱 정보" card — name, description, app version, build (`<DeployInfo>`), links, free-form rows | Settings / backoffice "About" route |
@@ -236,7 +236,7 @@ named token.
 Utility classes built on the scale: `.etu-h1` / `.etu-h2` / `.etu-h3`
 (headings), `.etu-caption` (muted small text), `.etu-tnum` (tabular numerals —
 see "Typography" below), `.etu-page-col` (+ `--narrow` / `--wide` modifiers, a
-centered reading-width column), `.etu-badge` (soft-tint status/label pill),
+centered reading-width column), `.etu-badge` (soft-tint status/label badge),
 `.etu-input` (+ `--sm`, standalone text field).
 
 **`.etu-input`**: the standalone text field (promoted from meloetta). Carries
@@ -248,7 +248,7 @@ stay with the caller. `--sm` is the compact modifier for dense toolbars.
 <input className="etu-input etu-input--sm" />
 ```
 
-**`.etu-badge`**: a pill for inline status/label text — pairs a `-soft`
+**`.etu-badge`**: a badge for inline status/label text — pairs a `-soft`
 background with the matching solid text color.
 
 ```tsx
@@ -260,7 +260,7 @@ background with the matching solid text color.
 ```
 
 Bare `.etu-badge` (no modifier) uses `--etu-surface-2` / `--etu-text-muted` —
-a neutral pill for non-status labels. The four modifiers
+a neutral badge for non-status labels. The four modifiers
 (`--accent` / `--ok` / `--warn` / `--err`) each pair the matching `-soft`
 background token with its solid text token.
 
@@ -1366,6 +1366,17 @@ row.
 
 ## Page composition and settings
 
+Ordinary page titles use a 24–28px scale; compact settings titles use 22–24px.
+Display typography is reserved for content that needs a dedicated focal area.
+Badges use medium-weight text and the small radius; reserve them for status or labels rather than wrapping every count.
+
+For feeds and result lists, let the item title lead, with a thumbnail only when it helps identify the item.
+Render dates, categories, and reaction counts as plain muted text; use spacing or a separator to group rows before adding a card around each row.
+Use accent color for the primary action, selected controls, and meaningful state.
+Keep ordinary headings, rank numbers, and metadata neutral, and use task-specific labels such as “Search posts” rather than promotional copy.
+See the showcase's feed example for long titles, rows with and without thumbnails, and plain metadata.
+
+
 `PageContainer` owns responsive content measure and mobile-safe gutters.
 `PageHeader` owns a restrained title hierarchy without adding a card or tinted
 surface. Use `density="compact"` for settings and utility screens. Product
@@ -1505,7 +1516,7 @@ The trigger is the avatar. Click → dropdown with:
 
 - Display name (`me.name` ?? `me.preferred_username` ?? `me.email`).
 - Email line (when distinct from the display name).
-- `admin` pill when `me.is_admin` (suppress via `showAdminBadge={false}`).
+- `admin` badge when `me.is_admin` (suppress via `showAdminBadge={false}`).
 - Optional `extraItems` rows above the standard ones.
 - The "내 정보" link (set `myInfoHref={null}` to hide).
 - The "로그아웃" button.
@@ -1569,9 +1580,9 @@ canonical `<Sidebar footer>` control:
   (`useState(() => localStorage.getItem(...))`) with no `storage` event
   listener — it won't notice `setTheme()` being called from this popover, so
   the two toggles show contradictory state until the next full reload.
-- **`badges`** — role/permission pills (`{ label, tone? }`, tone matches
+- **`badges`** — role/permission badges (`{ label, tone? }`, tone matches
   `.etu-badge--*`) rendered under the name, independent of the built-in
-  `admin` pill (`showAdminBadge`).
+  `admin` badge (`showAdminBadge`).
 - The footer itself stays identity-only — don't drop unrelated icon buttons
   (locale switch, command palette trigger, …) into it directly; those belong
   in `appHeaderExtra` or the app's own header/nav bar chrome. The one

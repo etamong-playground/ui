@@ -113,7 +113,7 @@ body.etu-page {
   --etu-err: #e5484d;
   --etu-err-text: #b4232a;
   --etu-fs-display: clamp(2.25rem, 5vw, 4.5rem);
-  --etu-fs-page-title: clamp(1.75rem, 2vw + 1rem, 2.25rem);
+  --etu-fs-page-title: clamp(1.5rem, 1vw + 1.25rem, 1.75rem);
   --etu-fs-section-title: 1.125rem;
   --etu-fs-body: 0.95rem;
   --etu-fs-metadata: 0.78rem;
@@ -315,10 +315,10 @@ body.etu-page:lang(ko),
   display: inline-flex;
   align-items: center;
   gap: var(--etu-space-1);
-  padding: 2px 10px;
-  border-radius: var(--etu-r-full);
+  padding: 2px 8px;
+  border-radius: var(--etu-r-sm);
   font-size: var(--etu-fs-caption);
-  font-weight: var(--etu-fw-semibold);
+  font-weight: var(--etu-fw-medium);
   line-height: var(--etu-lh-tight);
   background: var(--etu-surface-2);
   color: var(--etu-text-muted);
@@ -1493,7 +1493,7 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   font-size: var(--etu-fs-page-title);
   font-weight: 600;
   line-height: var(--etu-lh-title);
-  letter-spacing: -0.035em;
+  letter-spacing: -0.02em;
 }
 
 .etu-type-section-title {
@@ -1546,10 +1546,10 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   align-items: flex-start;
   justify-content: space-between;
   gap: 1.5rem;
-  margin-bottom: clamp(1.75rem, 4vw, 3.5rem);
+  margin-bottom: clamp(1.25rem, 3vw, 2rem);
 }
 
-.etu-page-header--compact { margin-bottom: clamp(1.25rem, 3vw, 2rem); }
+.etu-page-header--compact { margin-bottom: clamp(1rem, 2vw, 1.5rem); }
 
 .etu-page-header-copy {
   min-width: 0;
@@ -1571,11 +1571,11 @@ body:has(.etu-mobile-tab-bar) .etu-install-banner {
   font-size: var(--etu-fs-page-title);
   font-weight: 600;
   line-height: var(--etu-lh-title);
-  letter-spacing: -0.035em;
+  letter-spacing: -0.02em;
 }
 
 .etu-page-header--compact .etu-page-header-title {
-  font-size: clamp(1.6rem, 1.5vw + 1rem, 1.875rem);
+  font-size: clamp(1.375rem, 1vw + 1.125rem, 1.5rem);
 }
 
 .etu-page-header-description {
