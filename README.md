@@ -12,7 +12,7 @@ safe go-to shortcuts, **toast + dialog** notification primitives, and the
 `app-notifications`, `build-version-info`).
 
 Published to GitHub Packages; consumed by all app
-frontends. **Current: v0.51.** Releasing + consuming are documented at the bottom.
+frontends. **Current: v0.51.1.** Releasing + consuming are documented at the bottom.
 
 Works in both house stacks — Next.js (React 19) and Vite + apiserver (React 18).
 React/ReactDOM are peer deps.
