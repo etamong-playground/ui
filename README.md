@@ -11,8 +11,9 @@ safe go-to shortcuts, **toast + dialog** notification primitives, and the
 (`frontend-conventions`, `design-system`, `command-palette`,
 `app-notifications`, `build-version-info`).
 
-Published to GitHub Packages; consumed by all app
-frontends. **Current: v0.51.1.** Releasing + consuming are documented at the bottom.
+Published to public npmjs.com and GitHub Packages.
+App frontends can install from public npm without package credentials.
+**Current: v0.51.1.** Releasing and consuming are documented below.
 
 Works in both house stacks — Next.js (React 19) and Vite + apiserver (React 18).
 React/ReactDOM are peer deps.
@@ -121,16 +122,15 @@ boundary (they listen for keydown / dispatch events).
 
 ## Install
 
-Consumers resolve `@etamong-playground/*` from the GitHub Packages registry. In the app's
-`.npmrc`:
-
-```
-@etamong-playground:registry=https://npm.pkg.github.com/
-```
+Use the app's pinned pnpm version through Corepack to install from public npm:
 
 ```sh
-pnpm add @etamong-playground/ui
+corepack pnpm add @etamong-playground/ui
 ```
+
+Public npm installs need no scoped `.npmrc` mapping or package token for this package.
+Remove obsolete registry authentication only after checking whether other dependencies still need it.
+GitHub Packages remains an optional authenticated distribution channel.
 
 ## Design tokens
 
@@ -1941,24 +1941,17 @@ Re-tagging an already-published version fails loudly (npm won't overwrite).
 
 ## Consuming in an app
 
-Three things are needed (or the app's CI 404s / fails to resolve the package):
-
-1. **App `.npmrc`** — GitHub Packages registry:
-   `@etamong-playground:registry=https://npm.pkg.github.com/`
-2. **`package.json`** — `"@etamong-playground/ui": "^0.5.0"`.
-3. **Dockerfile deps stage** — `ARG NPM_TOKEN` + before install:
-   `RUN echo "//npm.pkg.github.com/:_authToken=${NPM_TOKEN}" >> .npmrc`;
-   the build job passes the token via `--build-arg NPM_TOKEN`. (CI check
-   jobs need the same `_authToken` line in `before_script`.)
-
-**Picking up a new release:** bump the pin in `package.json` **and** refresh the
-lockfile, then commit both — the app CIs use `--frozen-lockfile`, so the lockfile
-must move for the new version to install:
+Review the release gap and verify that the selected version is published before upgrading.
+In the command below, replace `VERSION` with that version or the app's reviewed semver range:
 
 ```sh
-pnpm add @etamong-playground/ui@^0.5.0   # updates package.json + pnpm-lock.yaml
-git add package.json pnpm-lock.yaml && git commit -m "bump @etamong-playground/ui to 0.5.0"
+corepack pnpm add "@etamong-playground/ui@VERSION"
 ```
+
+Commit `package.json` and `pnpm-lock.yaml` together; CI installs with `--frozen-lockfile`.
+Verify the resolved version and installed content, then run the app's build and relevant tests.
+Import `@etamong-playground/ui/styles.css` once at the app root as shown under [Design tokens](#design-tokens).
+Public npm consumers do not need a registry-token Dockerfile argument or an authentication step for this package.
 
 Note `^0.x` is narrow: `^0.4.0` = `>=0.4.0 <0.5.0`, so a **minor** bump needs the
 pin changed in every consumer (a patch stays in range but still needs the
